@@ -1,15 +1,23 @@
 import { createRoot } from "react-dom/client"
 import { createBrowserRouter, RouterProvider } from "react-router";
 import "./index.css"
-import App from "./App.tsx"
+import Home from "./pages/home.tsx"
+import Register from "./pages/Register.tsx";
+import { ThemeProvider } from "./components/theme-provider.tsx";
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <App />,
+    element: <Home />,
   },
+  {
+    path: "/registro",
+    element: <Register />
+  }
 ]);
 
 createRoot(document.getElementById("root")!).render(
-  <RouterProvider router={router} />
+  <ThemeProvider defaultTheme="system" storageKey="theme">
+    <RouterProvider router={router} />
+  </ThemeProvider>
 )
