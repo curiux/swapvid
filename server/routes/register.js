@@ -1,8 +1,17 @@
 import { Router } from "express";
 import User from "../models/User.js";
+import { generateToken } from "../lib/jwt.js";
 
 const router = Router();
 
+/**
+ * This function handles user registration
+ * It attempts to create a new user with the provided email, username, and password.
+ * On success, it generates a JWT token and returns it with a 201 status.
+ * If a validation error occurs it returns a 400 status with the validation messages.
+ * If a duplicate email or username is detected (MongoDB error code 11000) it returns a 400 status with a specific error message.
+ * Any other errors are logged and a generic 500 error is returned.
+ */
 router.post("/", async (req, res) => {
     try {
         const user = await User.create({
@@ -10,7 +19,8 @@ router.post("/", async (req, res) => {
             username: req.body.username,
             password: req.body.password
         });
-        res.send(user).status(201);
+        const token = generateToken({ _id: user._id });
+        res.send({ token }).status(201);
     } catch (e) {
         // Schema validations
         if (e.name == "ValidationError") {
@@ -18,17 +28,26 @@ router.post("/", async (req, res) => {
             for (const error in e.errors) {
                 message += e.errors[error].message + "\n";
             }
-            res.send(message).status(400);
+            res.send({ error: message } ).status(400);
         // Data duplicated
         } else if (e.name == "MongoServerError" && e.code == 11000) {
             const attr = Object.keys(e.errorResponse.keyPattern)[0];
             if (attr == "email") {
-                res.send("Ya existe una cuenta con ese email.").status(400);
+                res.send({
+                    error: "Ya existe una cuenta con ese email.",
+                    field: "email"
+                }).status(400);
             } else if (attr == "username") {
-                res.send("Ya existe una cuenta con ese nombre de usuario.").status(400);
+                res.send({
+                    error: "Ya existe una cuenta con ese nombre de usuario.",
+                    field: "username"
+                }).status(400);
             }
         } else {
-            res.send("Ha ocurrido un error inesperado").status(500);
+            console.log(e);
+            res.send({
+                error: "Ha ocurrido un error inesperado"
+            }).status(500);
         }
     }
 });
