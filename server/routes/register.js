@@ -20,7 +20,7 @@ router.post("/", async (req, res) => {
             password: req.body.password
         });
         const token = generateToken({ _id: user._id });
-        res.send({ token }).status(201);
+        res.status(201).send({ token });
     } catch (e) {
         // Schema validations
         if (e.name == "ValidationError") {
@@ -28,26 +28,26 @@ router.post("/", async (req, res) => {
             for (const error in e.errors) {
                 message += e.errors[error].message + "\n";
             }
-            res.send({ error: message } ).status(400);
+            res.status(400).send({ error: message } );
         // Data duplicated
         } else if (e.name == "MongoServerError" && e.code == 11000) {
             const attr = Object.keys(e.errorResponse.keyPattern)[0];
             if (attr == "email") {
-                res.send({
+                res.status(400).send({
                     error: "Ya existe una cuenta con ese email.",
                     field: "email"
-                }).status(400);
+                });
             } else if (attr == "username") {
-                res.send({
+                res.status(400).send({
                     error: "Ya existe una cuenta con ese nombre de usuario.",
                     field: "username"
-                }).status(400);
+                });
             }
         } else {
             console.log(e);
-            res.send({
+            res.status(500).send({
                 error: "Ha ocurrido un error inesperado"
-            }).status(500);
+            });
         }
     }
 });
