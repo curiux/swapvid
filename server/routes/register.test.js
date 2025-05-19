@@ -20,10 +20,27 @@
 import request from "supertest";
 import app from "../server.js";
 import User from "../models/User.js";
-import { afterEach, describe, expect, it } from "vitest";
+import mongoose from "mongoose";
+import { MongoMemoryServer } from "mongodb-memory-server";
+import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
+
+let mongoServer;
+
+beforeAll(async () => {
+    mongoServer = await MongoMemoryServer.create();
+    if (mongoose.connection.readyState !== 0) {
+        await mongoose.disconnect();
+    }
+    await mongoose.connect(mongoServer.getUri(), { dbName: "test" });
+});
 
 afterEach(async () => {
     await User.deleteMany();
+});
+
+afterAll(async () => {
+    await mongoose.connection.close();
+    await mongoServer.stop();
 });
 
 describe("POST /register", () => {
@@ -81,7 +98,6 @@ describe("POST /register", () => {
             username: "usuario123",
             password: "Password123!"
         });
-
         const res = await request(app).post("/register").send({
             email: "test2@example.com",
             username: "usuario123",
