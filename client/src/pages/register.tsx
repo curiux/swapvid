@@ -16,7 +16,7 @@ export default function Register() {
     }, []);
 
     return (
-        <div className="flex min-h-svh w-full items-center justify-center p-3 md:p-10">
+        <div className="flex min-h-svh w-full items-center justify-center p-3 pt-20">
             <div className="w-full max-w-md">
                 <RegisterForm />
             </div>
