@@ -7,7 +7,7 @@
  * - Backend errors (such as incorrect credentials) are displayed appropriately.
  * - Successful login triggers a redirect to the main page.
  * 
- * Mocks are used for navigation, fetch requests, and ResizeObserver to isolate component logic.
+ * Mocks are used for navigation, fetch requests, ResizeObserver and window.matchMedia to isolate component logic.
  */
 import { cleanup } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -32,6 +32,20 @@ vi.mock("react-router", async () => {
         useNavigate: () => mockNavigate,
     };
 });
+
+// Mock window.matchMedia
+if (!window.matchMedia) {
+    window.matchMedia = function () {
+        return {
+            matches: false,
+            addEventListener: () => { },
+            removeEventListener: () => { },
+            addListener: () => { },
+            removeListener: () => { },
+            dispatchEvent: () => false
+        };
+    } as any;
+}
 
 describe("LoginForm", () => {
     beforeEach(() => {

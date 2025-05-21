@@ -7,6 +7,7 @@ import { Button } from "./ui/button";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { API_URL } from "@/lib/utils";
+import Spinner from "./spinner";
 
 /**
  * This schema defines validation rules for the login form using Zod.
@@ -35,7 +36,7 @@ export default function LoginForm() {
         mode: "onChange"
     });
 
-    const handleSubmit = (values: z.infer<typeof formSchema>) => {
+    const handleSubmit = async (values: z.infer<typeof formSchema>) => {
         const user = values.user;
         const password = values.password;
 
@@ -46,24 +47,28 @@ export default function LoginForm() {
         } else {
             payload.username = user;
         }
-        login(payload);
+        await login(payload);
     }
 
     const login = async (payload: { email?: string; username?: string; password: string }) => {
-        const res = await fetch(API_URL + "/login", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(payload)
-        });
-
-        const data = await res.json();
-        if (data.error) {
-            form.setError("password", { message: data.error });
-        } else {
-            localStorage.setItem("token", data.token);
-            navigate("/");
+        try {
+            const res = await fetch(API_URL + "/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
+            });
+    
+            const data = await res.json();
+            if (data.error) {
+                form.setError("root", { message: data.error });
+            } else {
+                localStorage.setItem("token", data.token);
+                navigate("/");
+            }
+        } catch (e) {
+            form.setError("root", { message: "Ha ocurrido un error inesperado." });
         }
     }
 
@@ -113,6 +118,12 @@ export default function LoginForm() {
                                 </FormItem>
                             )}
                         />
+                        {form.formState.isSubmitting && <Spinner className="w-8 h-8" />}
+                        {form.formState.errors.root && (
+                            <FormMessage>
+                                {form.formState.errors.root.message}
+                            </FormMessage>
+                        )}
                         <Button type="submit" className="w-full">
                             Entrar
                         </Button>

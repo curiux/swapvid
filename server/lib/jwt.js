@@ -23,12 +23,3 @@ export function verifyToken(token) {
         return null;
     }
 }
-
-/**
- * Decodes a JWT token without verifying its signature.
- * @param {string} token - The JWT token to decode.
- * @returns {Object|null} The decoded payload, or null if invalid.
- */
-export function decodeToken(token) {
-    return jwt.decode(token);
-}

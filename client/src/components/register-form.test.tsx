@@ -7,7 +7,7 @@
  * - Successful form submission triggers a redirect to the main page.
  * - Backend errors are displayed appropriately to the user.
  * 
- * Mocks are used for navigation, fetch requests, and ResizeObserver to isolate component logic.
+ * Mocks are used for navigation, fetch requests, ResizeObserver and window.matchMedia to isolate component logic.
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
@@ -32,6 +32,19 @@ vi.mock("react-router", async () => {
     };
 });
 
+// Mock window.matchMedia
+if (!window.matchMedia) {
+    window.matchMedia = function () {
+        return {
+            matches: false,
+            addEventListener: () => { },
+            removeEventListener: () => { },
+            addListener: () => { },
+            removeListener: () => { },
+            dispatchEvent: () => false
+        };
+    } as any;
+}
 
 describe("RegisterForm", () => {
     beforeEach(() => {

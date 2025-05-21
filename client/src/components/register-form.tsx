@@ -8,6 +8,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Checkbox } from "./ui/checkbox";
 import { API_URL } from "@/lib/utils";
+import Spinner from "./spinner";
 
 /**
  * This schema defines validation rules for the registration form using Zod.
@@ -61,37 +62,41 @@ export default function RegisterForm() {
         mode: "onChange"
     });
 
-    const handleSubmit = (values: z.infer<typeof formSchema>) => {
+    const handleSubmit = async (values: z.infer<typeof formSchema>) => {
         const email = values.email;
         const username = values.username;
         const password = values.password1;
-        
-        register(email, username, password);
+
+        await register(email, username, password);
     }
 
     const register = async (email: string, username: string, password: string) => {
-        const res = await fetch(API_URL + "/register", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                email,
-                username,
-                password
-            })
-        });
-
-        const data = await res.json();
-        if (data.error) {
-            if (data.field) {
-                form.setError(data.field as keyof z.infer<typeof formSchema>, { message: data.error });
+        try {
+            const res = await fetch(API_URL + "/register", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    email,
+                    username,
+                    password
+                })
+            });
+    
+            const data = await res.json();
+            if (data.error) {
+                if (data.field) {
+                    form.setError(data.field as keyof z.infer<typeof formSchema>, { message: data.error });
+                } else {
+                    form.setError("root", { message: data.error });
+                }
             } else {
-                form.setError("tac", { message: data.error });
+                localStorage.setItem("token", data.token);
+                navigate("/");
             }
-        } else {
-            localStorage.setItem("token", data.token);
-            navigate("/");
+        } catch (e) {
+            form.setError("root", { message: "Ha ocurrido un error inesperado." });
         }
     }
 
@@ -216,6 +221,12 @@ export default function RegisterForm() {
                                 </FormItem>
                             )}
                         />
+                        {form.formState.isSubmitting && <Spinner className="w-8 h-8" />}
+                        {form.formState.errors.root && (
+                            <FormMessage>
+                                {form.formState.errors.root.message}
+                            </FormMessage>
+                        )}
                         <Button type="submit" className="w-full">
                             Registrarse
                         </Button>

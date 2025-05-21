@@ -15,9 +15,9 @@ router.post("/", async (req, res) => {
     try {
         let user;
         if (req.body.email) {
-            user = await User.findOne({ email: req.body.email }).exec();
+            user = await User.findOne({ email: req.body.email });
         } else {
-            user = await User.findOne({ username: req.body.username }).exec();
+            user = await User.findOne({ username: req.body.username });
         }
         if (user) {
             const isMatch = await user.comparePassword(req.body.password);
