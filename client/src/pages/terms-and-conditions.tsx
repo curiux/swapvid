@@ -31,7 +31,7 @@ export default function TermsAndConditions() {
                     {/* --- Section 1: Nuestros Servicios --- */}
                     <h2 className="text-2xl font-semibold mt-8 mb-4">1. NUESTROS SERVICIOS</h2>
                     <p className="mb-4">
-                        La información disponible a través de los Servicios no está destinada a ser distribuida o utilizada por personas en jurisdicciones donde dicha distribución o uso sea contrario a la ley. Usted es responsable de cumplir con la legislación local si accede desde fuera de Argentina.
+                        La información disponible a través de los Servicios no está destinada a ser distribuida o utilizada por personas en jurisdicciones donde dicha distribución o uso sea contrario a la ley. Usted es responsable de cumplir con la legislación local si accede desde fuera de Uruguay.
                     </p>
                     <Separator />
 
@@ -95,6 +95,167 @@ export default function TermsAndConditions() {
                         Usted es responsable del contenido que publica y nos indemnizará ante cualquier reclamo que surja por ello.
                     </p>
                     <Separator />
+
+                    {/* --- Section 7: Licencia sobre Contribuciones --- */}
+                    <h2 className="text-2xl font-semibold mt-8 mb-4">7. LICENCIA SOBRE CONTRIBUCIONES</h2>
+                    <p className="mb-4">
+                        Al publicar contenido en los Servicios, usted nos otorga una licencia perpetua, irrevocable, mundial, libre de regalías y transferible para usar, reproducir, modificar, distribuir y mostrar dicho contenido en cualquier medio y con cualquier fin.
+                    </p>
+                    <p className="mb-4">
+                        Esto incluye su nombre, imagen y cualquier dato asociado a las contribuciones si decide compartirlos públicamente.
+                    </p>
+                    <Separator />
+
+                    {/* --- Section 8: Directrices para Reseñas --- */}
+                    <h2 className="text-2xl font-semibold mt-8 mb-4">8. DIRECTRICES PARA RESEÑAS</h2>
+                    <p className="mb-4">
+                        Puede publicar reseñas o valoraciones de los Servicios, siempre que sean basadas en su experiencia personal, no sean ofensivas ni contengan lenguaje discriminatorio, ilegal o falso.
+                    </p>
+                    <p className="mb-4">
+                        Nos reservamos el derecho de moderar, editar o eliminar reseñas que incumplan estas directrices.
+                    </p>
+                    <Separator />
+
+                    {/* --- Section 9: Gestión de los Servicios --- */}
+                    <h2 className="text-2xl font-semibold mt-8 mb-4">9. GESTIÓN DE LOS SERVICIOS</h2>
+                    <p className="mb-4">
+                        Nos reservamos el derecho de supervisar los Servicios para detectar violaciones a estos Términos, tomar acciones legales,
+                        restringir su acceso o modificar cualquier contenido, si es necesario para proteger nuestros derechos o los de otros usuarios.
+                    </p>
+                    <Separator />
+
+                    {/* --- Section 10: Política de Privacidad --- */}
+                    <h2 className="text-2xl font-semibold mt-8 mb-4">10. POLÍTICA DE PRIVACIDAD</h2>
+                    <p className="mb-4">
+                        Al usar los Servicios, usted acepta que el tratamiento de sus datos se realizará conforme a nuestra <Link to="/politica-de-privacidad" className="underline underline-offset-4">Política de Privacidad</Link>.
+                    </p>
+                    <p className="mb-4">
+                        Esta política explica qué datos recopilamos, cómo los usamos y qué derechos tiene usted sobre su información personal.
+                    </p>
+                    <Separator />
+
+                    {/* --- Section 11: Infracciones de Copyright --- */}
+                    <h2 className="text-2xl font-semibold mt-8 mb-4">11. INFRACCIONES DE COPYRIGHT</h2>
+                    <p className="mb-4">
+                        Respetamos los derechos de propiedad intelectual. Si cree que algún contenido de los Servicios infringe sus derechos de autor, puede notificarnos proporcionando información legalmente válida sobre la infracción.
+                    </p>
+                    <Separator />
+
+                    {/* --- Section 12: Duración y Terminación --- */}
+                    <h2 className="text-2xl font-semibold mt-8 mb-4">12. DURACIÓN Y TERMINACIÓN</h2>
+                    <p className="mb-4">
+                        Estos Términos estarán vigentes mientras utilice los Servicios. Nos reservamos el derecho de suspender o cancelar su cuenta y acceso si viola estos Términos, sin previo aviso.
+                    </p>
+                    <p className="mb-4">
+                        También puede cancelar su cuenta en cualquier momento, dejando de usar los Servicios.
+                    </p>
+                    <Separator />
+
+                    {/* --- Section 13: Modificaciones e Interrupciones --- */}
+                    <h2 className="text-2xl font-semibold mt-8 mb-4">13. MODIFICACIONES E INTERRUPCIONES</h2>
+                    <p className="mb-4">
+                        Nos reservamos el derecho de cambiar, modificar o eliminar el contenido de los Servicios en cualquier momento, sin previo aviso. No seremos responsables si alguna parte de los Servicios no está disponible temporalmente.
+                    </p>
+                    <p className="mb-4">
+                        También podemos limitar ciertas funciones o su acceso a los Servicios por mantenimiento, actualizaciones u otros motivos.
+                    </p>
+                    <Separator />
+
+                    {/* --- Section 14: Ley Aplicable --- */}
+                    <h2 className="text-2xl font-semibold mt-8 mb-4">14. LEY APLICABLE</h2>
+                    <p className="mb-4">
+                        Estos Términos se rigen e interpretan de acuerdo con las leyes de la Republica Oriental del Uruguay. El uso de los Servicios no está autorizado en jurisdicciones que no den efecto a todas las disposiciones de estos Términos.
+                    </p>
+                    <Separator />
+
+                    {/* --- Section 15: Resolución de Disputas --- */}
+                    <h2 className="text-2xl font-semibold mt-8 mb-4">15. RESOLUCIÓN DE DISPUTAS</h2>
+                    <p className="mb-4">
+                        En caso de controversias relacionadas con estos Términos o los Servicios, primero intentaremos resolver el conflicto de forma amistosa.
+                        Si no se logra, usted acepta que el conflicto será resuelto por los tribunales ordinarios de la ciudad de Montevideo, República Oriental del Uruguay.
+                    </p>
+                    <Separator />
+
+                    {/* --- Section 16: Correcciones --- */}
+                    <h2 className="text-2xl font-semibold mt-8 mb-4">16. CORRECCIONES</h2>
+                    <p className="mb-4">
+                        Puede haber errores tipográficos, inexactitudes u omisiones en los Servicios. Nos reservamos el derecho de corregir cualquier error
+                        y actualizar la información en cualquier momento, sin previo aviso.
+                    </p>
+                    <Separator />
+
+                    {/* --- Section 17: Renuncia de Responsabilidad --- */}
+                    <h2 className="text-2xl font-semibold mt-8 mb-4">17. RENUNCIA DE RESPONSABILIDAD</h2>
+                    <p className="mb-4">
+                        Los Servicios se proporcionan "tal cual" y "según disponibilidad". Usted acepta que el uso de los Servicios será bajo su propio riesgo.
+                        No garantizamos que los Servicios sean ininterrumpidos, seguros o libres de errores.
+                    </p>
+                    <Separator />
+
+                    {/* --- Section 18: Limitación de Responsabilidad --- */}
+                    <h2 className="text-2xl font-semibold mt-8 mb-4">18. LIMITACIÓN DE RESPONSABILIDAD</h2>
+                    <p className="mb-4">
+                        En ningún caso seremos responsables por daños indirectos, incidentales, consecuentes, ejemplares o punitivos, incluyendo pérdida de beneficios o datos, derivados del uso o la imposibilidad de usar los Servicios.
+                    </p>
+                    <p className="mb-4">
+                        Nuestra responsabilidad total ante usted, por cualquier causa, estará limitada al menor entre el monto que usted nos haya pagado, si corresponde, o $10.000 pesos uruguayos.
+                    </p>
+                    <Separator />
+
+                    {/* --- Section 19: Indemnización --- */}
+                    <h2 className="text-2xl font-semibold mt-8 mb-4">19. INDEMNIZACIÓN</h2>
+                    <p className="mb-4">
+                        Usted acepta defender, indemnizar y eximir de responsabilidad a SwapVid, sus afiliados y empleados por cualquier pérdida, daño, responsabilidad, reclamo o demanda, incluyendo honorarios razonables de abogados, debido a:
+                    </p>
+                    <ul className="list-disc list-inside ml-4 space-y-1 mb-4">
+                        <li>su uso de los Servicios,</li>
+                        <li>el incumplimiento de estos Términos,</li>
+                        <li>su violación de los derechos de terceros.</li>
+                    </ul>
+                    <Separator />
+
+                    {/* --- Section 20: Datos del Usuario --- */}
+                    <h2 className="text-2xl font-semibold mt-8 mb-4">20. DATOS DEL USUARIO</h2>
+                    <p className="mb-4">
+                        Mantenemos ciertos datos que usted transmite a los Servicios con el fin de gestionar su funcionamiento. Aunque realizamos copias de seguridad rutinarias, usted es responsable de los datos que transmite o que se relacionan con cualquier actividad realizada usando su cuenta.
+                    </p>
+                    <p className="mb-4">
+                        Usted acepta que no seremos responsables ante ninguna pérdida o corrupción de dichos datos, y renuncia a cualquier derecho de acción contra nosotros derivado de dicha pérdida o corrupción.
+                    </p>
+                    <Separator />
+
+                    {/* --- Section 21: Comunicaciones Electrónicas, Transacciones y Firmas --- */}
+                    <h2 className="text-2xl font-semibold mt-8 mb-4">21. COMUNICACIONES ELECTRÓNICAS, TRANSACCIONES Y FIRMAS</h2>
+                    <p className="mb-4">
+                        Usted consiente recibir comunicaciones electrónicas, y acepta que todos los acuerdos, notificaciones, divulgaciones y otras comunicaciones que le proporcionemos electrónicamente cumplen con cualquier requisito legal de que dichas comunicaciones se hagan por escrito.
+                    </p>
+                    <p className="mb-4">
+                        Asimismo, acepta el uso de firmas electrónicas, contratos, órdenes y otros registros, y la entrega electrónica de avisos, políticas y registros de transacciones iniciadas o completadas por nosotros o a través de los Servicios.
+                    </p>
+                    <Separator />
+
+                    {/* --- Section 22: Misceláneos --- */}
+                    <h2 className="text-2xl font-semibold mt-8 mb-4">22. MISCELÁNEOS</h2>
+                    <p className="mb-4">
+                        Estos Términos y Condiciones constituyen el acuerdo completo entre usted y nosotros con respecto al uso de los Servicios.
+                        La falta de ejercicio o exigencia de cumplimiento de alguna disposición no constituirá una renuncia a tal derecho.
+                    </p>
+                    <p className="mb-4">
+                        Si alguna disposición de estos Términos se considera inválida, ilegal o inaplicable, las demás disposiciones permanecerán en pleno vigor.
+                    </p>
+                    <p className="mb-4">
+                        Usted no puede transferir ninguno de sus derechos u obligaciones bajo estos Términos sin nuestro consentimiento previo por escrito.
+                    </p>
+                    <Separator />
+
+                    {/* --- Section 23: Contáctenos --- */}
+                    <h2 className="text-2xl font-semibold mt-8 mb-4">23. CONTÁCTENOS</h2>
+                    <p className="mb-4">
+                        Para resolver una queja sobre los Servicios o recibir más información, puede contactarnos al correo electrónico:{" "}
+                        <span className="font-medium">soporte@swapvid.com</span>.
+                    </p>
+                    <Separator />
+
                 </CardContent>
             </Card>
         </ScrollArea>
