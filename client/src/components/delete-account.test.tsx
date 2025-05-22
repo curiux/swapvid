@@ -46,7 +46,7 @@ describe("DeleteAccountForm", () => {
     it("renderiza el formulario de eliminación de cuenta", () => {
         render(<DeleteAccountForm username={USERNAME} />);
         expect(screen.getByLabelText(/ingresa tu usuario/i)).not.toBeNull();
-        expect(screen.getByRole("button", { name: /entrar/i })).not.toBeNull();
+        expect(screen.getByRole("button", { name: /eliminar/i })).not.toBeNull();
     });
 
     it("deshabilita el botón si el usuario no coincide", () => {
@@ -54,7 +54,7 @@ describe("DeleteAccountForm", () => {
         fireEvent.input(screen.getByLabelText(/ingresa tu usuario/i), {
             target: { value: "otroUsuario" }
         });
-        expect((screen.getByRole("button", { name: /entrar/i }) as HTMLButtonElement).disabled).toBe(true);
+        expect((screen.getByRole("button", { name: /eliminar/i }) as HTMLButtonElement).disabled).toBe(true);
     });
 
     it("muestra error si el backend responde con error", async () => {
@@ -68,7 +68,7 @@ describe("DeleteAccountForm", () => {
         fireEvent.input(screen.getByLabelText(/ingresa tu usuario/i), {
             target: { value: USERNAME }
         });
-        fireEvent.click(screen.getByRole("button", { name: /entrar/i }));
+        fireEvent.click(screen.getByRole("button", { name: /eliminar/i }));
         await waitFor(() => {
             expect(screen.getByText(/token inválido/i)).not.toBeNull();
         });
@@ -85,7 +85,7 @@ describe("DeleteAccountForm", () => {
         fireEvent.input(screen.getByLabelText(/ingresa tu usuario/i), {
             target: { value: USERNAME }
         });
-        fireEvent.click(screen.getByRole("button", { name: /entrar/i }));
+        fireEvent.click(screen.getByRole("button", { name: /eliminar/i }));
         await waitFor(() => {
             expect(screen.getByText(/han sido eliminados permanentemente/i)).not.toBeNull();
         });

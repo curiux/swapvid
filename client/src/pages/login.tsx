@@ -2,10 +2,12 @@ import LoginForm from "@/components/login-form";
 import { useEffect } from "react";
 import { useNavigate } from "react-router";
 
-// This component renders the login page.
-// If a user is already authenticated ("token" exists in localStorage),
-// it automatically redirects them to the home page using React Router's navigate function.
-// Otherwise, it displays the LoginForm centered on the screen.
+/**
+ * This component renders the login page.
+ * If a user is already authenticated ("token" exists in localStorage),
+ * it automatically redirects them to the home page using React Router's navigate function.
+ * Otherwise, it displays the LoginForm centered on the screen.
+ */
 export default function Login() {
     const navigate = useNavigate();
 

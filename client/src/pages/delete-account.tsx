@@ -4,12 +4,13 @@ import { API_URL } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 
-// This component renders the delete account page.
-// If the user is not authenticated (no "token" in localStorage),
-// it redirects to the home page. Otherwise, it fetches the user's data
-// and displays the DeleteAccountForm centered on the screen.
-// If the user is not found or the token is invalid, it redirects appropriately.
-// While loading, a spinner is shown.
+/**
+ * This component renders the delete account page.
+ * If the user is not authenticated (no "token" in localStorage),
+ * it redirects to the home page. Otherwise, it fetches the user's data
+ * and displays the DeleteAccountForm centered on the screen.
+ * If the user is not found or the token is invalid, it redirects appropriately.
+ */
 export default function DeleteAccount() {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);

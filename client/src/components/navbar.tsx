@@ -1,19 +1,12 @@
-import { CircleUserIcon, Menu, Moon, Sun } from "lucide-react";
+import { CircleUserIcon, FileTextIcon, HomeIcon, Menu, Moon, Sun } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { NavigationMenu, NavigationMenuItem, NavigationMenuLink, NavigationMenuList } from "@/components/ui/navigation-menu";
+import { NavigationMenu, NavigationMenuItem, NavigationMenuList } from "@/components/ui/navigation-menu";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useTheme } from "./theme-provider";
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router";
-
-interface MenuItem {
-    title: string;
-    url: string;
-    description?: string;
-    icon?: React.ReactNode;
-    items?: MenuItem[];
-}
+import { Separator } from "@/components/ui/separator";
 
 interface NavbarData {
     logo: {
@@ -21,20 +14,16 @@ interface NavbarData {
         alt: string;
         title: string;
     };
-    menu: MenuItem[];
-    auth: {
-        login: {
-            title: string;
-            url: string;
-        };
-        signup: {
-            title: string;
-            url: string;
-        };
-        account: {
-            url: string;
-        }
+    home: {
+        label: string;
+        icon: React.ReactNode;
+        url: string;
     };
+    privacyPolicy: {
+        label: string;
+        icon: React.ReactNode;
+        url: string;
+    }
 }
 
 const navbarData: NavbarData = {
@@ -43,13 +32,15 @@ const navbarData: NavbarData = {
         alt: "logo",
         title: "SwapVid"
     },
-    menu: [
-        { title: "Inicio", url: "/" }
-    ],
-    auth: {
-        login: { title: "Iniciar Sesión", url: "/login" },
-        signup: { title: "Registrarse", url: "/registro" },
-        account: { url: "/cuenta" }
+    home: {
+        label: "Inicio",
+        icon: <HomeIcon />,
+        url: "/"
+    },
+    privacyPolicy: {
+        label: "Política de privacidad",
+        icon: <FileTextIcon />,
+        url: "/politica-de-privacidad"
     }
 }
 
@@ -59,7 +50,7 @@ const navbarData: NavbarData = {
  * The navigation adapts for both desktop and mobile views.
  */
 export default function Navbar() {
-    const { logo, menu } = navbarData;
+    const { logo, home, privacyPolicy } = navbarData;
     const [open, setOpen] = useState(false);
 
     const closeSheet = () => setOpen(false);
@@ -77,13 +68,25 @@ export default function Navbar() {
                                 {logo.title}
                             </span>
                         </div>
-                        <div className="flex items-center">
-                            <NavigationMenu>
-                                <NavigationMenuList>
-                                    {menu.map((item) => renderMenuItem(item))}
-                                </NavigationMenuList>
-                            </NavigationMenu>
-                        </div>
+                        {/* Menu items */}
+                        <NavigationMenu className="flex items-center">
+                            <NavigationMenuList>
+                                <NavigationMenuItem className="px-1">
+                                    <Button asChild variant="outline" size="sm">
+                                        <Link to={privacyPolicy.url} aria-label={privacyPolicy.label}>
+                                            {privacyPolicy.icon}
+                                        </Link>
+                                    </Button>
+                                </NavigationMenuItem>
+                                <NavigationMenuItem className="px-1">
+                                    <Button asChild size="sm">
+                                        <Link to={home.url} aria-label={home.label}>
+                                            {home.icon}
+                                        </Link>
+                                    </Button>
+                                </NavigationMenuItem>
+                            </NavigationMenuList>
+                        </NavigationMenu>
                     </div>
                     <div className="flex items-center gap-2">
                         {AuthButtons(closeSheet)}
@@ -100,7 +103,7 @@ export default function Navbar() {
                         </div>
                         <Sheet open={open} onOpenChange={setOpen}>
                             <SheetTrigger asChild>
-                                <Button variant="outline" size="icon">
+                                <Button variant="outline" size="icon" aria-label="Abrir menú">
                                     <Menu className="size-4" />
                                 </Button>
                             </SheetTrigger>
@@ -113,9 +116,31 @@ export default function Navbar() {
                                     </SheetTitle>
                                 </SheetHeader>
                                 <div className="flex flex-col gap-6 p-4">
-                                    <div className="flex w-full flex-col gap-4">
-                                        {menu.map((item) => renderMobileMenuItem(item, closeSheet))}
+                                    <div className="flex gap-4">
+                                        <Button
+                                            asChild
+                                            size="sm"
+                                            className="flex-1"
+                                            onClick={closeSheet}
+                                        >
+                                            <Link to={home.url} aria-label={home.label}>
+                                                {home.icon}
+                                            </Link>
+                                        </Button>
+                                        <Button
+                                            asChild
+                                            variant="outline"
+                                            size="sm"
+                                            className="flex-1"
+                                            onClick={closeSheet}
+                                        >
+                                            <Link to={privacyPolicy.url} aria-label={privacyPolicy.label}>
+                                                {privacyPolicy.icon}
+                                            </Link>
+                                        </Button>
                                     </div>
+
+                                    <Separator />
 
                                     <div className="flex flex-col gap-3">
                                         {AuthButtons(closeSheet)}
@@ -131,37 +156,8 @@ export default function Navbar() {
     );
 };
 
-// Renders a single menu item for the desktop navigation menu.
-const renderMenuItem = (item: MenuItem) => {
-    return (
-        <NavigationMenuItem key={item.title}>
-            <NavigationMenuLink
-                className="group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-muted hover:text-accent-foreground"
-                asChild
-            >
-                <Link to={item.url}>{item.title}</Link>
-            </NavigationMenuLink>
-        </NavigationMenuItem>
-    );
-};
-
-// Renders a single menu item for the mobile navigation menu.
-const renderMobileMenuItem = (item: MenuItem, closeSheet?: () => void) => {
-    return (
-        <Link
-            key={item.title}
-            to={item.url}
-            className="text-md font-semibold"
-            onClick={closeSheet}
-        >
-            {item.title}
-        </Link>
-    );
-};
-
-/** Renders authentication buttons based on user authentication state. */
+// Renders authentication buttons based on user authentication state.
 function AuthButtons(closeSheet?: () => void) {
-    const { auth } = navbarData;
     const [isAuth, setIsAuth] = useState(false);
     const location = useLocation();
 
@@ -176,7 +172,7 @@ function AuthButtons(closeSheet?: () => void) {
     if (isAuth) {
         return (
             <Button asChild size="sm">
-                <Link to={auth.account.url} onClick={closeSheet}>
+                <Link to="/cuenta" aria-label="Mi cuenta" onClick={closeSheet}>
                     <CircleUserIcon />
                 </Link>
             </Button>
@@ -185,20 +181,20 @@ function AuthButtons(closeSheet?: () => void) {
         return (
             <>
                 <Button asChild variant="outline" size="sm">
-                    <Link to={auth.login.url} onClick={closeSheet}>{auth.login.title}</Link>
+                    <Link to="/login" onClick={closeSheet}>Iniciar Sesión</Link>
                 </Button>
                 <Button asChild size="sm">
-                    <Link to={auth.signup.url} onClick={closeSheet}>{auth.signup.title}</Link>
+                    <Link to="/registro" onClick={closeSheet}>Registrarse</Link>
                 </Button>
             </>
         )
     }
 }
 
-/** Renders a theme toggle button for switching between light and dark modes. */
+// Renders a theme toggle button for switching between light and dark modes.
 function ChangeThemeIcon() {
     const { theme, setTheme } = useTheme();
-    
+
     const changeTheme = () => {
         let currentTheme = theme;
         if (theme == "system") {
@@ -208,7 +204,7 @@ function ChangeThemeIcon() {
     }
 
     return (
-        <Button asChild variant="outline" onClick={changeTheme}>
+        <Button asChild variant="outline" aria-label="Cambiar tema" onClick={changeTheme}>
             <div>
                 <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
                 <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />

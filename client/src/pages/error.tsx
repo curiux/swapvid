@@ -1,9 +1,11 @@
 import { useLocation } from "react-router";
 import { Card } from "@/components/ui/card";
 
-// This component renders the error page.
-// It displays an error message passed via the "msg" query parameter in the URL.
-// If no message is provided, a default error message is shown.
+/**
+ * This component renders the error page.
+ * It displays an error message passed via the "msg" query parameter in the URL.
+ * If no message is provided, a default error message is shown.
+ */
 export default function Error() {
     const location = useLocation();
     const params = new URLSearchParams(location.search);

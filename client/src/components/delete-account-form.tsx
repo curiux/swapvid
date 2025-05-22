@@ -110,7 +110,7 @@ export default function DeleteAccountForm({ username }: { username: string }) {
                         <Button type="submit" variant="destructive" className="w-full cursor-pointer"
                             disabled={form.watch("user") !== username}
                         >
-                            Entrar
+                            Eliminar
                         </Button>
                     </form>
                 </Form>

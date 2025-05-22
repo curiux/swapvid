@@ -2,10 +2,12 @@ import RegisterForm from "@/components/register-form";
 import { useEffect } from "react";
 import { useNavigate } from "react-router";
 
-// This component renders the registration page.
-// If a user is already authenticated ("token" exists in localStorage),
-// it automatically redirects them to the home page using React Router's navigate function.
-// Otherwise, it displays the RegisterForm centered on the screen.
+/**
+ * This component renders the registration page.
+ * If a user is already authenticated ("token" exists in localStorage),
+ * it automatically redirects them to the home page using React Router's navigate function.
+ * Otherwise, it displays the RegisterForm centered on the screen.
+ */
 export default function Register() {
     const navigate = useNavigate();
 
