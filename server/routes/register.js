@@ -9,7 +9,7 @@ const router = Router();
  * It attempts to create a new user with the provided email, username, and password.
  * On success, it generates a JWT token and returns it with a 201 status.
  * If a validation error occurs it returns a 400 status with the validation messages.
- * If a duplicate email or username is detected (MongoDB error code 11000) it returns a 400 status with a specific error message.
+ * If a duplicate email or username is detected (MongoDB error code 11000) it returns a 409 status with a specific error message.
  * Any other errors are logged and a generic 500 error is returned.
  */
 router.post("/", async (req, res) => {
@@ -33,12 +33,12 @@ router.post("/", async (req, res) => {
         } else if (e.name == "MongoServerError" && e.code == 11000) {
             const attr = Object.keys(e.errorResponse.keyPattern)[0];
             if (attr == "email") {
-                res.status(400).send({
+                res.status(409).send({
                     error: "Ya existe una cuenta con ese email.",
                     field: "email"
                 });
             } else if (attr == "username") {
-                res.status(400).send({
+                res.status(409).send({
                     error: "Ya existe una cuenta con ese nombre de usuario.",
                     field: "username"
                 });

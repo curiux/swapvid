@@ -73,7 +73,7 @@ describe("POST /login", () => {
         const res = await request(app).post("/login").send({
             password: "Password123!"
         });
-        expect(res.statusCode).toBe(400);
+        expect(res.statusCode).toBe(401);
         expect(res.body.error).toMatch(/credenciales/i);
     });
 
@@ -82,7 +82,7 @@ describe("POST /login", () => {
             email: "test@example.com",
             password: "WrongPassword!"
         });
-        expect(res.statusCode).toBe(400);
+        expect(res.statusCode).toBe(401);
         expect(res.body.error).toMatch(/credenciales/i);
     });
 
@@ -91,7 +91,7 @@ describe("POST /login", () => {
             email: "noexiste@example.com",
             password: "Password123!"
         });
-        expect(res.statusCode).toBe(400);
+        expect(res.statusCode).toBe(401);
         expect(res.body.error).toMatch(/credenciales/i);
     });
 
@@ -100,7 +100,7 @@ describe("POST /login", () => {
             username: "noexiste",
             password: "Password123!"
         });
-        expect(res.statusCode).toBe(400);
+        expect(res.statusCode).toBe(401);
         expect(res.body.error).toMatch(/credenciales/i);
     });
 
@@ -109,7 +109,7 @@ describe("POST /login", () => {
             email: null,
             password: "Password123!"
         });
-        expect(res.statusCode).toBe(400);
+        expect(res.statusCode).toBe(401);
         expect(res.body.error).toMatch(/credenciales/i);
     });
 
@@ -118,7 +118,7 @@ describe("POST /login", () => {
             username: null,
             password: "Password123!"
         });
-        expect(res.statusCode).toBe(400);
+        expect(res.statusCode).toBe(401);
         expect(res.body.error).toMatch(/credenciales/i);
     });
 });

@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon server.js",
-    "test": "vitest"
+    "test": "vitest",
+    "test-report": "vitest --reporter=json --outputFile=./test-output.json"
   },
   "keywords": [],
   "author": "",

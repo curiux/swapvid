@@ -8,7 +8,7 @@ const router = Router();
  * This function handles user login
  * It attempts to find a user by email or username and checks the password.
  * On success, it generates a JWT token and returns it with a 200 status.
- * If credentials are incorrect, it returns a 400 status with an error message.
+ * If credentials are incorrect, it returns a 401 status with an error message.
  * Any other errors are logged and a generic 500 error is returned.
  */
 router.post("/", async (req, res) => {
@@ -26,7 +26,7 @@ router.post("/", async (req, res) => {
                 return res.status(200).send({ token });
             }
         }
-        res.status(400).send({ error: "Credenciales incorrectas" });
+        res.status(401).send({ error: "Credenciales incorrectas" });
     } catch (e) {
         console.log(e);
         res.status(500).send({

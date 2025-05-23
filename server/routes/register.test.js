@@ -78,7 +78,7 @@ describe("POST /register", () => {
             password: "Password123!"
         });
 
-        expect(res.statusCode).toBe(400);
+        expect(res.statusCode).toBe(409);
         expect(res.body.field).toBe("email");
     });
 
@@ -104,7 +104,7 @@ describe("POST /register", () => {
             password: "Password123!"
         });
 
-        expect(res.statusCode).toBe(400);
+        expect(res.statusCode).toBe(409);
         expect(res.body.field).toBe("username");
     });
 

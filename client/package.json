@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "vitest"
+    "test": "vitest",
+    "test-report": "vitest --reporter=json --outputFile=./test-output.json"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.0.1",
