@@ -8,6 +8,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { API_URL } from "@/lib/utils";
 import Spinner from "./spinner";
+import { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 
 /**
  * This schema defines validation rules for the login form using Zod.
@@ -35,6 +37,9 @@ export default function LoginForm() {
         resolver: zodResolver(formSchema),
         mode: "onChange"
     });
+    const [showPassword, setShowPassword] = useState(false);
+
+    const handleShowPassword = () => setShowPassword(lastState => !lastState);
 
     const handleSubmit = async (values: z.infer<typeof formSchema>) => {
         const user = values.user;
@@ -59,7 +64,7 @@ export default function LoginForm() {
                 },
                 body: JSON.stringify(payload)
             });
-    
+
             const data = await res.json();
             if (data.error) {
                 form.setError("root", { message: data.error });
@@ -108,11 +113,23 @@ export default function LoginForm() {
                                 <FormItem>
                                     <FormLabel htmlFor="password">Contraseña</FormLabel>
                                     <FormControl>
-                                        <Input
-                                            id="password"
-                                            type="password"
-                                            {...field}
-                                        />
+                                        <div className="relative">
+                                            <Input
+                                                id="password"
+                                                type={showPassword ? "text" : "password"}
+                                                {...field}
+                                            />
+                                            <div
+                                                onClick={handleShowPassword}
+                                                className="absolute right-4 top-1/2 transform -translate-y-1/2 cursor-pointer"
+                                            >
+                                                {showPassword ? (
+                                                    <EyeOff className="w-4 h-4 text-gray-500" />
+                                                ) : (
+                                                    <Eye className="w-4 h-4 text-gray-500" />
+                                                )}
+                                            </div>
+                                        </div>
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>

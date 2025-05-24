@@ -1,5 +1,5 @@
 import { Sidebar, SidebarContent, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 
 const items = [
     {
@@ -19,8 +19,14 @@ const items = [
  */
 export default function AccountSidebar() {
     const { setOpenMobile } = useSidebar();
+    const navigate = useNavigate();
 
     const handleClick = () => setOpenMobile(false);
+
+    const logout = () => {
+        localStorage.clear();
+        navigate("/");
+    }
 
     return (
         <Sidebar collapsible="offcanvas" variant="inset">
@@ -33,6 +39,11 @@ export default function AccountSidebar() {
                             </SidebarMenuButton>
                         </SidebarMenuItem>
                     ))}
+                    <SidebarMenuItem>
+                        <SidebarMenuButton tooltip="Cerrar sesión" onClick={logout} className="cursor-pointer">
+                            Cerrar sesión
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
                 </SidebarMenu>
             </SidebarContent>
         </Sidebar>

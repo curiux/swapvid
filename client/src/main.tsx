@@ -13,6 +13,7 @@ import PrivacyPolicy from "./pages/privacy-policy.tsx";
 import Account from "./pages/account.tsx";
 import AccountVideos from "./pages/account/videos.tsx";
 import AccountSettings from "./pages/account/account-settings.tsx";
+import NotFound from "./pages/not-found.tsx";
 
 const router = createBrowserRouter([
   {
@@ -29,7 +30,8 @@ const router = createBrowserRouter([
       { path: "cuenta", element: <Account />, children: [
         { path: "", element: <AccountVideos /> },
         { path: "ajustes", element: <AccountSettings /> }
-      ]}
+      ]},
+      { path: "*", element: <NotFound /> }
     ]
   }
 ]);

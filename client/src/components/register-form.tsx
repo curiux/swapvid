@@ -9,6 +9,8 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { Checkbox } from "./ui/checkbox";
 import { API_URL } from "@/lib/utils";
 import Spinner from "./spinner";
+import { Eye, EyeOff } from "lucide-react";
+import { useState } from "react";
 
 /**
  * This schema defines validation rules for the registration form using Zod.
@@ -61,6 +63,9 @@ export default function RegisterForm() {
         resolver: zodResolver(formSchema),
         mode: "onChange"
     });
+    const [showPassword, setShowPassword] = useState(false);
+
+    const handleShowPassword = () => setShowPassword(lastState => !lastState);
 
     const handleSubmit = async (values: z.infer<typeof formSchema>) => {
         const email = values.email;
@@ -83,7 +88,7 @@ export default function RegisterForm() {
                     password
                 })
             });
-    
+
             const data = await res.json();
             if (data.error) {
                 if (data.field) {
@@ -158,11 +163,23 @@ export default function RegisterForm() {
                                 <FormItem>
                                     <FormLabel htmlFor="password1">Contraseña</FormLabel>
                                     <FormControl>
-                                        <Input
-                                            id="password1"
-                                            type="password"
-                                            {...field}
-                                        />
+                                        <div className="relative">
+                                            <Input
+                                                id="password1"
+                                                type={showPassword ? "text" : "password"}
+                                                {...field}
+                                            />
+                                            <div
+                                                onClick={handleShowPassword}
+                                                className="absolute right-4 top-1/2 transform -translate-y-1/2 cursor-pointer"
+                                            >
+                                                {showPassword ? (
+                                                    <EyeOff className="w-4 h-4 text-gray-500" />
+                                                ) : (
+                                                    <Eye className="w-4 h-4 text-gray-500" />
+                                                )}
+                                            </div>
+                                        </div>
                                     </FormControl>
                                     <FormDescription className="text-xs">
                                         La contraseña debe tener entre 8 y 32 caracteres, por lo menos una mayúscula y una minúscula,
@@ -181,7 +198,7 @@ export default function RegisterForm() {
                                     <FormControl>
                                         <Input
                                             id="password2"
-                                            type="password"
+                                            type={showPassword ? "text" : "password"}
                                             {...field}
                                         />
                                     </FormControl>
