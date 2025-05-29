@@ -11,9 +11,10 @@ import AppLayout from "./components/app-layout";
 import TermsAndConditions from "./pages/terms-and-conditions.tsx";
 import PrivacyPolicy from "./pages/privacy-policy.tsx";
 import Account from "./pages/account.tsx";
-import AccountVideos from "./pages/account/videos.tsx";
+import AccountVideos from "./pages/account/account-videos.tsx";
 import AccountSettings from "./pages/account/account-settings.tsx";
 import NotFound from "./pages/not-found.tsx";
+import AccountVideoUpload from "./pages/account/account-video-upload.tsx";
 
 const router = createBrowserRouter([
   {
@@ -29,7 +30,8 @@ const router = createBrowserRouter([
       { path: "eliminar-cuenta", element: <DeleteAccount /> },
       { path: "cuenta", element: <Account />, children: [
         { path: "", element: <AccountVideos /> },
-        { path: "ajustes", element: <AccountSettings /> }
+        { path: "ajustes", element: <AccountSettings /> },
+        { path: "subir", element: <AccountVideoUpload /> }
       ]},
       { path: "*", element: <NotFound /> }
     ]
