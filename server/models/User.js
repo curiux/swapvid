@@ -12,6 +12,7 @@ const { Schema, model } = mongoose;
  * - email: User's email address. Must be unique, lowercase, trimmed, required, and match a valid email format.
  * - username: User's chosen username. Must be unique, trimmed, required, and match a pattern allowing 5-32 alphanumeric characters or underscores.
  * - password: User's password. Required and must match a pattern enforcing 8-32 characters, at least one uppercase letter, one lowercase letter, one number, and one special character.
+ * - videos: Array of references to Video documents owned by the user.
  *
  * Middleware:
  * - Pre-save hook hashes the password using bcrypt before saving, only if the password is new or modified.
@@ -45,7 +46,8 @@ const userSchema = new Schema({
             /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_\-+=\[\]{};':"\\|,.<>/?]).{8,32}$/,
             "La contraseña debe tener entre 8 y 32 caracteres, por lo menos una mayúscula y una minúscula, un número y un carácter especial."
         ]
-    }
+    },
+    videos: [{ type: mongoose.Schema.Types.ObjectId, ref: "Video" }]
 });
 
 const SALT_ROUNDS = 10;
