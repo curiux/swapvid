@@ -2,9 +2,13 @@ import { Router } from "express";
 import User from "../models/User.js";
 import Video from "../models/Video.js";
 import auth from "../middleware/auth.js";
-import { cloudinary } from "../config.js";
+import { cloudinary, HOST, SIGHTENGINE_API_SECRET } from "../config.js";
 import { upload } from "../lib/utils.js";
 import streamifier from "streamifier";
+import crypto from "crypto";
+import { Readable } from "stream";
+import axios from "axios";
+import FormData from "form-data";
 
 const router = Router();
 
@@ -60,15 +64,17 @@ router.delete("/me", auth, async (req, res) => {
 });
 
 /**
- * This route allows the authenticated user to upload a video.
- * It uses the 'auth' middleware to verify the JWT and extract the user ID.
- * The video file is uploaded using the 'upload' middleware and stored in Cloudinary.
- * The video metadata is validated and saved in the database, referencing the uploading user.
- * Returns 201 on success, 400 for validation errors, and 500 for unexpected errors or upload failures.
+ * Allows the authenticated user to upload a video.
+ * - Uses 'auth' middleware for JWT verification.
+ * - Accepts a video file and metadata, validates and saves them.
+ * - Checks for duplicate videos by title (per user) and by file hash (global).
+ * - Uploads the video to Cloudinary and saves the reference in the database.
+ * - Triggers content moderation with Sightengine API.
+ * - Returns 201 on success, 400 for validation errors, 409 for duplicates, and 500 for unexpected errors or upload failures.
  */
 router.post("/me/videos", auth, upload.single("video"), async (req, res) => {
     try {
-        const user = await User.findById(req.userId);
+        const user = await User.findById(req.userId).populate("videos");
         if (!user) {
             return res.status(404).send({
                 error: "El usuario no existe"
@@ -88,14 +94,31 @@ router.post("/me/videos", auth, upload.single("video"), async (req, res) => {
             keywords = undefined;
         }
 
-        const videoData = { ...req.body, keywords, users: [user._id] };
+        const hash = crypto.createHash("sha256").update(req.file.buffer).digest("hex");
+
+        const videoData = { ...req.body, keywords, users: [user._id], hash };
         const video = new Video(videoData);
         await video.validate();
 
+        const titleFromUserExists = user.videos.some(video => video.title === videoData.title);
+        if (titleFromUserExists) {
+            return res.status(409).send({
+                error: "Ya tienes un video con el mismo título."
+            });
+        }
+
+        const videoExists = await Video.findOne({ hash });
+        if (videoExists) {
+            return res.status(409).send({
+                error: "El video ya existe en la plataforma."
+            });
+        }
+
+        const videoId = String(video._id);
         const result = cloudinary.v2.uploader.upload_stream(
             {
-                folder: `videos/${String(video._id)}`,
-                public_id: String(video._id),
+                folder: `videos/${videoId}`,
+                public_id: videoId,
                 resource_type: "video",
                 type: "private",
                 eager: [
@@ -113,7 +136,13 @@ router.post("/me/videos", auth, upload.single("video"), async (req, res) => {
                     return res.status(500).json({ error: "Falló la subida del video" });
                 }
 
-                video.save();
+                video.save().then(() => {
+                    return User.findByIdAndUpdate(user._id, {
+                        $push: { videos: video._id }
+                    });
+                });
+
+                sightEngineValidation(req.file.buffer, videoId);
 
                 return res.status(201).send({});
             }
@@ -136,5 +165,41 @@ router.post("/me/videos", auth, upload.single("video"), async (req, res) => {
         }
     }
 });
+
+/**
+ * Handles video content moderation using the Sightengine API.
+ * Sends the uploaded video buffer for analysis (nudity, weapons, drugs, medical, gore, self-harm, violence).
+ * Sets up callback for asynchronous moderation results.
+ * Logs any errors from the API.
+ *
+ * @param {Buffer} buffer - The video file buffer to analyze.
+ * @param {string} videoId - The unique video ID for naming and callback reference.
+ */
+function sightEngineValidation(buffer, videoId) {
+    const stream = Readable.from(buffer);
+
+    const data = new FormData();
+    data.append("media", stream, {
+        filename: `${videoId}.mp4`,
+        contentType: "video/mp4"
+    });
+    // models to apply
+    data.append("models", "nudity-2.1,weapon,recreational_drug,medical,gore-2.0,self-harm,violence");
+    data.append("callback_url", HOST + "/videos/sightengine");
+    data.append("api_user", "54483249");
+    data.append("api_secret", SIGHTENGINE_API_SECRET);
+
+    axios({
+        method: "post",
+        url: "https://api.sightengine.com/1.0/video/check.json",
+        data: data,
+        headers: data.getHeaders()
+    })
+        .catch(function (error) {
+            // handle error
+            if (error.response) console.log(error.response.data);
+            else console.log(error.message);
+        });
+}
 
 export default router;

@@ -6,6 +6,7 @@ import { MONGODB_URI, PORT } from "./config.js";
 import register from "./routes/register.js";
 import login from "./routes/login.js";
 import users from "./routes/users.js";
+import videos from "./routes/videos.js";
 
 const app = express();
 
@@ -16,6 +17,7 @@ app.use(express.json());
 app.use("/register", register);
 app.use("/login", login);
 app.use("/users", users);
+app.use("/videos", videos);
 
 mongoose.connect(MONGODB_URI);
 

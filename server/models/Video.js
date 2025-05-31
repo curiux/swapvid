@@ -6,14 +6,17 @@ const { Schema, model } = mongoose;
 /**
  * Mongoose schema for the Video model.
  *
- * This schema defines the structure and validation rules for video documents in the database.
+ * Defines the structure and validation rules for video documents in the database.
  *
  * Fields:
- * - title: Title of the video. Required, trimmed, 5-60 characters.
- * - description: Description of the video. Required, trimmed, 10-500 characters.
- * - category: Category of the video. Required, trimmed, lowercase, must be one of the allowed categories.
- * - keywords: Array of keywords for the video. Each keyword must be 2-20 characters, at least one required.
- * - users: Array of references to User documents associated with the video.
+ * - title: Required, trimmed, 5-60 characters.
+ * - description: Required, trimmed, 10-500 characters.
+ * - category: Required, trimmed, lowercase, must be one of the allowed categories.
+ * - keywords: Array of keywords, each 2-20 characters, at least one required.
+ * - users: Array of references to User documents.
+ * - uploadedDate: Date the video was uploaded (default: now).
+ * - hash: String hash of the video file.
+ * - isSensitiveContent: Boolean flag for sensitive content (default: false).
  */
 const videoSchema = new Schema({
     title: {
@@ -53,7 +56,16 @@ const videoSchema = new Schema({
             message: "Debe haber al menos una palabra clave."
         }
     },
-    users: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }]
+    users: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    uploadedDate: {
+        type: Date,
+        default: Date.now
+    },
+    hash: { type: String },
+    isSensitiveContent: {
+        type: Boolean,
+        default: false
+    }
 });
 
 const Video = model("Video", videoSchema);

@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "./ui/form";
 import { Input } from "./ui/input";
-import Spinner from "./spinner";
 import { Button } from "./ui/button";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -12,17 +11,21 @@ import videojs from "video.js";
 import "video.js/dist/video-js.css";
 import { Separator } from "./ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { videoCategories } from "@/lib/utils";
+import { API_URL, videoCategories } from "@/lib/utils";
 import { UploadIcon } from "lucide-react";
-
+import axios from "axios";
+import { Progress } from "./ui/progress";
+import { useNavigate } from "react-router";
+import { Checkbox } from "./ui/checkbox";
 
 /**
- * This schema defines validation rules for the video upload form using Zod.
- * - title: Required, 5-60 characters.
- * - description: Required, 10-500 characters.
- * - category: Required string (must select a category).
- * - keywords: Required array of at least 1 tag object ({id, text}).
- * - video: Required File, max 500MB, must be a supported video format (mp4, webm, ogg, mov).
+ * Zod schema for validating the video upload form fields:
+ * - title: Required, 5-60 characters
+ * - description: Required, 10-500 characters
+ * - category: Required string (must select a category)
+ * - keywords: Required array of at least 1 tag object ({id, text})
+ * - isSensitiveContent: Boolean flag for sensitive content
+ * - video: Required File, max 500MB, must be mp4, webm, ogg, or mov
  */
 const formSchema = z.object({
     title: z.string({
@@ -44,23 +47,26 @@ const formSchema = z.object({
             text: z.string()
         })
     ).min(1, { message: "Debes ingresar al menos una palabra clave." }),
+    isSensitiveContent: z.boolean(),
     video: z.instanceof(File, { message: "Debes subir un video" })
         .refine(file => file.size <= 500 * 1024 * 1024, { message: "El archivo debe pesar menos de 500MB." })
         .refine(file => ["video/mp4", "video/webm", "video/ogg", "video/quicktime"].includes(file.type), { message: "Formato no soportado." })
 });
 
 /**
- * This component renders the video upload form.
- * It uses react-hook-form with Zod validation to handle form state and validation.
- * The form collects video file, title, description, category, and keywords.
- * On submit, it will eventually upload the video and metadata to the server.
+ * Renders the video upload form with validation, preview, and upload logic.
+ * Uses react-hook-form and Zod for validation.
+ * Collects video file, title, description, category, keywords, and sensitive content flag.
+ * Shows upload progress, handles errors, and navigates on success.
  */
 export default function VideoUploadForm() {
+    const navigate = useNavigate();
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         mode: "onChange",
         defaultValues: {
-            keywords: []
+            keywords: [],
+            isSensitiveContent: false
         }
     });
     const [tags, setTags] = React.useState<Tag[]>([]);
@@ -69,10 +75,11 @@ export default function VideoUploadForm() {
     const playerRef = useRef<ReturnType<typeof videojs> | null>(null);
     const [file, setFile] = useState<File>();
     const [src, setSrc] = useState<{ src: string; type: string } | null>(null);
-    const fileInputRef = useRef<HTMLInputElement | null>(null);
+    const [progress, setProgress] = useState(0);
+    const [status, setStatus] = useState("");
 
     const handleUploadBtn = () => {
-        fileInputRef.current?.click();
+        document.getElementById("video")?.click();
     };
 
     useEffect(() => {
@@ -128,13 +135,53 @@ export default function VideoUploadForm() {
     }, [src]);
 
     const handleSubmit = async (values: z.infer<typeof formSchema>) => {
-        console.log(values)
+        const keywords = values.keywords.map(keyword => keyword.text);
 
-        await upload();
+        const formData = new FormData();
+        formData.append("title", values.title);
+        formData.append("description", values.description);
+        formData.append("category", values.category);
+        formData.append("keywords", JSON.stringify(keywords));
+        formData.append("video", values.video);
+        formData.append("isSensitiveContent", JSON.stringify(values.isSensitiveContent));
+
+        await upload(formData);
     }
 
-    const upload = () => {
+    const upload = async (formData: FormData) => {
+        const token = localStorage.getItem("token");
 
+        setStatus("Subiendo...");
+        try {
+            await axios.post(API_URL + "/users/me/videos", formData, {
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                },
+                onUploadProgress: (event) => {
+                    setStatus("Procesando...");
+                    const percent = Math.round((event.loaded * 100) / event.total!);
+                    setProgress(percent);
+                }
+            });
+
+            localStorage.setItem("msg", "¡Tu video se subió correctamente!");
+            navigate("/cuenta");
+        } catch (e: any) {
+            if (e.name == "AxiosError") {
+                if (e.response) {
+                    const data = e.response.data;
+                    if (e.status == 401 || e.status == 404) {
+                        localStorage.removeItem("token");
+                        navigate("/");
+                    } else {
+                        form.setError("root", { message: data.error });
+                    }
+                } else {
+                    form.setError("root", { message: "Ha ocurrido un error inesperado." });
+                }
+            }
+            setStatus("");
+        }
     }
 
     return (
@@ -149,7 +196,7 @@ export default function VideoUploadForm() {
             <Form {...form}>
                 <form
                     onSubmit={form.handleSubmit(handleSubmit)}
-                    className="grid gap-12 md:grid-cols-2"
+                    className="grid gap-12 lg:grid-cols-2"
                 >
                     <div className="flex flex-col gap-5">
                         <FormField
@@ -164,7 +211,6 @@ export default function VideoUploadForm() {
                                                 id="video"
                                                 type="file"
                                                 className="hidden"
-                                                ref={fileInputRef}
                                                 onChange={(e) => {
                                                     const file = e.target.files?.[0];
                                                     field.onChange(file);
@@ -194,7 +240,7 @@ export default function VideoUploadForm() {
                         {src && (
                             <>
                                 <h2 className="text-lg font-semibold">Vista previa del video</h2>
-                                <div className="h-full min-h-52">
+                                <div className="h-52">
                                     <video ref={videoRef} className="video-js vjs-fill" />
                                 </div>
                             </>
@@ -287,7 +333,7 @@ export default function VideoUploadForm() {
                                             tags={tags}
                                             setTags={(newTags) => {
                                                 setTags(newTags);
-                                                setValue("keywords", newTags as [Tag, ...Tag[]]);
+                                                setValue("keywords", newTags as [Tag, ...Tag[]], { shouldValidate: true });
                                             }}
                                             minLength={2}
                                             maxLength={20}
@@ -307,7 +353,39 @@ export default function VideoUploadForm() {
                                 </FormItem>
                             )}
                         />
-                        {form.formState.isSubmitting && <Spinner className="w-8 h-8" />}
+                        <FormField
+                            control={form.control}
+                            name="isSensitiveContent"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <div className="flex items-center space-x-2">
+                                        <FormControl>
+                                            <Checkbox
+                                                id="isSensitiveContent"
+                                                checked={field.value ? true : false}
+                                                onCheckedChange={(checked) => field.onChange(checked)}
+                                                onBlur={field.onBlur}
+                                                ref={field.ref}
+                                                name={field.name}
+                                            />
+                                        </FormControl>
+                                        <FormLabel htmlFor="isSensitiveContent" className="font-normal">
+                                            Este video contiene contenido sensible (desnudos, armas, violencia, etc.)
+                                        </FormLabel>
+                                    </div>
+                                    <FormDescription className="text-xs">
+                                        Esta opción puede activarse automáticamente tras subir el video si nuestro sistema detecta contenido sensible.
+                                    </FormDescription>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        {form.formState.isSubmitting && (
+                            <div className="flex items-center bg-muted rounded-lg p-2 gap-4">
+                                <p className="text-sm font-semibold">{status}</p>
+                                <Progress value={progress} />
+                            </div>
+                        )}
                         {form.formState.errors.root && (
                             <FormMessage>
                                 {form.formState.errors.root.message}

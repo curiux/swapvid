@@ -3,9 +3,13 @@ config();
 
 export const PORT = 5050;
 
+export const HOST = process.env.HOST;
+
 export const MONGODB_URI = process.env.MONGODB_URI;
 
 export const JWT_SECRET = process.env.JWT_SECRET;
+
+export const SIGHTENGINE_API_SECRET = process.env.SIGHTENGINE_API_SECRET;
 
 import cloudinary from "cloudinary";
 
