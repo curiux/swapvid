@@ -303,7 +303,7 @@ export default function VideoUploadForm() {
                                     <FormLabel htmlFor="category">Categoría</FormLabel>
                                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                                         <FormControl>
-                                            <SelectTrigger>
+                                            <SelectTrigger id="category">
                                                 <SelectValue placeholder="Selecciona una categoría" />
                                             </SelectTrigger>
                                         </FormControl>

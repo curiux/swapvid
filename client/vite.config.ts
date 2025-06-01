@@ -9,9 +9,13 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "tslib": "tslib/tslib.es6.js"
     },
   },
   test: {
-    environment: "jsdom"
+    environment: "jsdom",
+    deps: {
+      inline: ["tslib", "emblor"]
+    }
   }
 })

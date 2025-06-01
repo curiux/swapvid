@@ -13,6 +13,9 @@ const router = Router();
  */
 router.post("/sightengine", async (req, res) => {
     try {
+        if (!req.body || !req.body.data || typeof req.body.data !== "object") {
+            throw new Error("Datos de entrada inválidos");
+        }
         if (req.body.data && req.body.data.status == "finished") {
             let sensitive = false;
             for (const frame of req.body.data.frames) {

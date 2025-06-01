@@ -175,7 +175,7 @@ router.post("/me/videos", auth, upload.single("video"), async (req, res) => {
  * @param {Buffer} buffer - The video file buffer to analyze.
  * @param {string} videoId - The unique video ID for naming and callback reference.
  */
-function sightEngineValidation(buffer, videoId) {
+export function sightEngineValidation(buffer, videoId) {
     const stream = Readable.from(buffer);
 
     const data = new FormData();
