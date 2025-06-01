@@ -120,7 +120,7 @@ router.post("/me/videos", auth, upload.single("video"), async (req, res) => {
                 folder: `videos/${videoId}`,
                 public_id: videoId,
                 resource_type: "video",
-                type: "private",
+                type: "authenticated",
                 eager: [
                     {
                         format: "mp4",
@@ -201,5 +201,46 @@ export function sightEngineValidation(buffer, videoId) {
             else console.log(error.message);
         });
 }
+
+/**
+ * Returns a list of videos uploaded by the authenticated user.
+ * - Uses 'auth' middleware to verify JWT and extract user ID.
+ * - Populates the user's videos and returns them with additional metadata.
+ * - Each video includes a signed Cloudinary thumbnail URL and the username.
+ * - Returns 200 with the videos array, 404 if the user does not exist, or 500 for unexpected errors.
+ */
+router.get("/me/videos", auth, async (req, res) => {
+    try {
+        const user = await User.findById(req.userId).populate("videos");
+        if (!user) {
+            return res.status(404).send({
+                error: "El usuario no existe"
+            });
+        }
+
+        const videos = user.videos.map(video => {
+            const { users, hash, __v, ...videoData } = video.toJSON();
+            videoData.user = user.username;
+
+            const publicId = `videos/${String(video._id)}/${String(video._id)}`;
+            videoData.thumbnail = cloudinary.url(publicId, {
+                resource_type: "video",
+                type: "authenticated",
+                format: "jpg",
+                start_offset: 1, // seconds into the video
+                sign_url: true
+            });
+
+            return videoData;
+        });
+
+        return res.status(200).send({ videos });
+    } catch (e) {
+        console.log(e);
+        res.status(500).send({
+            error: "Ha ocurrido un error inesperado"
+        });
+    }
+});
 
 export default router;

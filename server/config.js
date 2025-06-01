@@ -16,7 +16,7 @@ import cloudinary from "cloudinary";
 cloudinary.config({
   cloud_name: "dbxhjyaiv",
   api_key: "167147264937737",
-  api_secret: process.env.CLOUDINARY_API_SECRET,
+  api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
 export { cloudinary };

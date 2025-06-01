@@ -68,5 +68,9 @@ const videoSchema = new Schema({
     }
 });
 
+videoSchema.methods.getCurrentUser = function () {
+    return this.users[this.users.length - 1];
+};
+
 const Video = model("Video", videoSchema);
 export default Video;

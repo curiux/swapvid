@@ -102,11 +102,11 @@ export default function Navbar() {
                             <img src={logo.src} className="max-h-8" alt={logo.alt} />
                         </div>
                         <Sheet open={open} onOpenChange={setOpen}>
-                            <SheetTrigger asChild>
-                                <Button variant="outline" size="icon" aria-label="Abrir menú">
+                            <Button asChild variant="outline" size="icon" aria-label="Abrir menú">
+                                <SheetTrigger>
                                     <Menu className="size-4" />
-                                </Button>
-                            </SheetTrigger>
+                                </SheetTrigger>
+                            </Button>
                             <SheetContent className="overflow-y-auto">
                                 <SheetHeader>
                                     <SheetTitle>
