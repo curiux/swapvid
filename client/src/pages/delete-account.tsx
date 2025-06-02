@@ -36,7 +36,7 @@ export default function DeleteAccount() {
             const data = await res.json();
             if (data.error) {
                 if (res.status == 401 || res.status == 404) {
-                    localStorage.removeItem("token");
+                    localStorage.clear();
                     navigate("/");
                 } else {
                     navigate("/error?msg=" + encodeURIComponent(data.error));

@@ -15,6 +15,7 @@ import AccountVideos from "./pages/account/account-videos.tsx";
 import AccountSettings from "./pages/account/account-settings.tsx";
 import NotFound from "./pages/not-found.tsx";
 import AccountVideoUpload from "./pages/account/account-video-upload.tsx";
+import Video from "./pages/video.tsx";
 
 const router = createBrowserRouter([
   {
@@ -33,6 +34,7 @@ const router = createBrowserRouter([
         { path: "ajustes", element: <AccountSettings /> },
         { path: "subir", element: <AccountVideoUpload /> }
       ]},
+      { path: "video/:id", element: <Video /> },
       { path: "*", element: <NotFound /> }
     ]
   }

@@ -117,10 +117,10 @@ router.post("/me/videos", auth, upload.single("video"), async (req, res) => {
         const videoId = String(video._id);
         const result = cloudinary.v2.uploader.upload_stream(
             {
-                folder: `videos/${videoId}`,
+                folder: "videos",
                 public_id: videoId,
                 resource_type: "video",
-                type: "authenticated",
+                type: "private",
                 eager: [
                     {
                         format: "mp4",
@@ -221,15 +221,7 @@ router.get("/me/videos", auth, async (req, res) => {
         const videos = user.videos.map(video => {
             const { users, hash, __v, ...videoData } = video.toJSON();
             videoData.user = user.username;
-
-            const publicId = `videos/${String(video._id)}/${String(video._id)}`;
-            videoData.thumbnail = cloudinary.url(publicId, {
-                resource_type: "video",
-                type: "authenticated",
-                format: "jpg",
-                start_offset: 1, // seconds into the video
-                sign_url: true
-            });
+            videoData.thumbnail = video.createThumbnail();
 
             return videoData;
         });

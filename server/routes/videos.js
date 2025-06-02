@@ -1,7 +1,104 @@
 import { Router } from "express";
+import User from "../models/User.js";
 import Video from "../models/Video.js";
+import auth from "../middleware/auth.js";
+import { cloudinary } from "../config.js";
 
 const router = Router();
+
+router.get("/:id", auth, async (req, res) => {
+    try {
+        const user = await User.findById(req.userId);
+        if (!user) {
+            return res.status(404).send({
+                error: "El usuario no existe",
+                type: "user"
+            });
+        }
+
+        const video = await Video.findById(req.params.id).populate("users");
+        if (!video) {
+            return res.status(404).send({
+                error: "El video no existe",
+                type: "video"
+            });
+        }
+        const { users, hash, __v, ...videoData } = video.toJSON();
+
+        const currentUser = video.getCurrentUser();
+        videoData.user = currentUser.username;
+        videoData.isOwner = currentUser._id == String(user._id);
+        if (!videoData.isOwner) {
+            videoData.thumbnail = video.createThumbnail();
+        } else {
+            videoData.url = video.createSecureUrl();
+        }
+
+        return res.status(200).send({ data: videoData });
+    } catch (e) {
+        if (e.name == "CastError") {
+            res.status(400).send({
+                error: "Id inválido."
+            });
+        } else {
+            console.log(e);
+            res.status(500).send({
+                error: "Ha ocurrido un error inesperado"
+            });
+        }
+    }
+});
+
+router.delete("/:id", auth, async (req, res) => {
+    try {
+        const user = await User.findById(req.userId);
+        if (!user) {
+            return res.status(404).send({
+                error: "El usuario no existe",
+                type: "user"
+            });
+        }
+
+        const video = await Video.findById(req.params.id);
+        if (!video) {
+            return res.status(404).send({
+                error: "El video no existe",
+                type: "video"
+            });
+        }
+
+        if (video.getCurrentUser() == String(user._id)) {
+            await cloudinary.v2.uploader.destroy(`videos/${String(video._id)}`,
+                {
+                    resource_type: "video",
+                    type: "private"
+                }
+            );
+
+            await user.updateOne({
+                videos: user.videos.filter(v => !v.equals(video._id))
+            });
+            await video.deleteOne();
+
+            return res.status(200).send({});
+        }
+
+        return res.status(403).send({
+            error: "No tienes acceso a este video."
+        });
+    } catch (e) {
+        if (e.name == "CastError") {
+            res.status(400).send({
+                error: "Id inválido."
+            });
+        } else {
+            console.log(e);
+            res.status(500).send({
+                error: "Ha ocurrido un error inesperado"
+            });
+        }
+    }
+});
 
 /**
  * Handles callbacks from the Sightengine API for video content moderation.

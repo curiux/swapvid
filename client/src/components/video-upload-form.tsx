@@ -171,7 +171,7 @@ export default function VideoUploadForm() {
                 if (e.response) {
                     const data = e.response.data;
                     if (e.status == 401 || e.status == 404) {
-                        localStorage.removeItem("token");
+                        localStorage.clear();
                         navigate("/");
                     } else {
                         form.setError("root", { message: data.error });

@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { videoCategoryIds } from "../lib/utils.js";
+import { cloudinary } from "../config.js";
 
 const { Schema, model } = mongoose;
 
@@ -71,6 +72,27 @@ const videoSchema = new Schema({
 videoSchema.methods.getCurrentUser = function () {
     return this.users[this.users.length - 1];
 };
+
+videoSchema.methods.createThumbnail = function () {
+    const publicId = `videos/${String(this._id)}`;
+    return cloudinary.v2.url(publicId, {
+        resource_type: "video",
+        type: "private",
+        format: "jpg",
+        start_offset: 1, // seconds into the video
+        sign_url: true
+    });
+}
+
+videoSchema.methods.createSecureUrl = function () {
+    const publicId = `videos/${String(this._id)}`;
+    return cloudinary.v2.url(publicId, {
+        resource_type: "video",
+        type: "private",
+        format: "m3u8",
+        sign_url: true
+    });
+}
 
 const Video = model("Video", videoSchema);
 export default Video;

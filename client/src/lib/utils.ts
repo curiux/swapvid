@@ -30,3 +30,34 @@ export const videoCategories = [
   { id: "automoviles_mecanica", label: "Automóviles y Mecánica" },
   { id: "otros", label: "Otros" }
 ];
+
+/**
+ * Returns a human-readable relative time string (e.g., "hace 2 días") for a given date.
+ * Uses Intl.RelativeTimeFormat for Spanish localization.
+ */
+export function timeAgo(dateISO: any) {
+    const date: any = new Date(dateISO);
+    const now: any = new Date();
+    const seconds = Math.floor((now - date) / 1000);
+
+    const rtf = new Intl.RelativeTimeFormat("es", { numeric: "auto" });
+
+    const intervals: { unit: Intl.RelativeTimeFormatUnit, seconds: number }[] = [
+        { unit: "year", seconds: 31536000 },
+        { unit: "month", seconds: 2592000 },
+        { unit: "week", seconds: 604800 },
+        { unit: "day", seconds: 86400 },
+        { unit: "hour", seconds: 3600 },
+        { unit: "minute", seconds: 60 },
+        { unit: "second", seconds: 1 },
+    ];
+
+    for (const { unit, seconds: intervalSeconds } of intervals) {
+        const delta = Math.floor(seconds / intervalSeconds);
+        if (delta >= 1) {
+            return rtf.format(-delta, unit);
+        }
+    }
+
+    return "justo ahora";
+}

@@ -1,17 +1,8 @@
-import { API_URL } from "@/lib/utils";
+import { useVideoStore } from "@/lib/store";
+import type { Video } from "@/lib/types";
+import { API_URL, timeAgo } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
-
-interface Video {
-    _id: string;
-    title: string;
-    description: string;
-    category: string;
-    keywords: string[];
-    isSensitiveContent: boolean;
-    uploadedDate: Date;
-    thumbnail: string;
-}
 
 /**
  * Displays the authenticated user's video library as a responsive grid of video cards.
@@ -42,7 +33,7 @@ export default function VideoLibrary() {
             const data = await res.json();
             if (data.error) {
                 if (res.status == 401 || res.status == 404) {
-                    localStorage.removeItem("token");
+                    localStorage.clear();
                     navigate("/");
                 } else {
                     navigate("/error?msg=" + encodeURIComponent(data.error));
@@ -71,7 +62,7 @@ export default function VideoLibrary() {
 function VideoItem({ video }: { video: Video }) {
     return (
         <Link
-            to={`/cuenta/videos/${video._id}`}
+            to={`/video/${video._id}`}
             className="flex flex-col overflow-clip rounded-xl border border-border
             transition-transform duration-200 hover:scale-[1.02] hover:shadow-sm"
         >
@@ -92,35 +83,4 @@ function VideoItem({ video }: { video: Video }) {
             </div>
         </Link>
     );
-}
-
-/**
- * Returns a human-readable relative time string (e.g., "hace 2 días") for a given date.
- * Uses Intl.RelativeTimeFormat for Spanish localization.
- */
-function timeAgo(dateISO: any) {
-    const date: any = new Date(dateISO);
-    const now: any = new Date();
-    const seconds = Math.floor((now - date) / 1000);
-
-    const rtf = new Intl.RelativeTimeFormat("es", { numeric: "auto" });
-
-    const intervals: { unit: Intl.RelativeTimeFormatUnit, seconds: number }[] = [
-        { unit: "year", seconds: 31536000 },
-        { unit: "month", seconds: 2592000 },
-        { unit: "week", seconds: 604800 },
-        { unit: "day", seconds: 86400 },
-        { unit: "hour", seconds: 3600 },
-        { unit: "minute", seconds: 60 },
-        { unit: "second", seconds: 1 },
-    ];
-
-    for (const { unit, seconds: intervalSeconds } of intervals) {
-        const delta = Math.floor(seconds / intervalSeconds);
-        if (delta >= 1) {
-            return rtf.format(-delta, unit);
-        }
-    }
-
-    return "justo ahora";
 }
