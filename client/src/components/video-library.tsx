@@ -1,4 +1,3 @@
-import { useVideoStore } from "@/lib/store";
 import type { Video } from "@/lib/types";
 import { API_URL, timeAgo } from "@/lib/utils";
 import { useEffect, useState } from "react";

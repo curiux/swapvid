@@ -6,6 +6,8 @@ import { useVideoStore } from "@/lib/store";
 import { useNavigate } from "react-router";
 import { API_URL } from "@/lib/utils";
 
+// VideoActions component: Renders action buttons for a video (currently only delete)
+// Includes a delete dialog with countdown and error handling
 export default function VideoActions() {
     return (
         <div className="flex item-center">
@@ -14,6 +16,13 @@ export default function VideoActions() {
     );
 }
 
+/**
+ * DeleteAction component
+ * - Shows a dialog to confirm video deletion
+ * - Implements a 5-second countdown before enabling delete
+ * - Handles API call to delete the video
+ * - Navigates on success or error
+ */
 function DeleteAction() {
     const navigate = useNavigate();
     const [countdown, setCountdown] = useState(0);
@@ -69,8 +78,6 @@ function DeleteAction() {
         } catch (e) {
             navigate("/error");
         }
-
-        console.log(videoData?._id);
     }
 
     return (

@@ -18,6 +18,11 @@ const { Schema, model } = mongoose;
  * - uploadedDate: Date the video was uploaded (default: now).
  * - hash: String hash of the video file.
  * - isSensitiveContent: Boolean flag for sensitive content (default: false).
+ *
+ * Methods:
+ * - getCurrentUser: Returns the most recent user associated with the video.
+ * - createThumbnail: Generates a secure Cloudinary URL for a video thumbnail (jpg).
+ * - createSecureUrl: Generates a secure Cloudinary URL for streaming the video (m3u8).
  */
 const videoSchema = new Schema({
     title: {

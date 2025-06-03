@@ -53,7 +53,7 @@ const userSchema = new Schema({
 const SALT_ROUNDS = 10;
 
 userSchema.pre("save", async function (next) {
-    // Solo cifrar si la contraseña fue modificada o es nueva
+    // Only hash the password if it was modified or is new
     if (!this.isModified("password")) return next();
 
     try {

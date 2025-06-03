@@ -2,6 +2,12 @@ import { useVideoStore } from "@/lib/store";
 import { useEffect, useRef } from "react";
 import videojs from "video.js";
 
+/**
+ * VideoPlayer component
+ * - Uses video.js to render a video player for the current video from the store
+ * - Initializes and disposes the player on mount/unmount or when video changes
+ * - Uses HLS (application/x-mpegURL) for video streaming
+ */
 export default function VideoPlayer() {
     const videoRef = useRef<HTMLVideoElement | null>(null);
     const playerRef = useRef<ReturnType<typeof videojs> | null>(null);

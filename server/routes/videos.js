@@ -6,6 +6,13 @@ import { cloudinary } from "../config.js";
 
 const router = Router();
 
+/**
+ * GET /:id
+ * Fetches a video by its ID for an authenticated user.
+ * - Returns 404 if the user or video does not exist.
+ * - Populates user info, determines ownership, and provides either a secure video URL (if owner) or a thumbnail (if not).
+ * - Returns video data or appropriate error response.
+ */
 router.get("/:id", auth, async (req, res) => {
     try {
         const user = await User.findById(req.userId);
@@ -49,6 +56,14 @@ router.get("/:id", auth, async (req, res) => {
     }
 });
 
+/**
+ * DELETE /:id
+ * Deletes a video by its ID for the authenticated owner.
+ * - Returns 404 if the user or video does not exist.
+ * - Only allows deletion if the current user is the owner.
+ * - Removes the video from Cloudinary and the user's video list, then deletes the video document.
+ * - Returns 200 on success, 403 if not owner, or appropriate error response.
+ */
 router.delete("/:id", auth, async (req, res) => {
     try {
         const user = await User.findById(req.userId);

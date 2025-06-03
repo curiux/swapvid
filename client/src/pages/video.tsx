@@ -8,6 +8,12 @@ import type { Video as VideoType } from "@/lib/types";
 import Spinner from "@/components/spinner";
 import { Separator } from "@/components/ui/separator";
 
+/**
+ * Video page component
+ * - Fetches and displays a single video's details and player/thumbnail
+ * - Handles authentication, error, and not-found redirects
+ * - Shows video info, keywords, and owner actions
+ */
 export default function Video() {
     const navigate = useNavigate();
     const params = useParams();
