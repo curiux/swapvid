@@ -1,14 +1,10 @@
 import { Sidebar, SidebarContent, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
-import { Link, useNavigate } from "react-router";
+import { Link } from "react-router";
 
 const items = [
     {
         title: "Mis videos",
-        url: "/cuenta"
-    },
-    {
-        title: "Administar cuenta",
-        url: "/cuenta/ajustes"
+        url: "/mi-coleccion"
     }
 ];
 
@@ -19,14 +15,8 @@ const items = [
  */
 export default function AccountSidebar() {
     const { setOpenMobile } = useSidebar();
-    const navigate = useNavigate();
 
     const handleClick = () => setOpenMobile(false);
-
-    const logout = () => {
-        localStorage.clear();
-        navigate("/");
-    }
 
     return (
         <Sidebar collapsible="offcanvas" variant="inset">
@@ -39,11 +29,6 @@ export default function AccountSidebar() {
                             </SidebarMenuButton>
                         </SidebarMenuItem>
                     ))}
-                    <SidebarMenuItem>
-                        <SidebarMenuButton tooltip="Cerrar sesión" onClick={logout} className="cursor-pointer">
-                            Cerrar sesión
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
                 </SidebarMenu>
             </SidebarContent>
         </Sidebar>

@@ -85,7 +85,7 @@ describe("VideoActions", () => {
         });
         fireEvent.click(deleteBtn);
         await waitFor(() => {
-            expect(mockNavigate).toHaveBeenCalledWith("/cuenta");
+            expect(mockNavigate).toHaveBeenCalledWith("/mi-coleccion");
         });
     }, 7000);
 

@@ -12,11 +12,12 @@ import TermsAndConditions from "./pages/terms-and-conditions.tsx";
 import PrivacyPolicy from "./pages/privacy-policy.tsx";
 import Account from "./pages/account.tsx";
 import AccountVideos from "./pages/account/account-videos.tsx";
-import AccountSettings from "./pages/account/account-settings.tsx";
+import AccountSettings from "./pages/profile.tsx";
 import NotFound from "./pages/not-found.tsx";
 import AccountVideoUpload from "./pages/account/account-video-upload.tsx";
 import Video from "./pages/video.tsx";
 import EditVideo from "./pages/edit-video.tsx";
+import Profile from "./pages/profile.tsx";
 
 const router = createBrowserRouter([
   {
@@ -30,10 +31,10 @@ const router = createBrowserRouter([
       { path: "terminos-y-condiciones", element: <TermsAndConditions /> },
       { path: "politica-de-privacidad", element: <PrivacyPolicy /> },
       { path: "eliminar-cuenta", element: <DeleteAccount /> },
+      { path: "perfil", element: <Profile /> },
       {
-        path: "cuenta", element: <Account />, children: [
+        path: "mi-coleccion", element: <Account />, children: [
           { path: "", element: <AccountVideos /> },
-          { path: "ajustes", element: <AccountSettings /> },
           { path: "subir", element: <AccountVideoUpload /> }
         ]
       },

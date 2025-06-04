@@ -165,7 +165,7 @@ export default function VideoUploadForm() {
             });
 
             localStorage.setItem("msg", "¡Tu video se subió correctamente!");
-            navigate("/cuenta");
+            navigate("/mi-coleccion");
         } catch (e: any) {
             if (e.name == "AxiosError") {
                 if (e.response) {

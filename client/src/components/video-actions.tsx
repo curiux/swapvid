@@ -84,7 +84,7 @@ function DeleteAction() {
             const data = await res.json();
             if (res.status == 200) {
                 localStorage.setItem("msg", "Tu video ha sido eliminado");
-                navigate("/cuenta");
+                navigate("/mi-coleccion");
             } else if (data.error) {
                 if (res.status == 401 || res.status == 403 || res.status == 404) {
                     navigate("/error?msg=" + encodeURIComponent(data.error));

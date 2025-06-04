@@ -1,11 +1,11 @@
 import { CircleUserIcon, FileTextIcon, HomeIcon, Menu, Moon, Sun } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { NavigationMenu, NavigationMenuItem, NavigationMenuList } from "@/components/ui/navigation-menu";
+import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger } from "@/components/ui/navigation-menu";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useTheme } from "./theme-provider";
 import { useEffect, useState } from "react";
-import { Link, useLocation } from "react-router";
+import { Link, useLocation, useNavigate } from "react-router";
 import { Separator } from "@/components/ui/separator";
 
 interface NavbarData {
@@ -89,7 +89,7 @@ export default function Navbar() {
                         </NavigationMenu>
                     </div>
                     <div className="flex items-center gap-2">
-                        {AuthButtons(closeSheet)}
+                        <AuthButtons closeSheet={closeSheet} isMobile={false} />
                         <ChangeThemeIcon />
                     </div>
                 </nav>
@@ -143,7 +143,7 @@ export default function Navbar() {
                                     <Separator />
 
                                     <div className="flex flex-col gap-3">
-                                        {AuthButtons(closeSheet)}
+                                        <AuthButtons closeSheet={closeSheet} isMobile={true} />
                                         <ChangeThemeIcon />
                                     </div>
                                 </div>
@@ -157,7 +157,8 @@ export default function Navbar() {
 };
 
 // Renders authentication buttons based on user authentication state.
-function AuthButtons(closeSheet?: () => void) {
+function AuthButtons({ closeSheet, isMobile }: { closeSheet?: () => void, isMobile: boolean }) {
+    const navigate = useNavigate();
     const [isAuth, setIsAuth] = useState(false);
     const location = useLocation();
 
@@ -169,15 +170,13 @@ function AuthButtons(closeSheet?: () => void) {
         checkAuth();
     }, [location]);
 
-    if (isAuth) {
-        return (
-            <Button asChild size="sm">
-                <Link to="/cuenta" aria-label="Mi cuenta" onClick={closeSheet}>
-                    <CircleUserIcon />
-                </Link>
-            </Button>
-        )
-    } else {
+    const logout = () => {
+        localStorage.clear();
+        navigate("/");
+        closeSheet!();
+    }
+
+    if (!isAuth) {
         return (
             <>
                 <Button asChild variant="outline" size="sm">
@@ -186,9 +185,76 @@ function AuthButtons(closeSheet?: () => void) {
                 <Button asChild size="sm">
                     <Link to="/registro" onClick={closeSheet}>Registrarse</Link>
                 </Button>
+                {isMobile && <Separator />}
             </>
-        )
+        );
     }
+
+    if (isMobile) {
+        return (
+            <div className="flex flex-col text-center gap-4">
+                <Link
+                    to="/mi-coleccion"
+                    onClick={closeSheet}
+                    className="text-sm font-medium rounded-sm bg-input/30 border shadow p-2 hover:underline"
+                >
+                    Mi colección
+                </Link>
+                <Link
+                    to="/perfil"
+                    onClick={closeSheet}
+                    className="text-sm font-medium rounded-sm bg-primary text-secondary border shadow p-2 hover:underline"
+                >
+                    Mi perfil
+                </Link>
+                <Button
+                    variant="ghost"
+                    onClick={logout}
+                    className="text-sm font-medium rounded-sm bg-input/30 border shadow p-2 hover:underline"
+                >
+                    Cerrar Sesión
+                </Button>
+                <Separator />
+            </div>
+        );
+    }
+
+    return (
+        <NavigationMenu viewport={false}>
+            <NavigationMenuList>
+                <NavigationMenuItem>
+                    <NavigationMenuTrigger className="p-2 rounded-lg hover:bg-muted transition">
+                        <CircleUserIcon className="w-5 h-5" />
+                    </NavigationMenuTrigger>
+                    <NavigationMenuContent className="min-w-[150px] translate-x-[-50%]">
+                        <ul className="grid gap-2">
+                            <li>
+                                <NavigationMenuLink asChild>
+                                    <Link to="/mi-coleccion" onClick={closeSheet} aria-label="Mi colección">
+                                        <p className="line-clamp-2 text-sm leading-snug">
+                                            Mi colección
+                                        </p>
+                                    </Link>
+                                </NavigationMenuLink>
+                                <NavigationMenuLink asChild>
+                                    <Link to="/perfil" onClick={closeSheet} aria-label="Mi perfil">
+                                        <p className="line-clamp-2 text-sm leading-snug">
+                                            Mi perfil
+                                        </p>
+                                    </Link>
+                                </NavigationMenuLink>
+                                <NavigationMenuLink asChild>
+                                    <p onClick={logout} className="cursor-pointer line-clamp-2 text-sm leading-snug">
+                                        Cerrar sesión
+                                    </p>
+                                </NavigationMenuLink>
+                            </li>
+                        </ul>
+                    </NavigationMenuContent>
+                </NavigationMenuItem>
+            </NavigationMenuList>
+        </NavigationMenu>
+    );
 }
 
 // Renders a theme toggle button for switching between light and dark modes.

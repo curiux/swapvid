@@ -137,7 +137,7 @@ describe("VideoUploadForm", () => {
         fireEvent.keyDown(keywordInput, { key: "Enter", code: "Enter" });
         fireEvent.click(screen.getByRole("button", { name: /subir/i }));
         await waitFor(() => {
-            expect(mockNavigate).toHaveBeenCalledWith("/cuenta");
+            expect(mockNavigate).toHaveBeenCalledWith("/mi-coleccion");
         });
     });
 

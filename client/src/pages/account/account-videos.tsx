@@ -27,7 +27,7 @@ export default function AccountVideos() {
             <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
                 <h1 className="text-2xl font-semibold">Biblioteca de videos</h1>
                 <Button asChild size="lg" aria-label="Subir video">
-                    <Link to="/cuenta/subir">
+                    <Link to="/mi-coleccion/subir">
                         <FileVideo />
                         Subir video
                     </Link>
