@@ -16,6 +16,7 @@ import AccountSettings from "./pages/account/account-settings.tsx";
 import NotFound from "./pages/not-found.tsx";
 import AccountVideoUpload from "./pages/account/account-video-upload.tsx";
 import Video from "./pages/video.tsx";
+import EditVideo from "./pages/edit-video.tsx";
 
 const router = createBrowserRouter([
   {
@@ -29,12 +30,18 @@ const router = createBrowserRouter([
       { path: "terminos-y-condiciones", element: <TermsAndConditions /> },
       { path: "politica-de-privacidad", element: <PrivacyPolicy /> },
       { path: "eliminar-cuenta", element: <DeleteAccount /> },
-      { path: "cuenta", element: <Account />, children: [
-        { path: "", element: <AccountVideos /> },
-        { path: "ajustes", element: <AccountSettings /> },
-        { path: "subir", element: <AccountVideoUpload /> }
-      ]},
-      { path: "video/:id", element: <Video /> },
+      {
+        path: "cuenta", element: <Account />, children: [
+          { path: "", element: <AccountVideos /> },
+          { path: "ajustes", element: <AccountSettings /> },
+          { path: "subir", element: <AccountVideoUpload /> }
+        ]
+      },
+      {
+        path: "video/:id", element: <Video />, children: [
+          { path: "editar", element: <EditVideo /> }
+        ]
+      },
       { path: "*", element: <NotFound /> }
     ]
   }

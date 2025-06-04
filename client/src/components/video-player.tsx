@@ -4,9 +4,10 @@ import videojs from "video.js";
 
 /**
  * VideoPlayer component
- * - Uses video.js to render a video player for the current video from the store
- * - Initializes and disposes the player on mount/unmount or when video changes
- * - Uses HLS (application/x-mpegURL) for video streaming
+ * - Renders a video player for the current video from the store using video.js.
+ * - Initializes and disposes the player on mount/unmount and when the video changes.
+ * - Automatically updates the video source when the video data changes.
+ * - Supports HLS (application/x-mpegURL) streaming.
  */
 export default function VideoPlayer() {
     const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -14,28 +15,25 @@ export default function VideoPlayer() {
     const videoData = useVideoStore(state => state.video);
 
     useEffect(() => {
-        if (!videoData || !videoRef.current) return;
+        if (!videoRef.current) return;
 
-        const src = videoData.url;
-
-        if (!playerRef.current) {
-            playerRef.current = videojs(videoRef.current, {
-                controls: true,
-                sources: [{
-                    src,
-                    type: "application/x-mpegURL"
-                }]
-            });
-        } else {
-            playerRef.current.src(src);
-        }
+        playerRef.current = videojs(videoRef.current, {
+            controls: true
+        });
 
         return () => {
-            if (playerRef.current) {
-                playerRef.current.dispose();
-                playerRef.current = null;
-            }
+            playerRef.current?.dispose();
+            playerRef.current = null;
         };
+    }, []);
+
+    useEffect(() => {
+        if (!videoData || !playerRef.current) return;
+
+        playerRef.current.src({
+            src: videoData.url,
+            type: "application/x-mpegURL"
+        });
     }, [videoData]);
 
     return (

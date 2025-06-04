@@ -27,7 +27,7 @@ import { Checkbox } from "./ui/checkbox";
  * - isSensitiveContent: Boolean flag for sensitive content
  * - video: Required File, max 500MB, must be mp4, webm, ogg, or mov
  */
-const formSchema = z.object({
+export const formSchema = z.object({
     title: z.string({
         required_error: "Ingresa un título."
     })

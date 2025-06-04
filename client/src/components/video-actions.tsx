@@ -1,16 +1,33 @@
-import { Trash } from "lucide-react";
+import { SquarePen, Trash } from "lucide-react";
 import { Button } from "./ui/button";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
 import { useEffect, useState } from "react";
 import { useVideoStore } from "@/lib/store";
-import { useNavigate } from "react-router";
+import { Link, Outlet, useLocation, useNavigate } from "react-router";
 import { API_URL } from "@/lib/utils";
 
-// VideoActions component: Renders action buttons for a video (currently only delete)
-// Includes a delete dialog with countdown and error handling
+/**
+ * VideoActions component
+ * - Provides edit and delete actions for a video.
+ * - Edit action navigates to the edit page for the current video.
+ * - Delete action opens a confirmation dialog and handles video deletion with a countdown.
+ * - Uses Outlet for nested routes.
+ */
 export default function VideoActions() {
+    const location = useLocation();
+
     return (
-        <div className="flex item-center">
+        <div className="flex item-center gap-3">
+            <Button
+                asChild
+                className="cursor-pointer"
+                aria-label="Editar video"
+            >
+                <Link to={location.pathname + "/editar"}>
+                    <SquarePen />
+                </Link>
+            </Button>
+            <Outlet />
             <DeleteAction />
         </div>
     );

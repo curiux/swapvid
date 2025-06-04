@@ -31,10 +31,10 @@ import mongoose from "mongoose";
 import { MongoMemoryServer } from "mongodb-memory-server";
 import { generateToken } from "../lib/jwt.js";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import * as usersModule from "./users.js";
+import * as utilsModule from "../lib/utils.js";
 
 // Mock sightEngineValidation to avoid real API calls
-vi.spyOn(usersModule, "sightEngineValidation").mockImplementation(() => {});
+vi.spyOn(utilsModule, "sightEngineValidation").mockImplementation(() => {});
 
 let mongoServer;
 let userId;

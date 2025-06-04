@@ -3,7 +3,7 @@ import VideoPlayer from "@/components/video-player";
 import { useVideoStore } from "@/lib/store";
 import { API_URL, timeAgo, videoCategories } from "@/lib/utils";
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router";
+import { useLocation, useNavigate, useParams } from "react-router";
 import type { Video as VideoType } from "@/lib/types";
 import Spinner from "@/components/spinner";
 import { Separator } from "@/components/ui/separator";
@@ -16,6 +16,7 @@ import { Separator } from "@/components/ui/separator";
  */
 export default function Video() {
     const navigate = useNavigate();
+    const location = useLocation();
     const params = useParams();
     const [videoData, setVideoData] = useState<VideoType>();
     const update = useVideoStore(state => state.update);
@@ -25,11 +26,11 @@ export default function Video() {
         if (!token) {
             navigate("/");
         } else {
-            if (params.id) {
+            if (params.id && !location.pathname.includes("edit")) {
                 getVideoData(token);
             }
         }
-    }, []);
+    }, [location]);
 
     const getVideoData = async (token: string) => {
         try {

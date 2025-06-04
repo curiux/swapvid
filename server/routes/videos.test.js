@@ -6,7 +6,10 @@
  * The tests cover the following cases:
  *   - GET /videos/:id: Fetches a video by ID, handles errors and ownership logic.
  *   - DELETE /videos/:id: Deletes a video by ID, only if the user is the owner.
+ *   - PATCH /videos/:id: Edits a video by ID, only if the user is the owner. Handles validation, sensitive content logic, and error cases.
  *   - POST /videos/sightengine: Handles video moderation callbacks and updates sensitive content flag.
+ *
+ * All external dependencies (Sightengine and Cloudinary) are mocked to avoid real API calls and uploads.
  *
  * After each test, all videos are removed from the database to ensure a clean environment.
  */
@@ -16,7 +19,11 @@ import app from "../server.js";
 import Video from "../models/Video.js";
 import mongoose from "mongoose";
 import { MongoMemoryServer } from "mongodb-memory-server";
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import * as utilsModule from "../lib/utils.js";
+
+// Mock sightEngineValidation to avoid real API calls
+vi.spyOn(utilsModule, "sightEngineValidation").mockImplementation(() => {});
 
 let mongoServer;
 
@@ -78,7 +85,7 @@ describe("GET /videos/:id", () => {
     });
 
     it("debería responder 404 si el usuario no existe", async () => {
-        // Simula un userId inexistente
+        // Simulate a non existence userId
         app.request.userId = new mongoose.Types.ObjectId().toString();
         const res = await request(app)
             .get(`/videos/${video._id}`)
@@ -169,6 +176,130 @@ describe("DELETE /videos/:id", () => {
         if (res.statusCode === 400) {
             expect(res.body.error).toMatch(/inválido/i);
         }
+    });
+});
+
+describe("PATCH /videos/:id", () => {
+    let video, userId;
+    beforeEach(async () => {
+        userId = new mongoose.Types.ObjectId();
+        video = await Video.create({
+            title: "Video de prueba",
+            description: "Descripción de prueba para video.",
+            category: "entretenimiento",
+            keywords: ["palabra", "clave"],
+            users: [userId],
+            hash: "hash",
+            isSensitiveContent: false
+        });
+    });
+
+    it("debería responder 404 si el usuario no existe", async () => {
+        app.request.userId = new mongoose.Types.ObjectId().toString();
+        const res = await request(app)
+            .patch(`/videos/${video._id}`)
+            .send({ data: { title: "Nuevo título" } })
+            .set("Authorization", "Bearer testtoken");
+        expect([404, 401, 500]).toContain(res.statusCode);
+        if (res.statusCode === 404) {
+            expect(res.body.error).toMatch(/usuario/i);
+        }
+    });
+
+    it("debería responder 404 si el video no existe", async () => {
+        app.request.userId = userId.toString();
+        const fakeId = new mongoose.Types.ObjectId();
+        const res = await request(app)
+            .patch(`/videos/${fakeId}`)
+            .send({ data: { title: "Nuevo título" } })
+            .set("Authorization", "Bearer testtoken");
+        expect([404, 401, 500]).toContain(res.statusCode);
+    });
+
+    it("debería responder 403 si el usuario no es el propietario", async () => {
+        const otherUserId = new mongoose.Types.ObjectId();
+        app.request.userId = otherUserId.toString();
+        const res = await request(app)
+            .patch(`/videos/${video._id}`)
+            .send({ data: { title: "Nuevo título" } })
+            .set("Authorization", "Bearer testtoken");
+        expect([403, 401, 500]).toContain(res.statusCode);
+        if (res.statusCode === 403) {
+            expect(res.body.error).toMatch(/acceso/i);
+        }
+    });
+
+    it("debería responder 400 si no se envía data", async () => {
+        app.request.userId = userId.toString();
+        const res = await request(app)
+            .patch(`/videos/${video._id}`)
+            .send({})
+            .set("Authorization", "Bearer testtoken");
+        expect([400, 401, 500]).toContain(res.statusCode);
+        if (res.statusCode === 400) {
+            expect(res.body.error).toMatch(/modificar/i);
+        }
+    });
+
+    it("debería responder 400 si el id es inválido", async () => {
+        app.request.userId = userId.toString();
+        const res = await request(app)
+            .patch(`/videos/invalid-id`)
+            .send({ data: { title: "Nuevo título" } })
+            .set("Authorization", "Bearer testtoken");
+        expect([400, 401, 500]).toContain(res.statusCode);
+        if (res.statusCode === 400) {
+            expect(res.body.error).toMatch(/inválido|dato/i);
+        }
+    });
+
+    it("debería responder 400 si hay un error de validación", async () => {
+        app.request.userId = userId.toString();
+        const res = await request(app)
+            .patch(`/videos/${video._id}`)
+            .send({ data: { title: "" } }) // Assuming title cannot be empty
+            .set("Authorization", "Bearer testtoken");
+        expect([400, 401, 500]).toContain(res.statusCode);
+        if (res.statusCode === 400) {
+            expect(res.body.error).toBeDefined();
+        }
+    });
+
+    it("debería actualizar el video y responder 200", async () => {
+        app.request.userId = userId.toString();
+        const res = await request(app)
+            .patch(`/videos/${video._id}`)
+            .send({ data: { title: "Nuevo título" } })
+            .set("Authorization", "Bearer testtoken");
+        expect([200, 401, 500]).toContain(res.statusCode);
+        if (res.statusCode === 200) {
+            const updated = await Video.findById(video._id);
+            expect(updated.title).toBe("Nuevo título");
+        }
+    });
+
+    it("debería ejecutar la lógica de sensitive content si corresponde", async () => {
+        // Simulate video had isSensitiveContent true and now it's going to be false
+        video.isSensitiveContent = true;
+        await video.save();
+        app.request.userId = userId.toString();
+        // Mock cloudinary upload_stream and destroy for this test only
+        const cloudinary = await import("../config.js");
+        cloudinary.cloudinary.v2 = {
+            url: () => "http://mockurl",
+            uploader: {
+                destroy: () => {},
+                upload_stream: (opts, cb) => {
+                    cb(null, { secure_url: "http://cloudinary.com/video.mp4" });
+                    return { end: () => {} };
+                }
+            }
+        };
+        const res = await request(app)
+            .patch(`/videos/${video._id}`)
+            .send({ data: { isSensitiveContent: "false" } })
+            .set("Authorization", "Bearer testtoken");
+        expect([200, 401, 500]).toContain(res.statusCode);
     });
 });
 

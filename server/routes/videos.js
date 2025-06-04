@@ -3,6 +3,8 @@ import User from "../models/User.js";
 import Video from "../models/Video.js";
 import auth from "../middleware/auth.js";
 import { cloudinary } from "../config.js";
+import { sightEngineValidation } from "../lib/utils.js";
+import axios from "axios";
 
 const router = Router();
 
@@ -106,6 +108,106 @@ router.delete("/:id", auth, async (req, res) => {
             res.status(400).send({
                 error: "Id inválido."
             });
+        } else {
+            console.log(e);
+            res.status(500).send({
+                error: "Ha ocurrido un error inesperado"
+            });
+        }
+    }
+});
+
+/**
+ * PATCH /:id
+ * Edits a video by its ID for the authenticated owner.
+ * - Returns 404 if the user or video does not exist.
+ * - Only allows editing if the current user is the owner.
+ * - Accepts changes to title, description, category, keywords, and isSensitiveContent.
+ * - Handles validation and updates sensitive content status if needed.
+ * - Returns 200 on success, 403 if not owner, or appropriate error response.
+ */
+router.patch("/:id", auth, async (req, res) => {
+    try {
+        const user = await User.findById(req.userId);
+        if (!user) {
+            return res.status(404).send({
+                error: "El usuario no existe",
+                type: "user"
+            });
+        }
+
+        const video = await Video.findById(req.params.id);
+        if (!video) {
+            return res.status(404).send({
+                error: "El video no existe",
+                type: "video"
+            });
+        }
+
+        if (video.getCurrentUser() == String(user._id)) {
+            if (!req.body || !req.body.data) {
+                return res.status(400).send({
+                    error: "No se ha ingresado ningún valor para modificar."
+                });
+            }
+
+            const data = req.body.data;
+            const dataChanged = {};
+
+            if (data.title)
+                dataChanged.title = data.title;
+
+            if (data.description)
+                dataChanged.description = data.description;
+
+            if (data.category)
+                dataChanged.category = data.category;
+
+            try {
+                dataChanged.keywords = JSON.parse(data.keywords);
+            } catch (e) { }
+
+            if (data.isSensitiveContent != undefined)
+                dataChanged.isSensitiveContent = data.isSensitiveContent;
+
+            await video.updateOne(dataChanged, {
+                runValidators: true
+            });
+
+            if (data.isSensitiveContent != undefined) {
+                const isSensitiveContent = JSON.parse(dataChanged.isSensitiveContent);
+                if (video.isSensitiveContent && !isSensitiveContent) {
+                    const url = cloudinary.v2.url(`videos/${String(video._id)}`, {
+                        resource_type: "video",
+                        type: "private",
+                        format: "mp4",
+                        sign_url: true
+                    });
+                    const response = await axios.get(url, {
+                        responseType: "arraybuffer",
+                    });
+                    const buffer = Buffer.from(response.data);
+                    sightEngineValidation(buffer, String(video._id));
+                }
+            }
+
+            return res.status(200).send({});
+        }
+
+        return res.status(403).send({
+            error: "No tienes acceso a este video."
+        });
+    } catch (e) {
+        if (e.name == "CastError") {
+            res.status(400).send({
+                error: "Dato inválido."
+            });
+        } else if (e.name == "ValidationError") { // Schema validations
+            let message = "";
+            for (const error in e.errors) {
+                message += e.errors[error].message + "\n";
+            }
+            res.status(400).send({ error: message });
         } else {
             console.log(e);
             res.status(500).send({
