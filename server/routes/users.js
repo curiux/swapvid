@@ -66,7 +66,7 @@ router.delete("/me", auth, async (req, res) => {
  * - Accepts a video file and metadata, validates and saves them.
  * - Checks for duplicate videos by title (per user) and by file hash (global).
  * - Uploads the video to Cloudinary and saves the reference in the database.
- * - Triggers content moderation with Sightengine API.
+ * - Triggers content moderation with Sightengine API if isSensitiveContent is false.
  * - Returns 201 on success, 400 for validation errors, 409 for duplicates, and 500 for unexpected errors or upload failures.
  */
 router.post("/me/videos", auth, upload.single("video"), async (req, res) => {
@@ -139,7 +139,8 @@ router.post("/me/videos", auth, upload.single("video"), async (req, res) => {
                     });
                 });
 
-                sightEngineValidation(req.file.buffer, videoId);
+                if (!video.isSensitiveContent)
+                    sightEngineValidation(req.file.buffer, videoId);
 
                 return res.status(201).send({});
             }
