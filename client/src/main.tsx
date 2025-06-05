@@ -12,7 +12,6 @@ import TermsAndConditions from "./pages/terms-and-conditions.tsx";
 import PrivacyPolicy from "./pages/privacy-policy.tsx";
 import Account from "./pages/account.tsx";
 import AccountVideos from "./pages/account/account-videos.tsx";
-import AccountSettings from "./pages/profile.tsx";
 import NotFound from "./pages/not-found.tsx";
 import AccountVideoUpload from "./pages/account/account-video-upload.tsx";
 import Video from "./pages/video.tsx";
