@@ -61,7 +61,8 @@ beforeEach(() => {
         keywords: ["original"],
         isSensitiveContent: false,
         uploadedDate: new Date(),
-        thumbnail: "thumbnail.jpg"
+        thumbnail: "thumbnail.jpg",
+        user: ""
     }});
 });
 
