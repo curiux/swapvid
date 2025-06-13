@@ -12,7 +12,7 @@ import { Separator } from "@/components/ui/separator";
  * Video page component
  * - Fetches and displays a single video's details and player/thumbnail
  * - Handles authentication, error, and not-found redirects
- * - Shows video info, keywords, and owner actions
+ * - Shows video info, keywords, and actions
  */
 export default function Video() {
     const navigate = useNavigate();
@@ -83,7 +83,7 @@ export default function Video() {
                                 Subido {timeAgo(videoData.uploadedDate)}
                             </p>
                         </div>
-                        {videoData.isOwner && <VideoActions />}
+                        <VideoActions />
                     </div>
                     <Separator />
                     <div className="flex flex-col h-full gap-3 pt-2 md:justify-between">

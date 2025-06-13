@@ -7,6 +7,7 @@ import register from "./routes/register.js";
 import login from "./routes/login.js";
 import users from "./routes/users.js";
 import videos from "./routes/videos.js";
+import exchanges from "./routes/exchanges.js";
 
 const app = express();
 
@@ -18,6 +19,7 @@ app.use("/register", register);
 app.use("/login", login);
 app.use("/users", users);
 app.use("/videos", videos);
+app.use("/exchanges", exchanges);
 
 mongoose.connect(MONGODB_URI);
 

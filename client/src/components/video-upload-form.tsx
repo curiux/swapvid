@@ -391,7 +391,7 @@ export default function VideoUploadForm() {
                                 {form.formState.errors.root.message}
                             </FormMessage>
                         )}
-                        <Button type="submit" className="w-full">
+                        <Button type="submit" disabled={form.formState.isSubmitting} className="w-full">
                             Subir
                         </Button>
                     </div>

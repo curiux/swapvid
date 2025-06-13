@@ -9,5 +9,5 @@ export interface Video {
     thumbnail: string;
     isOwner?: boolean;
     url?: string;
-    token?: string;
+    hasRequested: boolean;
 }

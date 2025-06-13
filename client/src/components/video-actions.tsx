@@ -1,34 +1,46 @@
-import { SquarePen, Trash } from "lucide-react";
+import { Info, Repeat, SquarePen, Trash, X } from "lucide-react";
 import { Button } from "./ui/button";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
 import { useEffect, useState } from "react";
 import { useVideoStore } from "@/lib/store";
 import { Link, Outlet, useLocation, useNavigate } from "react-router";
 import { API_URL } from "@/lib/utils";
+import type { Video } from "@/lib/types";
 
 /**
  * VideoActions component
- * - Provides edit and delete actions for a video.
- * - Edit action navigates to the edit page for the current video.
- * - Delete action opens a confirmation dialog and handles video deletion with a countdown.
+ * - Renders action buttons for a video depending on ownership.
+ * - If the user is the owner, shows edit and delete options.
+ * - If not the owner, shows the exchange option.
  * - Uses Outlet for nested routes.
  */
 export default function VideoActions() {
     const location = useLocation();
+    const videoData = useVideoStore(state => state.video);
+
+    if (!videoData) return;
+
+    if (videoData?.isOwner) {
+        return (
+            <div className="flex item-center gap-3">
+                <Button
+                    asChild
+                    className="cursor-pointer"
+                    aria-label="Editar video"
+                >
+                    <Link to={location.pathname + "/editar"}>
+                        <SquarePen />
+                    </Link>
+                </Button>
+                <Outlet />
+                <DeleteAction videoData={videoData} />
+            </div>
+        );
+    }
 
     return (
         <div className="flex item-center gap-3">
-            <Button
-                asChild
-                className="cursor-pointer"
-                aria-label="Editar video"
-            >
-                <Link to={location.pathname + "/editar"}>
-                    <SquarePen />
-                </Link>
-            </Button>
-            <Outlet />
-            <DeleteAction />
+            <ExchangeAction videoData={videoData} />
         </div>
     );
 }
@@ -40,12 +52,11 @@ export default function VideoActions() {
  * - Handles API call to delete the video
  * - Navigates on success or error
  */
-function DeleteAction() {
+function DeleteAction({ videoData } : { videoData: Video }) {
     const navigate = useNavigate();
     const [countdown, setCountdown] = useState(0);
     const [disabled, setDisabled] = useState(true);
     const [open, setOpen] = useState(false);
-    const videoData = useVideoStore(state => state.video);
 
     const handleOpenChange = (open: boolean) => {
         setOpen(open);
@@ -121,6 +132,64 @@ function DeleteAction() {
                     </DialogClose>
                     <Button variant="destructive" disabled={disabled} onClick={handleDelete}>
                         Eliminar{disabled ? ` (${countdown})` : ""}
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
+/**
+ * ExchangeAction component
+ * - Provides UI and logic for requesting a video exchange
+ * - Shows status if a request has already been made
+ * - Displays a dialog with information and confirmation for exchange requests
+ */
+function ExchangeAction({ videoData } : { videoData: Video }) {
+    const [open, setOpen] = useState(false);
+
+    const handleRequest = () => {
+        console.log("hello")
+        setOpen(false);
+    }
+    
+    if (videoData?.hasRequested) {
+        return (
+            <div>
+                <Button className="bg-green-300 hover:bg-green-300 rounded-r-none text-primary dark:text-secondary" aria-label="Intercambiar">
+                    <Repeat />
+                    <span>Pedido</span>
+                </Button>
+                <Button className="rounded-l-none cursor-pointer text-primary bg-red-500 hover:bg-red-700 dark:text-secondary">
+                    <X />
+                </Button>
+            </div>
+        );
+    }
+
+    return (
+        <Dialog open={open} onOpenChange={(open) => setOpen(open)}>
+            <DialogTrigger asChild>
+                <Button className="cursor-pointer" aria-label="Intercambiar">
+                    <Repeat />
+                    <span>Intercambiar</span>
+                </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                    <DialogTitle className="text-center text-2xl">¡Intercambialo!</DialogTitle>
+                    <DialogDescription className="flex flex-col items-center gap-2 md:flex-row">
+                        <Info />
+                        Recuerda que al realizar esta acción perderás acceso al video de tu biblioteca elegido por el otro usuario,
+                        en caso de que acepte el intercambio.
+                    </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                    <DialogClose asChild>
+                        <Button variant="outline" aria-label="Cancelar">Cancelar</Button>
+                    </DialogClose>
+                    <Button onClick={handleRequest}>
+                        Pedir intercambio
                     </Button>
                 </DialogFooter>
             </DialogContent>
