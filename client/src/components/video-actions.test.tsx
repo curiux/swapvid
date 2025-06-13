@@ -3,9 +3,13 @@
  *
  * This file contains automated tests that verify:
  * - The delete button renders and opens the confirmation dialog.
- * - The countdown disables the delete button for 5 seconds.
- * - The delete action calls the API and navigates on success.
- * - Backend/API errors are handled and navigation occurs as expected.
+ * - The delete button is disabled for 5 seconds (countdown).
+ * - The delete action calls the API and navigates correctly on success or error.
+ * - The exchange button is shown for users who are not owners.
+ * - The exchange dialog opens correctly.
+ * - The exchange request is sent and updates the state.
+ * - The "Pedido" state is shown if the exchange has already been requested.
+ * - Navigation to the error page occurs if the API responds with an error or if an exception occurs during the exchange request.
  *
  * Mocks are used for navigation, fetch, and store to isolate component logic.
  */
@@ -25,8 +29,17 @@ vi.mock("react-router", async () => {
 });
 
 // Mock useVideoStore
+const defaultVideo = {
+    _id: "123",
+    title: "Test Video",
+    isOwner: true,
+    user: "otheruser",
+    hasRequested: false
+};
+const mockUpdate = vi.fn();
+let mockVideo = { ...defaultVideo };
 vi.mock("@/lib/store", () => ({
-    useVideoStore: (fn: any) => fn({ video: { _id: "123", title: "Test Video" } })
+    useVideoStore: (fn: any) => fn({ video: mockVideo, update: mockUpdate })
 }));
 
 // Mock fetch
@@ -53,6 +66,11 @@ function hasDisabledAttr(element: HTMLElement) {
 }
 
 describe("VideoActions", () => {
+    beforeEach(() => {
+        mockVideo = { ...defaultVideo };
+        mockUpdate.mockReset();
+    });
+
     it("renderiza el botón de eliminar y abre el diálogo", () => {
         render(<VideoActions />, { wrapper: MemoryRouter });
         const btn = screen.getAllByRole("button", { name: /eliminar/i })[0];
@@ -121,4 +139,76 @@ describe("VideoActions", () => {
             expect(mockNavigate).toHaveBeenCalledWith("/error");
         });
     }, 7000);
+
+    it("muestra el botón de intercambio para usuarios que no son dueños", () => {
+        mockVideo.isOwner = false;
+        mockVideo.hasRequested = false;
+        render(<VideoActions />, { wrapper: MemoryRouter });
+        const btn = screen.getAllByRole("button", { name: /intercambiar/i })[0];
+        expect(btn).toBeTruthy();
+    });
+
+    it("abre el diálogo de intercambio al hacer clic en el botón", () => {
+        mockVideo.isOwner = false;
+        mockVideo.hasRequested = false;
+        render(<VideoActions />, { wrapper: MemoryRouter });
+        const btn = screen.getAllByRole("button", { name: /intercambiar/i })[0];
+        fireEvent.click(btn);
+        expect(screen.getByText(/perderás acceso al video/i)).toBeTruthy();
+    });
+
+    it("envía la solicitud de intercambio y actualiza el estado", async () => {
+        mockVideo.isOwner = false;
+        mockVideo.hasRequested = false;
+        (global.fetch as any) = vi.fn().mockResolvedValue({
+            status: 201,
+            json: async () => ({})
+        });
+        render(<VideoActions />, { wrapper: MemoryRouter });
+        const btn = screen.getAllByRole("button", { name: /intercambiar/i })[0];
+        fireEvent.click(btn);
+        const pedirBtn = screen.getAllByRole("button", { name: /pedir intercambio/i })[0];
+        fireEvent.click(pedirBtn);
+        await waitFor(() => {
+            expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({ hasRequested: true }));
+        });
+    });
+
+    it("muestra el estado 'Pedido' si ya se solicitó el intercambio", () => {
+        mockVideo.isOwner = false;
+        mockVideo.hasRequested = true;
+        render(<VideoActions />, { wrapper: MemoryRouter });
+        expect(screen.getByText(/pedido/i)).toBeTruthy();
+    });
+
+    it("navega a la página de error si la API responde con error en intercambio", async () => {
+        mockVideo.isOwner = false;
+        mockVideo.hasRequested = false;
+        (global.fetch as any) = vi.fn().mockResolvedValue({
+            status: 403,
+            json: async () => ({ error: "No tienes acceso a este video." })
+        });
+        render(<VideoActions />, { wrapper: MemoryRouter });
+        const btn = screen.getAllByRole("button", { name: /intercambiar/i })[0];
+        fireEvent.click(btn);
+        const pedirBtn = screen.getAllByRole("button", { name: /pedir intercambio/i })[0];
+        fireEvent.click(pedirBtn);
+        await waitFor(() => {
+            expect(mockNavigate).toHaveBeenCalledWith(expect.stringContaining("/error?msg="));
+        });
+    });
+
+    it("navega a la página de error si ocurre una excepción en fetch de intercambio", async () => {
+        mockVideo.isOwner = false;
+        mockVideo.hasRequested = false;
+        (global.fetch as any) = vi.fn().mockRejectedValue(new Error("Network error"));
+        render(<VideoActions />, { wrapper: MemoryRouter });
+        const btn = screen.getAllByRole("button", { name: /intercambiar/i })[0];
+        fireEvent.click(btn);
+        const pedirBtn = screen.getAllByRole("button", { name: /pedir intercambio/i })[0];
+        fireEvent.click(pedirBtn);
+        await waitFor(() => {
+            expect(mockNavigate).toHaveBeenCalledWith("/error");
+        });
+    });
 });

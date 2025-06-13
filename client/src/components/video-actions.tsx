@@ -52,7 +52,7 @@ export default function VideoActions() {
  * - Handles API call to delete the video
  * - Navigates on success or error
  */
-function DeleteAction({ videoData } : { videoData: Video }) {
+function DeleteAction({ videoData }: { videoData: Video }) {
     const navigate = useNavigate();
     const [countdown, setCountdown] = useState(0);
     const [disabled, setDisabled] = useState(true);
@@ -141,18 +141,54 @@ function DeleteAction({ videoData } : { videoData: Video }) {
 
 /**
  * ExchangeAction component
- * - Provides UI and logic for requesting a video exchange
- * - Shows status if a request has already been made
- * - Displays a dialog with information and confirmation for exchange requests
+ * - Handles the UI and logic for requesting a video exchange with another user.
+ * - If the current user has already requested an exchange for this video, displays the request status and a cancel button (cancel logic not implemented).
+ * - If not requested, provides a dialog to confirm the exchange action, including a warning about losing access to the video if the exchange is accepted.
+ * - On confirmation, sends a POST request to the backend to initiate the exchange and updates the store state accordingly.
+ * - Handles navigation on error or authentication issues.
  */
-function ExchangeAction({ videoData } : { videoData: Video }) {
+function ExchangeAction({ videoData }: { videoData: Video }) {
+    const navigate = useNavigate();
     const [open, setOpen] = useState(false);
+    const update = useVideoStore(state => state.update);
 
-    const handleRequest = () => {
-        console.log("hello")
+    const handleRequest = async () => {
+        sendRequest();
         setOpen(false);
     }
-    
+
+    const sendRequest = async () => {
+        const token = localStorage.getItem("token");
+
+        try {
+            const res = await fetch(API_URL + "/exchanges/request", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    username: videoData.user,
+                    videoId: videoData._id
+                })
+            });
+
+            const data = await res.json();
+            if (data.error) {
+                if (res.status == 401 || res.status == 404) {
+                    localStorage.clear();
+                    navigate("/");
+                } else {
+                    navigate("/error?msg=" + encodeURIComponent(data.error));
+                }
+            } else if (res.status == 201) {
+                update({ ...videoData, hasRequested: true });
+            }
+        } catch (e) {
+            navigate("/error");
+        }
+    }
+
     if (videoData?.hasRequested) {
         return (
             <div>

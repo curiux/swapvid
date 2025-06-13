@@ -7,7 +7,8 @@ export interface Video {
     isSensitiveContent: boolean;
     uploadedDate: Date;
     thumbnail: string;
+    user: string;
     isOwner?: boolean;
     url?: string;
-    hasRequested: boolean;
+    hasRequested?: boolean;
 }

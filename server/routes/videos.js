@@ -5,6 +5,7 @@ import auth from "../middleware/auth.js";
 import { cloudinary } from "../config.js";
 import { sightEngineValidation } from "../lib/utils.js";
 import axios from "axios";
+import Exchange from "../models/Exchange.js";
 
 const router = Router();
 
@@ -12,7 +13,10 @@ const router = Router();
  * GET /:id
  * Fetches a video by its ID for an authenticated user.
  * - Returns 404 if the user or video does not exist.
- * - Populates user info, determines ownership, and provides either a secure video URL (if owner) or a thumbnail (if not).
+ * - Determines if the current user is the owner of the video.
+ *   - If owner: returns a secure video URL.
+ *   - If not owner: returns a thumbnail and a 'hasRequested' flag indicating if the user has already requested an exchange for this video (checked via the Exchange model).
+ * - Populates user info and includes username and ownership status in the response.
  * - Returns video data or appropriate error response.
  */
 router.get("/:id", auth, async (req, res) => {
@@ -39,6 +43,10 @@ router.get("/:id", auth, async (req, res) => {
         videoData.isOwner = currentUser._id == String(user._id);
         if (!videoData.isOwner) {
             videoData.thumbnail = video.createThumbnail();
+            videoData.hasRequested = await Exchange.exists({
+                initiator: user._id,
+                responderVideo: videoData._id
+            });
         } else {
             videoData.url = video.createSecureUrl();
         }

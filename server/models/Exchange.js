@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const { Schema, model } = mongoose;
 
 /**
- * Mongoose schema for the Exchange model.
+ * Exchange Mongoose Model
  *
  * Defines the structure and validation rules for exchange documents in the database.
  *
@@ -16,39 +16,67 @@ const { Schema, model } = mongoose;
  * - requestedDate: Date the exchange was requested (default: now).
  *
  * Validation:
- * - responderVideo: Ensures the video belongs to the responder user.
+ * - All referenced users and videos must exist in the database.
+ * - Video ownership is enforced: initiatorVideo must belong to initiator, responderVideo must belong to responder.
+ * - Uses async validation for existence and ownership checks.
  */
+
+const validateExists = (modelName, message) => ({
+    validator: async function (id) {
+        return await mongoose.model(modelName).exists({ _id: id });
+    },
+    message,
+});
+
+const validateIfOwner = async (videoId, userId) => {
+    if (!userId) return false;
+
+    const video = await mongoose.model("Video").findById(videoId);
+
+    if (!video) return false;
+
+    return video.getCurrentUser().toString() === userId.toString();
+};
+
 const exchangeSchema = new Schema({
     initiator: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
-        required: "Se necesita el id del usuario iniciador del intercambio"
+        required: "Se necesita el id del usuario iniciador del intercambio",
+        validate: validateExists("User", "El usuario iniciador no existe")
     },
     responder: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
-        required: "Se necesita el id del usuario receptor del intercambio"
+        required: "Se necesita el id del usuario receptor del intercambio",
+        validate: validateExists("User", "El usuario receptor no existe")
     },
     initiatorVideo: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Video"
+        ref: "Video",
+        validate: [
+            validateExists("Video", "El video del usuario iniciador no existe"),
+            {
+                validator: async function (videoId) {
+                    return await validateIfOwner(videoId, this.initiator)
+                },
+                message: "El video no pertenece al usuario iniciador"
+            }
+        ]
     },
     responderVideo: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Video",
         required: "Se necesita el id de un video del receptor del intercambio",
-        validate: {
-            validator: async function (videoId) {
-                if (!this.responder) return false;
-
-                const video = await mongoose.model("Video").findById(videoId);
-
-                if (!video) return false;
-
-                return video.getCurrentUser().toString() === this.responder.toString();
-            },
-            message: "El video no pertenece al usuario receptor.",
-        }
+        validate: [
+            validateExists("Video", "El video del usuario receptor no existe"),
+            {
+                validator: async function (videoId) {
+                    return await validateIfOwner(videoId, this.responder)
+                },
+                message: "El video no pertenece al usuario receptor"
+            }
+        ]
     },
     status: {
         type: String,

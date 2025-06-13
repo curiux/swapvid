@@ -80,7 +80,8 @@ export default function Video() {
                         <div className="flex flex-col gap-2">
                             <h1 className="text-3xl font-semibold">{videoData.title}</h1>
                             <p className="text-xs text-muted-foreground">
-                                Subido {timeAgo(videoData.uploadedDate)}
+                                Subido {timeAgo(videoData.uploadedDate)} por
+                                <span className="font-semibold text-primary"> {videoData.user}</span>
                             </p>
                         </div>
                         <VideoActions />
