@@ -22,6 +22,17 @@
  *   - Fails if the user does not exist.
  *   - Fails if the id is invalid.
  * 
+ * PATCH /exchanges/:id:
+ *   - Allows responder to accept or reject an exchange.
+ *   - Fails if token is missing.
+ *   - Fails if token is invalid.
+ *   - Fails if the user is not the responder.
+ *   - Fails if the exchange is not pending.
+ *   - Fails if video is missing when accepting.
+ *   - Fails if status is invalid.
+ *   - Fails if the exchange does not exist.
+ *   - Fails if the user does not exist.
+ * 
  * After each test, all users and exchanges are removed from the database to ensure a clean environment.
  */
 import request from "supertest";
@@ -272,5 +283,136 @@ describe("GET /exchanges/:id", () => {
             .set("Authorization", `Bearer ${token}`);
         expect(res.statusCode).toBe(400);
         expect(res.body.error).toMatch(/inválido/i);
+    });
+});
+
+describe("PATCH /exchanges/:id", () => {
+    let exchangeId, Video, responderToken, video;
+    beforeEach(async () => {
+        Video = (await import("../models/Video.js")).default;
+        video = await Video.create({
+            title: "Video de prueba",
+            description: "Descripción de prueba",
+            category: "entretenimiento",
+            keywords: ["prueba"],
+            users: [responderId],
+            url: "http://test.com/video.mp4"
+        });
+        await User.findByIdAndUpdate(responderId, { $push: { videos: video._id } });
+        const exchange = await Exchange.create({
+            initiator: initiatorId,
+            responder: responderId,
+            responderVideo: video._id,
+            status: "pending"
+        });
+        exchangeId = exchange._id;
+        responderToken = generateToken({ _id: responderId });
+        await User.findByIdAndUpdate(initiatorId, { $push: { exchanges: exchange._id } });
+        await User.findByIdAndUpdate(responderId, { $push: { exchanges: exchange._id } });
+    });
+
+    it("debería permitir al receptor aceptar el intercambio con un video", async () => {
+        // Create a video for initiator to exchange
+        const initiatorVideo = await Video.create({
+            title: "Video del iniciador",
+            description: "Otro video",
+            category: "entretenimiento",
+            keywords: ["prueba"],
+            users: [initiatorId],
+            url: "http://test.com/video2.mp4"
+        });
+        await User.findByIdAndUpdate(initiatorId, { $push: { videos: initiatorVideo._id } });
+        const res = await request(app)
+            .patch(`/exchanges/${exchangeId}`)
+            .set("Authorization", `Bearer ${responderToken}`)
+            .send({ status: "accepted", videoId: initiatorVideo._id.toString() });
+        expect(res.statusCode).toBe(200);
+        const updated = await Exchange.findById(exchangeId);
+        expect(updated.status).toBe("accepted");
+        expect(updated.initiatorVideo.toString()).toBe(initiatorVideo._id.toString());
+    });
+
+    it("debería permitir al receptor rechazar el intercambio", async () => {
+        const res = await request(app)
+            .patch(`/exchanges/${exchangeId}`)
+            .set("Authorization", `Bearer ${responderToken}`)
+            .send({ status: "rejected" });
+        expect(res.statusCode).toBe(200);
+        const updated = await Exchange.findById(exchangeId);
+        expect(updated.status).toBe("rejected");
+    });
+
+    it("debería fallar si el usuario autenticado no es el receptor", async () => {
+        const res = await request(app)
+            .patch(`/exchanges/${exchangeId}`)
+            .set("Authorization", `Bearer ${token}`)
+            .send({ status: "rejected" });
+        expect(res.statusCode).toBe(403);
+        expect(res.body.error).toMatch(/no puedes/i);
+    });
+
+    it("debería fallar si el intercambio no está pendiente", async () => {
+        await Exchange.findByIdAndUpdate(exchangeId, { status: "accepted" });
+        const res = await request(app)
+            .patch(`/exchanges/${exchangeId}`)
+            .set("Authorization", `Bearer ${responderToken}`)
+            .send({ status: "rejected" });
+        expect(res.statusCode).toBe(403);
+        expect(res.body.error).toMatch(/no está pendiente/i);
+    });
+
+    it("debería fallar si falta el token", async () => {
+        const res = await request(app)
+            .patch(`/exchanges/${exchangeId}`)
+            .send({ status: "rejected" });
+        expect(res.statusCode).toBe(401);
+        expect(res.body.error).toBeDefined();
+    });
+
+    it("debería fallar si el token es inválido", async () => {
+        const res = await request(app)
+            .patch(`/exchanges/${exchangeId}`)
+            .set("Authorization", "Bearer tokeninvalido")
+            .send({ status: "rejected" });
+        expect(res.statusCode).toBe(401);
+        expect(res.body.error).toBeDefined();
+    });
+
+    it("debería fallar si falta el video al aceptar", async () => {
+        const res = await request(app)
+            .patch(`/exchanges/${exchangeId}`)
+            .set("Authorization", `Bearer ${responderToken}`)
+            .send({ status: "accepted" });
+        expect(res.statusCode).toBe(400);
+        expect(res.body.error).toMatch(/video/i);
+    });
+
+    it("debería fallar si el estado es inválido", async () => {
+        const res = await request(app)
+            .patch(`/exchanges/${exchangeId}`)
+            .set("Authorization", `Bearer ${responderToken}`)
+            .send({ status: "otro" });
+        expect(res.statusCode).toBe(400);
+        expect(res.body.error).toMatch(/no es válido/i);
+    });
+
+    it("debería fallar si el intercambio no existe", async () => {
+        const fakeId = new mongoose.Types.ObjectId();
+        const res = await request(app)
+            .patch(`/exchanges/${fakeId}`)
+            .set("Authorization", `Bearer ${responderToken}`)
+            .send({ status: "rejected" });
+        expect(res.statusCode).toBe(400);
+        expect(res.body.error).toMatch(/no existe/i);
+    });
+
+    it("debería fallar si el usuario no existe", async () => {
+        const fakeToken = generateToken({ _id: new mongoose.Types.ObjectId() });
+        const res = await request(app)
+            .patch(`/exchanges/${exchangeId}`)
+            .set("Authorization", `Bearer ${fakeToken}`)
+            .send({ status: "rejected" });
+        expect(res.statusCode).toBe(404);
+        expect(res.body.error).toMatch(/no existe/i);
     });
 });

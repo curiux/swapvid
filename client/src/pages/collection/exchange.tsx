@@ -61,12 +61,45 @@ export default function Exchange() {
         }
     }
 
-    const exchange = (selectedVideo: string) => {
+    const exchange = async (selectedVideo: string) => {
         if (!selectedVideo) {
             toast.error("Selecciona un video");
             return;
         }
-        console.log(selectedVideo);
+
+        setLoading(true);
+        const token = localStorage.getItem("token");
+
+        try {
+            const res = await fetch(API_URL + "/exchanges/" + exchangeData?._id, {
+                method: "PATCH",
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    status: "accepted",
+                    videoId: selectedVideo
+                })
+            });
+
+            const data = await res.json();
+            if (data.error) {
+                if (res.status == 401 || res.status == 404) {
+                    localStorage.clear();
+                    navigate("/");
+                } else {
+                    navigate("/error?msg=" + encodeURIComponent(data.error));
+                }
+            } else {
+                localStorage.setItem("msg", "¡Intercambio realizado correctamente!");
+                navigate("/mi-coleccion/intercambios");
+            }
+        } catch (e) {
+            navigate("/error");
+        }
+
+        setLoading(false);
     }
 
     return (

@@ -2,6 +2,7 @@ import { Router } from "express";
 import auth from "../middleware/auth.js";
 import Exchange from "../models/Exchange.js";
 import User from "../models/User.js";
+import Video from "../models/Video.js";
 
 const router = Router();
 
@@ -40,7 +41,7 @@ router.post("/request", auth, async (req, res) => {
                 error: "Ya existe una petición de intercambio pendiente entre estos usuarios"
             });
         }
-        
+
         const data = {
             initiator,
             responder,
@@ -86,7 +87,7 @@ router.post("/request", auth, async (req, res) => {
  */
 router.get("/:id", auth, async (req, res) => {
     try {
-        const user = await User.findById(req.userId).populate("videos");
+        const user = await User.findById(req.userId);
         if (!user) {
             return res.status(404).send({
                 error: "El usuario no existe"
@@ -112,7 +113,6 @@ router.get("/:id", auth, async (req, res) => {
             });
         }
 
-
         res.status(200).send({ data: exchangeData });
     } catch (e) {
         if (e.name == "CastError") {
@@ -127,5 +127,105 @@ router.get("/:id", auth, async (req, res) => {
         }
     }
 });
+
+/**
+ * Updates the status of a specific exchange (accept or reject) for the authenticated responder.
+ * - Requires authentication via the 'auth' middleware.
+ * - Checks if the user and exchange exist.
+ * - Only the responder can update the exchange status.
+ * - Allows the responder to accept (with a video) or reject the exchange.
+ * - Returns 404 if the user does not exist, 400 if the exchange does not exist or invalid status/video, 403 if unauthorized, or 500 for unexpected errors.
+ */
+router.patch("/:id", auth, async (req, res) => {
+    try {
+        const user = await User.findById(req.userId);
+        if (!user) {
+            return res.status(404).send({
+                error: "El usuario no existe"
+            });
+        }
+
+        const exchange = await Exchange.findById(req.params.id);
+        if (!exchange) {
+            return res.status(400).send({
+                error: "No existe un intercambio con este id"
+            });
+        }
+
+        if (exchange.status != "pending") {
+            return res.status(403).send({
+                error: "Este intercambio no está pendiente"
+            });
+        }
+
+        if (user._id.toString() != exchange.responder.toString()) {
+            return res.status(403).send({
+                error: "No puedes realizar esta acción"
+            });
+        }
+
+        const status = req.body.status;
+        if (status == "rejected") {
+            await exchange.updateOne({
+                status: "rejected"
+            });
+            return res.status(200).send({});
+        }
+
+        if (status != "accepted") {
+            return res.status(400).send({
+                error: "El estado ingresado no es válido"
+            });
+        }
+
+        const videoId = req.body.videoId;
+        if (!videoId) {
+            return res.status(400).send({
+                error: "No has ingresado el video a intercambiar"
+            });
+        }
+
+        await exchange.updateOne({
+            status: "accepted",
+            initiatorVideo: videoId
+        });
+        await exchangeVideos(exchange);
+        return res.status(200).send({});
+    } catch (e) {
+        console.log(e);
+        res.status(500).send({
+            error: "Ha ocurrido un error inesperado"
+        });
+    }
+});
+
+/**
+ * Helper function to perform the exchange of videos between the initiator and responder.
+ * - Updates the users array in both videos to reflect new ownership.
+ * - Updates the videos array in both users to reflect exchanged videos.
+ * - Used internally after an exchange is accepted.
+ */
+async function exchangeVideos(exchange) {
+    await Video.findByIdAndUpdate(exchange.initiatorVideo, {
+        $push: { users: exchange.responder }
+    });
+    await Video.findByIdAndUpdate(exchange.responderVideo, {
+        $push: { users: exchange.initiator }
+    });
+
+    await User.findByIdAndUpdate(exchange.initiator, {
+        $pull: { videos: exchange.initiatorVideo }
+    });
+    await User.findByIdAndUpdate(exchange.initiator, {
+        $push: { videos: exchange.responderVideo }
+    });
+
+    await User.findByIdAndUpdate(exchange.responder, {
+        $pull: { videos: exchange.responderVideo }
+    });
+    await User.findByIdAndUpdate(exchange.responder, {
+        $push: { videos: exchange.initiatorVideo }
+    });
+}
 
 export default router;

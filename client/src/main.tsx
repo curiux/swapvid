@@ -18,7 +18,7 @@ import Video from "./pages/video.tsx";
 import EditVideo from "./pages/edit-video.tsx";
 import Profile from "./pages/profile.tsx";
 import MyExchanges from "./pages/collection/my-exchanges.tsx";
-import Exchange from "./pages/exchange.tsx";
+import Exchange from "./pages/collection/exchange.tsx";
 
 const router = createBrowserRouter([
   {
