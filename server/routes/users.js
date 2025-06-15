@@ -197,4 +197,43 @@ router.get("/me/videos", auth, async (req, res) => {
     }
 });
 
+/**
+ * This route returns all videos for a given user by user ID.
+ * - Requires authentication via the 'auth' middleware.
+ * - Returns 404 if the user does not exist.
+ * - Returns 400 if the user ID is invalid.
+ * - On success, returns an array of video objects with user and thumbnail info.
+ */
+router.get("/:id/videos", auth, async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id).populate("videos");
+        if (!user) {
+            return res.status(404).send({
+                error: "El usuario no existe"
+            });
+        }
+
+        const videos = user.videos.map(video => {
+            const { users, hash, __v, ...videoData } = video.toJSON();
+            videoData.user = user.username;
+            videoData.thumbnail = video.createThumbnail();
+
+            return videoData;
+        });
+
+        return res.status(200).send({ videos });
+    } catch (e) {
+        if (e.name == "CastError") {
+            res.status(400).send({
+                error: "Id inválido."
+            });
+        } else {
+            console.log(e);
+            res.status(500).send({
+                error: "Ha ocurrido un error inesperado"
+            });
+        }
+    }
+});
+
 export default router;

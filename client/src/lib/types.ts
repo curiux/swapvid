@@ -12,3 +12,14 @@ export interface Video {
     url?: string;
     hasRequested?: boolean;
 }
+
+export interface Exchange {
+    _id: string;
+    initiator: string;
+    responder: string;
+    initiatorVideo?: string;
+    responderVideo: string;
+    status: string;
+    requestedDate?: Date;
+    user?: string;
+}

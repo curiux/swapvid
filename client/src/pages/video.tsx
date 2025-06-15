@@ -7,6 +7,7 @@ import { useLocation, useNavigate, useParams } from "react-router";
 import type { Video as VideoType } from "@/lib/types";
 import Spinner from "@/components/spinner";
 import { Separator } from "@/components/ui/separator";
+import VideoPreview from "@/components/video-preview";
 
 /**
  * Video page component
@@ -73,7 +74,7 @@ export default function Video() {
         <div className="flex min-h-svh w-full items-stretch justify-center p-3 pt-14 md:items-center md:p-10">
             <div className="grid w-full gap-4 md:h-[50vh] md:grid-cols-2">
                 {videoData.isOwner ? <VideoPlayer /> : (
-                    <img src={videoData.thumbnail} alt={videoData.title} className="object-contain h-full w-full" />
+                    <VideoPreview video={videoData} />
                 )}
                 <div className="flex flex-col p-4">
                     <div className="flex items-center justify-between pb-3 gap-5">

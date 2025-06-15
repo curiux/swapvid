@@ -6,6 +6,7 @@ import { useVideoStore } from "@/lib/store";
 import { Link, Outlet, useLocation, useNavigate } from "react-router";
 import { API_URL } from "@/lib/utils";
 import type { Video } from "@/lib/types";
+import { toast, Toaster } from "sonner";
 
 /**
  * VideoActions component
@@ -178,6 +179,8 @@ function ExchangeAction({ videoData }: { videoData: Video }) {
                 if (res.status == 401 || res.status == 404) {
                     localStorage.clear();
                     navigate("/");
+                } else if (res.status == 409) {
+                    toast.error("Ya existe un intercambio pendiente para el mismo usuario. Revista tu lista de intercambios.");
                 } else {
                     navigate("/error?msg=" + encodeURIComponent(data.error));
                 }
@@ -205,6 +208,7 @@ function ExchangeAction({ videoData }: { videoData: Video }) {
 
     return (
         <Dialog open={open} onOpenChange={(open) => setOpen(open)}>
+            <Toaster position="top-center" />
             <DialogTrigger asChild>
                 <Button className="cursor-pointer" aria-label="Intercambiar">
                     <Repeat />

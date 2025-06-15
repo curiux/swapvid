@@ -15,8 +15,8 @@ const router = Router();
  * - Returns 404 if the user or video does not exist.
  * - Determines if the current user is the owner of the video.
  *   - If owner: returns a secure video URL.
- *   - If not owner: returns a thumbnail and a 'hasRequested' flag indicating if the user has already requested an exchange for this video (checked via the Exchange model).
- * - Populates user info and includes username and ownership status in the response.
+ *   - If not owner: returns a 'hasRequested' flag indicating if the user has already requested an exchange for this video (checked via the Exchange model).
+ * - Populates a thumbnail, user info and includes username and ownership status in the response.
  * - Returns video data or appropriate error response.
  */
 router.get("/:id", auth, async (req, res) => {
@@ -42,7 +42,6 @@ router.get("/:id", auth, async (req, res) => {
         videoData.user = currentUser.username;
         videoData.isOwner = currentUser._id == String(user._id);
         if (!videoData.isOwner) {
-            videoData.thumbnail = video.createThumbnail();
             videoData.hasRequested = await Exchange.exists({
                 initiator: user._id,
                 responderVideo: videoData._id
@@ -50,6 +49,7 @@ router.get("/:id", auth, async (req, res) => {
         } else {
             videoData.url = video.createSecureUrl();
         }
+        videoData.thumbnail = video.createThumbnail();
 
         return res.status(200).send({ data: videoData });
     } catch (e) {

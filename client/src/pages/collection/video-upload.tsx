@@ -3,10 +3,10 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router";
 
 /**
- * This component renders the video upload page for the user's account.
+ * This component renders the video upload page.
  * It checks for authentication and displays the video upload form.
  */
-export default function AccountVideoUpload() {
+export default function VideoUpload() {
     const navigate = useNavigate();
 
     useEffect(() => {

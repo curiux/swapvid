@@ -12,7 +12,7 @@ import { toast } from "sonner";
  * - Shows a toast notification if a message is present in localStorage, then removes it.
  * - Renders the VideoLibrary component to display the user's videos.
  */
-export default function AccountVideos() {
+export default function MyVideos() {
     useEffect(() => {
         const msg = localStorage.getItem("msg");
         if (msg) {

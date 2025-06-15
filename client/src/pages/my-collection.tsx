@@ -9,7 +9,7 @@ import { Outlet, useNavigate } from "react-router";
  * it automatically redirects them to the home page using React Router's navigate function.
  * Otherwise, it displays the account sidebar and nested account routes.
  */
-export default function Account() {
+export default function MyCollection() {
     const navigate = useNavigate();
 
     useEffect(() => {
