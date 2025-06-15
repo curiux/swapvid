@@ -24,8 +24,8 @@ router.post("/request", auth, async (req, res) => {
         const responder = responderUser._id.toString();
 
         const hasRequest = await Exchange.exists({
-            initiator: responder,
-            responder: initiator,
+            initiator,
+            responder,
             status: "pending"
         });
 

@@ -74,7 +74,7 @@ export default function ExchangeVideoList({ userId, exchange }: { userId: string
             <Dialog open={open} onOpenChange={handleOpenChange}>
                 <DialogTrigger asChild>
                     <div className="absolute bottom-0 right-0 z-10">
-                        <Button className="cursor-pointer">
+                        <Button className="cursor-pointer" data-testid="chevron-trigger">
                             <ChevronRightIcon />
                         </Button>
                     </div>

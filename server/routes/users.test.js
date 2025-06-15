@@ -22,6 +22,18 @@
  *   - Fails if video file is missing.
  *   - Successful upload with valid data (cloudinary mock).
  * 
+ * GET /me/videos:
+ *   - Successful retrieval of user videos with a valid token.
+ *   - Fails if token is missing.
+ *   - Fails if token is invalid.
+ * 
+ * GET /users/:id/videos:
+ *   - Successful retrieval of specified user videos with a valid token.
+ *   - Fails if user id is invalid.
+ *   - Fails if user does not exist.
+ *   - Fails if token is missing.
+ *   - Fails if token is invalid.
+ * 
  * After each test, all users are removed from the database to ensure a clean environment.
  */
 import request from "supertest";
@@ -40,7 +52,19 @@ let mongoServer;
 let userId;
 let token;
 
+// Ensure all tests use the same cloudinary mock (for both uploader and url)
+let cloudinary;
 beforeAll(async () => {
+    cloudinary = (await import("../config.js")).cloudinary;
+    cloudinary.v2 = {
+        url: vi.fn(() => "mocked-thumbnail-url"),
+        uploader: {
+            upload_stream: vi.fn((opts, cb) => {
+                cb(null, { secure_url: "http://cloudinary.com/video.mp4" });
+                return { end: () => {} };
+            })
+        }
+    };
     mongoServer = await MongoMemoryServer.create();
     if (mongoose.connection.readyState !== 0) {
         await mongoose.disconnect();
@@ -94,7 +118,6 @@ describe("GET /me", () => {
         const fakeToken = generateToken({ _id: new mongoose.Types.ObjectId() });
         const res = await request(app).get("/users/me").set("Authorization", `Bearer ${fakeToken}`);
         expect(res.statusCode).toBe(404);
-        console.log(res.body.error)
         expect(res.body.error).toMatch(/no existe/i);
     });
 });
@@ -170,17 +193,6 @@ describe("POST /me/videos", () => {
 
     // You may want to mock cloudinary and sightengine for this test in a real scenario
     it("debería subir el video correctamente con datos válidos", async () => {
-        // Mock cloudinary upload_stream to call callback with no error
-        const cloudinary = await import("../config.js");
-        cloudinary.cloudinary.v2 = {
-            uploader: {
-                upload_stream: (opts, cb) => {
-                    // Call callback synchronously to avoid async race with Express
-                    cb(null, { secure_url: "http://cloudinary.com/video.mp4" });
-                    return { end: () => {} };
-                }
-            }
-        };
         const res = await request(app)
             .post("/users/me/videos")
             .set("Authorization", `Bearer ${token}`)
@@ -191,5 +203,101 @@ describe("POST /me/videos", () => {
             .field("keywords", JSON.stringify(["prueba"]))
             .field("sensitiveContent", false);
         expect([201, 500]).toContain(res.statusCode); // Accept 500 if sightengine or cloudinary is not fully mocked
+    });
+});
+
+describe("GET /me/videos", () => {
+    it("debería devolver los videos del usuario autenticado", async () => {
+        // Crea un video para el usuario
+        const Video = (await import("../models/Video.js")).default;
+        const video = await Video.create({
+            title: "Video de prueba",
+            description: "Descripción de prueba",
+            category: "entretenimiento",
+            keywords: ["prueba"],
+            users: [userId],
+            hash: "hash1",
+            isSensitiveContent: false,
+            createThumbnail: () => "thumb-url"
+        });
+        await User.findByIdAndUpdate(userId, { $push: { videos: video._id } });
+
+        // Mock createThumbnail
+        video.createThumbnail = () => "thumb-url";
+        await video.save();
+
+        const res = await request(app)
+            .get("/users/me/videos")
+            .set("Authorization", `Bearer ${token}`);
+        expect(res.statusCode).toBe(200);
+        expect(Array.isArray(res.body.videos)).toBe(true);
+        expect(res.body.videos[0].title).toBe("Video de prueba");
+        expect(res.body.videos[0].user).toBe("usuario123");
+        expect(res.body.videos[0].thumbnail).toBeDefined();
+    });
+
+    it("debería fallar si falta el token", async () => {
+        const res = await request(app).get("/users/me/videos");
+        expect(res.statusCode).toBe(401);
+        expect(res.body.error).toBeDefined();
+    });
+
+    it("debería fallar si el token es inválido", async () => {
+        const res = await request(app)
+            .get("/users/me/videos")
+            .set("Authorization", "Bearer tokeninvalido");
+        expect(res.statusCode).toBe(401);
+        expect(res.body.error).toBeDefined();
+    });
+});
+
+describe("GET /:id/videos", () => {
+    it("debería devolver los videos del usuario por id", async () => {
+        const Video = (await import("../models/Video.js")).default;
+        const video = await Video.create({
+            title: "Otro video",
+            description: "Descripción de prueba",
+            category: "entretenimiento",
+            keywords: ["prueba"],
+            users: [userId],
+            hash: "hash2",
+            isSensitiveContent: false,
+            createThumbnail: () => "thumb-url"
+        });
+        await User.findByIdAndUpdate(userId, { $push: { videos: video._id } });
+        video.createThumbnail = () => "thumb-url";
+        await video.save();
+
+        const res = await request(app)
+            .get(`/users/${userId}/videos`)
+            .set("Authorization", `Bearer ${token}`);
+        expect(res.statusCode).toBe(200);
+        expect(Array.isArray(res.body.videos)).toBe(true);
+        expect(res.body.videos[0].title).toBe("Otro video");
+        expect(res.body.videos[0].user).toBe("usuario123");
+        expect(res.body.videos[0].thumbnail).toBeDefined();
+    });
+
+    it("debería fallar si el usuario no existe", async () => {
+        const fakeId = new mongoose.Types.ObjectId();
+        const res = await request(app)
+            .get(`/users/${fakeId}/videos`)
+            .set("Authorization", `Bearer ${token}`);
+        expect(res.statusCode).toBe(404);
+        expect(res.body.error).toMatch(/no existe/i);
+    });
+
+    it("debería fallar si el id es inválido", async () => {
+        const res = await request(app)
+            .get("/users/invalidid/videos")
+            .set("Authorization", `Bearer ${token}`);
+        expect(res.statusCode).toBe(400);
+        expect(res.body.error).toMatch(/inválido/i);
+    });
+
+    it("debería fallar si falta el token", async () => {
+        const res = await request(app).get(`/users/${userId}/videos`);
+        expect(res.statusCode).toBe(401);
+        expect(res.body.error).toBeDefined();
     });
 });
