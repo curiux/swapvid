@@ -13,7 +13,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import EditVideoForm from "./edit-video-form";
-import { Dialog } from "./ui/dialog";
+import { Dialog } from "../ui/dialog";
 import { useVideoStore } from "@/lib/store";
 
 // Mock useNavigate

@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router";
 import { Button } from "../ui/button";
-import VideoPreview from "../video-preview";
+import VideoPreview from "../video/video-preview";
 import { API_URL, timeAgo } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import type { Video } from "@/lib/types";

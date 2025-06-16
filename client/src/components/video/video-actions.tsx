@@ -1,6 +1,6 @@
 import { Info, Repeat, SquarePen, Trash, X } from "lucide-react";
-import { Button } from "./ui/button";
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
+import { Button } from "../ui/button";
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
 import { useEffect, useState } from "react";
 import { useVideoStore } from "@/lib/store";
 import { Link, Outlet, useLocation, useNavigate } from "react-router";

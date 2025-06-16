@@ -1,4 +1,4 @@
-import VideoUploadForm from "@/components/video-upload-form";
+import VideoUploadForm from "@/components/video/video-upload-form";
 import { useEffect } from "react";
 import { useNavigate } from "react-router";
 

@@ -1,4 +1,4 @@
-import EditVideoForm from "@/components/edit-video-form";
+import EditVideoForm from "@/components/video/edit-video-form";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useLocation, useNavigate } from "react-router";
 

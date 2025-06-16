@@ -111,7 +111,7 @@ export default function Exchange() {
                 <div className="flex flex-col items-center justify-center gap-10 w-full">
                     <h1 className="text-3xl font-semibold">Intercambio de videos</h1>
                     <Card className="grid p-5 lg:grid-cols-5">
-                        {exchangeData && <ExchangeVideoCard videoId={exchangeData.responderVideo} />}
+                        {exchangeData && <ExchangeVideoCard videoId={exchangeData.responderVideo!} />}
                         <div className="flex items-center justify-center">
                             <Repeat className="w-1/6 h-full lg:w-1/4" />
                         </div>

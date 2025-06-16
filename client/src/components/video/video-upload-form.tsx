@@ -1,22 +1,22 @@
 import { z } from "zod";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "./ui/form";
-import { Input } from "./ui/input";
-import { Button } from "./ui/button";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
+import { Input } from "../ui/input";
+import { Button } from "../ui/button";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { type Tag, TagInput } from "emblor";
 import React, { useEffect, useRef, useState } from "react";
-import { Textarea } from "./ui/textarea";
+import { Textarea } from "../ui/textarea";
 import videojs from "video.js";
 import "video.js/dist/video-js.css";
-import { Separator } from "./ui/separator";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import { Separator } from "../ui/separator";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { API_URL, videoCategories } from "@/lib/utils";
 import { UploadIcon } from "lucide-react";
 import axios from "axios";
-import { Progress } from "./ui/progress";
+import { Progress } from "../ui/progress";
 import { useNavigate } from "react-router";
-import { Checkbox } from "./ui/checkbox";
+import { Checkbox } from "../ui/checkbox";
 
 /**
  * Zod schema for validating the video upload form fields:

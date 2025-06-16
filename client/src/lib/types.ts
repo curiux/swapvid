@@ -18,8 +18,10 @@ export interface Exchange {
     initiator: string;
     responder: string;
     initiatorVideo?: string;
-    responderVideo: string;
+    responderVideo?: string;
     status: string;
     requestedDate?: Date;
     user?: string;
+    initiatorVideoUrl?: string;
+    responderVideoUrl?: string;
 }

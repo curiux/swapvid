@@ -2,6 +2,7 @@ import type { Video } from "@/lib/types";
 import { API_URL, timeAgo } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
+import Spinner from "../spinner";
 
 /**
  * Displays the authenticated user's video library as a responsive grid of video cards.
@@ -11,6 +12,7 @@ import { Link, useNavigate } from "react-router";
 export default function VideoLibrary() {
     const navigate = useNavigate();
     const [videos, setVideos] = useState<Video[]>([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const token = localStorage.getItem("token");
@@ -39,11 +41,18 @@ export default function VideoLibrary() {
                 }
             } else {
                 setVideos(data.videos);
+                setLoading(false);
             }
         } catch (e) {
             navigate("/error");
         }
     }
+
+    if (loading) return (
+        <div className="w-full flex justify-center">
+            <Spinner className="w-14 h-14" />
+        </div>
+    );
 
     return (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 lg:gap-8">

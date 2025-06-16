@@ -34,6 +34,12 @@
  *   - Fails if token is missing.
  *   - Fails if token is invalid.
  * 
+ * GET /me/exchanges:
+ *   - Successful retrieval of user exchanges with a valid token.
+ *   - Fails if token is missing.
+ *   - Fails if token is invalid.
+ *   - Fails if user id in token is invalid.
+ * 
  * After each test, all users are removed from the database to ensure a clean environment.
  */
 import request from "supertest";
@@ -299,5 +305,75 @@ describe("GET /:id/videos", () => {
         const res = await request(app).get(`/users/${userId}/videos`);
         expect(res.statusCode).toBe(401);
         expect(res.body.error).toBeDefined();
+    });
+});
+
+describe("GET /me/exchanges", () => {
+    it("debería devolver la lista de intercambios del usuario autenticado", async () => {
+        const User = (await import("../models/User.js")).default;
+        const Video = (await import("../models/Video.js")).default;
+        const Exchange = (await import("../models/Exchange.js")).default;
+
+        const responder = await User.create({
+            email: "responder@example.com",
+            username: "responder",
+            password: "Password123!"
+        });
+        const video1 = await Video.create({
+            title: "Video 1",
+            description: "Descripción del video 1",
+            category: "entretenimiento",
+            keywords: ["test"],
+            users: [userId],
+            hash: "hash1",
+            isSensitiveContent: false
+        });
+        const video2 = await Video.create({
+            title: "Video 2",
+            description: "Descripción del video 2",
+            category: "educacion",
+            keywords: ["test"],
+            users: [responder._id],
+            hash: "hash2",
+            isSensitiveContent: false
+        });
+        const exchange = await Exchange.create({
+            initiator: userId,
+            responder: responder._id,
+            initiatorVideo: video1._id,
+            responderVideo: video2._id,
+            status: "pending"
+        });
+        await User.findByIdAndUpdate(userId, { $push: { exchanges: exchange._id } });
+
+        const res = await request(app)
+            .get("/users/me/exchanges")
+            .set("Authorization", `Bearer ${token}`);
+        expect(res.statusCode).toBe(200);
+        expect(Array.isArray(res.body.exchanges)).toBe(true);
+        expect(res.body.exchanges[0]).toMatchObject({
+            initiator: "usuario123",
+            responder: "responder",
+            status: "pending"
+        });
+    });
+
+    it("debería fallar si falta el token", async () => {
+        const res = await request(app).get("/users/me/exchanges");
+        expect(res.statusCode).toBe(401);
+        expect(res.body.error).toBeDefined();
+    });
+
+    it("debería fallar si el token es inválido", async () => {
+        const res = await request(app).get("/users/me/exchanges").set("Authorization", "Bearer tokeninvalido");
+        expect(res.statusCode).toBe(401);
+        expect(res.body.error).toBeDefined();
+    });
+
+    it("debería devolver 404 si el usuario no existe", async () => {
+        const fakeToken = generateToken({ _id: new mongoose.Types.ObjectId() });
+        const res = await request(app).get("/users/me/exchanges").set("Authorization", `Bearer ${fakeToken}`);
+        expect(res.statusCode).toBe(404);
+        expect(res.body.error).toMatch(/no existe/i);
     });
 });

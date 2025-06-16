@@ -1,5 +1,5 @@
 import type { Video } from "@/lib/types";
-import Spinner from "./spinner";
+import Spinner from "../spinner";
 
 /**
  * VideoPreview component

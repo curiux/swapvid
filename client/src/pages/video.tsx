@@ -1,5 +1,5 @@
-import VideoActions from "@/components/video-actions";
-import VideoPlayer from "@/components/video-player";
+import VideoActions from "@/components/video/video-actions";
+import VideoPlayer from "@/components/video/video-player";
 import { useVideoStore } from "@/lib/store";
 import { API_URL, timeAgo, videoCategories } from "@/lib/utils";
 import { useEffect, useState } from "react";
@@ -7,7 +7,7 @@ import { useLocation, useNavigate, useParams } from "react-router";
 import type { Video as VideoType } from "@/lib/types";
 import Spinner from "@/components/spinner";
 import { Separator } from "@/components/ui/separator";
-import VideoPreview from "@/components/video-preview";
+import VideoPreview from "@/components/video/video-preview";
 
 /**
  * Video page component

@@ -31,6 +31,12 @@ export const videoCategories = [
   { id: "otros", label: "Otros" }
 ];
 
+export const exchangeStatusList = [
+  { id: "pending", label: "Pendiente", color: "bg-yellow-500" },
+  { id: "accepted", label: "Aceptado", color: "bg-green-500" },
+  { id: "rejected", label: "Rechazado", color: "bg-red-500" }
+];
+
 /**
  * Returns a human-readable relative time string (e.g., "hace 2 días") for a given date.
  * Uses Intl.RelativeTimeFormat for Spanish localization.

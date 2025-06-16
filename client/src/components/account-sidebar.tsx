@@ -1,10 +1,16 @@
 import { Sidebar, SidebarContent, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
 import { Link } from "react-router";
 
+const baseUrl = "/mi-coleccion";
+
 const items = [
     {
         title: "Mis videos",
-        url: "/mi-coleccion"
+        url: "/"
+    },
+    {
+        title: "Mis intercambios",
+        url: "/intercambios"
     }
 ];
 
@@ -25,7 +31,7 @@ export default function AccountSidebar() {
                     {items.map((item) => (
                         <SidebarMenuItem key={item.title}>
                             <SidebarMenuButton asChild tooltip={item.title} onClick={handleClick}>
-                                <Link to={item.url}>{item.title}</Link>
+                                <Link to={baseUrl + item.url}>{item.title}</Link>
                             </SidebarMenuButton>
                         </SidebarMenuItem>
                     ))}

@@ -236,4 +236,56 @@ router.get("/:id/videos", auth, async (req, res) => {
     }
 });
 
+/**
+ * Returns a list of exchanges for the authenticated user.
+ * - Uses 'auth' middleware to verify JWT and extract user ID.
+ * - Populates the user's exchanges, sorting them by requestedDate (descending).
+ * - For each exchange, includes usernames and video thumbnails for both initiator and responder.
+ * - Returns 200 with the exchanges array, 404 if the user does not exist, or 500 for unexpected errors.
+ */
+router.get("/me/exchanges", auth, async (req, res) => {
+    try {
+        const user = await User.findById(req.userId).populate({
+            path: "exchanges",
+            options: { sort: { requestedDate: -1 } }
+        });
+        if (!user) {
+            return res.status(404).send({
+                error: "El usuario no existe"
+            });
+        }
+
+        const exchanges = await Promise.all(user.exchanges.map(async (exchange) => {
+            const initiator = await User.findById(exchange.initiator);
+            const responder = await User.findById(exchange.responder);
+            const initiatorUser = initiator ? initiator.username : "indefinido";
+            const responderUser = responder ? responder.username : "indefinido";
+
+            const initiatorVideo = await Video.findById(exchange.initiatorVideo);
+            const responderVideo = await Video.findById(exchange.responderVideo);
+
+            const { _id, status, requestedDate } = exchange.toJSON();
+            const exchangeData = {
+                _id,
+                status,
+                requestedDate,
+                initiator: initiatorUser,
+                responder: responderUser,
+                initiatorVideoUrl: initiatorVideo ? initiatorVideo.createThumbnail() : null,
+                responderVideoUrl: responderVideo.createThumbnail(),
+                user: exchange.initiator.equals(user._id) ? "initiator" : "responder"
+            }
+
+            return exchangeData;
+        }));
+
+        return res.status(200).send({ exchanges });
+    } catch (e) {
+        console.log(e);
+        res.status(500).send({
+            error: "Ha ocurrido un error inesperado"
+        });
+    }
+});
+
 export default router;

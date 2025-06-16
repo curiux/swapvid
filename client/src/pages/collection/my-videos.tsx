@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/sonner";
-import VideoLibrary from "@/components/video-library";
+import VideoLibrary from "@/components/video/video-library";
 import { FileVideo } from "lucide-react";
 import { useEffect } from "react";
 import { Link } from "react-router";

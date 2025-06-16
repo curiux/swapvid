@@ -1,21 +1,21 @@
 import { z } from "zod";
-import { Card, CardContent } from "./ui/card";
+import { Card, CardContent } from "../ui/card";
 import { useLocation, useNavigate } from "react-router";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "./ui/form";
-import { Input } from "./ui/input";
-import { Button } from "./ui/button";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
+import { Input } from "../ui/input";
+import { Button } from "../ui/button";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import Spinner from "./spinner";
+import Spinner from "../spinner";
 import { useEffect, useState } from "react";
-import { Checkbox } from "./ui/checkbox";
+import { Checkbox } from "../ui/checkbox";
 import { TagInput, type Tag } from "emblor";
-import { Textarea } from "./ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import { Textarea } from "../ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { API_URL, videoCategories } from "@/lib/utils";
 import { useVideoStore } from "@/lib/store";
 import { formSchema as videoSchema } from "./video-upload-form";
-import { DialogClose } from "./ui/dialog";
+import { DialogClose } from "../ui/dialog";
 
 const formSchema = videoSchema.omit({ video: true });
 
