@@ -228,4 +228,49 @@ async function exchangeVideos(exchange) {
     });
 }
 
+/**
+ * Deletes a specific pending exchange initiated by the authenticated user.
+ * - Requires authentication via the 'auth' middleware.
+ * - Checks if the user and exchange exist.
+ * - Only the initiator of a pending exchange can delete it.
+ * - Returns 404 if the user does not exist, 400 if the exchange does not exist, 403 if unauthorized or not pending, or 500 for unexpected errors.
+ */
+router.delete("/:id", auth, async (req, res) => {
+    try {
+        const user = await User.findById(req.userId);
+        if (!user) {
+            return res.status(404).send({
+                error: "El usuario no existe"
+            });
+        }
+
+        const exchange = await Exchange.findById(req.params.id);
+        if (!exchange) {
+            return res.status(400).send({
+                error: "No existe un intercambio con este id"
+            });
+        }
+
+        if (exchange.status != "pending") {
+            return res.status(403).send({
+                error: "Este intercambio no se puede eliminar porque no está pendiente"
+            });
+        }
+
+        if (user._id.toString() != exchange.initiator.toString()) {
+            return res.status(403).send({
+                error: "No puedes realizar esta acción"
+            });
+        }
+
+        await exchange.deleteOne();
+        return res.status(200).send({});
+    } catch (e) {
+        console.log(e);
+        res.status(500).send({
+            error: "Ha ocurrido un error inesperado"
+        });
+    }
+});
+
 export default router;

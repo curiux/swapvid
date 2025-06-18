@@ -62,7 +62,7 @@ beforeEach(() => {
 });
 
 // Mock Select to a native select for reliable testing
-vi.mock("./ui/select", () => {
+vi.mock("../ui/select", () => {
   return {
     Select: ({ onValueChange, children, ...props }: any) => (
       <select

@@ -21,8 +21,34 @@ export default function ExchangeActions({ exchangeId, status, user }: { exchange
         return;
     }
 
-    const handleCancel = () => {
+    const handleCancel = async () => {
         setOpen(false);
+
+        const token = localStorage.getItem("token");
+
+        try {
+            const res = await fetch(API_URL + "/exchanges/" + exchangeId, {
+                method: "DELETE",
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            });
+
+            const data = await res.json();
+            if (data.error) {
+                if (res.status == 401 || res.status == 404) {
+                    localStorage.clear();
+                    navigate("/");
+                } else {
+                    navigate("/error?msg=" + encodeURIComponent(data.error));
+                }
+            } else {
+                localStorage.setItem("msg", "Se canceló el intercambio");
+                navigate(0);
+            }
+        } catch (e) {
+            navigate("/error");
+        }
     }
 
     const handleReject = async () => {

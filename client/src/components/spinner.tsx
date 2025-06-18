@@ -28,6 +28,7 @@ export default function Spinner(props: { className?: string }) {
             <img
                 src={spinnerUrl}
                 alt="Loading..."
+                data-testid="loading"
             />
         </div>
     );

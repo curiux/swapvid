@@ -24,6 +24,20 @@ vi.mock("react-router", async () => {
     };
 });
 
+// Mock window.matchMedia
+if (!window.matchMedia) {
+    window.matchMedia = function () {
+        return {
+            matches: false,
+            addEventListener: () => { },
+            removeEventListener: () => { },
+            addListener: () => { },
+            removeListener: () => { },
+            dispatchEvent: () => false
+        };
+    } as any;
+}
+
 const sampleVideos = [
     {
         _id: "1",
