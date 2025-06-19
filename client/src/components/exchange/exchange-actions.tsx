@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router";
 import { Button } from "../ui/button";
-import { Check, X } from "lucide-react";
+import { Check, Star, X } from "lucide-react";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
 import { useState } from "react";
 import { API_URL } from "@/lib/utils";
@@ -17,8 +17,19 @@ export default function ExchangeActions({ exchangeId, status, user }: { exchange
     const navigate = useNavigate();
     const [open, setOpen] = useState(false);
 
-    if (status == "accepted" || status == "rejected") {
-        return;
+    if (status == "rejected") return;
+
+    if (status == "accepted") {
+        return (
+            <Button
+                asChild
+                aria-label="Calificar">
+                <Link to={"/mi-coleccion/intercambios/calificar/" + exchangeId}>
+                    <Star />
+                    <span>Calificar</span>
+                </Link>
+            </Button>
+        );
     }
 
     const handleCancel = async () => {

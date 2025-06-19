@@ -19,6 +19,7 @@ import EditVideo from "./pages/edit-video.tsx";
 import Profile from "./pages/profile.tsx";
 import MyExchanges from "./pages/collection/my-exchanges.tsx";
 import Exchange from "./pages/collection/exchange.tsx";
+import Rating from "./pages/collection/rating.tsx";
 
 const router = createBrowserRouter([
   {
@@ -37,7 +38,9 @@ const router = createBrowserRouter([
         path: "mi-coleccion", element: <MyCollection />, children: [
           { path: "", element: <MyVideos /> },
           { path: "subir", element: <VideoUpload /> },
-          { path: "intercambios", element: <MyExchanges /> },
+          { path: "intercambios", element: <MyExchanges />, children: [
+            { path: "calificar/:id", element: <Rating /> }
+          ] },
           { path: "intercambios/:id", element: <Exchange /> }
         ]
       },

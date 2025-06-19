@@ -1,5 +1,6 @@
 import ExchangeList from "@/components/exchange/exchange-list";
 import { useEffect } from "react";
+import { Outlet } from "react-router";
 import { toast, Toaster } from "sonner";
 
 /**
@@ -24,6 +25,7 @@ export default function MyExchanges() {
                 <h1 className="text-2xl text-center font-semibold mb-4">Intercambios</h1>
                 <ExchangeList />
             </div>
+            <Outlet />
         </div>
     );
 }
