@@ -87,7 +87,7 @@ function ExchangeItem({ exchange, user, status }: { exchange: Exchange, user: st
                             iniciado {timeAgo(exchange.requestedDate)}</CardDescription>
                         <CardDescription>Estado: <span className={`${status.color} text-muted text-xs font-semibold p-1 rounded-md`}>{status.label}</span></CardDescription>
                     </div>
-                    <ExchangeActions exchangeId={exchange._id} status={exchange.status} user={exchange.user!} />
+                    <ExchangeActions exchangeId={exchange._id} status={exchange.status} user={exchange.user!} hasRated={exchange.hasRated!} />
                 </div>
             </CardHeader>
             <Separator />

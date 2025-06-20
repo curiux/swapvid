@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { validateExists, validateIfOwner } from "../lib/utils.js";
 
 const { Schema, model } = mongoose;
 
@@ -20,23 +21,6 @@ const { Schema, model } = mongoose;
  * - Video ownership is enforced: initiatorVideo must belong to initiator, responderVideo must belong to responder.
  * - Uses async validation for existence and ownership checks.
  */
-
-const validateExists = (modelName, message) => ({
-    validator: async function (id) {
-        return await mongoose.model(modelName).exists({ _id: id });
-    },
-    message,
-});
-
-const validateIfOwner = async (videoId, userId) => {
-    if (!userId) return false;
-
-    const video = await mongoose.model("Video").findById(videoId);
-
-    if (!video) return false;
-
-    return video.getCurrentUser().toString() === userId.toString();
-};
 
 const exchangeSchema = new Schema({
     initiator: {

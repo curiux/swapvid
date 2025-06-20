@@ -31,6 +31,7 @@ import { HOST, SIGHTENGINE_API_SECRET } from "../config.js";
 import { Readable } from "stream";
 import axios from "axios";
 import FormData from "form-data";
+import mongoose from "mongoose";
 
 /**
  * Handles video content moderation using the Sightengine API.
@@ -67,3 +68,33 @@ export function sightEngineValidation(buffer, videoId) {
             else console.log(error.message);
         });
 }
+
+/**
+ * Mongoose validator factory to check if a referenced document exists.
+ * Usage: Attach to a schema field to ensure the referenced ID exists in the specified model.
+ * @param {string} modelName - The name of the Mongoose model to check.
+ * @param {string} message - The error message to display if validation fails.
+ * @returns {object} - Validator config for Mongoose schema.
+ */
+export const validateExists = (modelName, message) => ({
+    validator: async function (id) {
+        return await mongoose.model(modelName).exists({ _id: id });
+    },
+    message,
+});
+
+/**
+ * Checks if the given user is the owner of the specified video.
+ * @param {string} videoId - The ID of the video to check ownership for.
+ * @param {string} userId - The ID of the user to check.
+ * @returns {Promise<boolean>} - True if the user is the owner, false otherwise.
+ */
+export const validateIfOwner = async (videoId, userId) => {
+    if (!userId) return false;
+
+    const video = await mongoose.model("Video").findById(videoId);
+
+    if (!video) return false;
+
+    return video.getCurrentUser().toString() === userId.toString();
+};

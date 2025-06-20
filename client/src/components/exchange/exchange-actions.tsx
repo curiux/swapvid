@@ -7,20 +7,33 @@ import { API_URL } from "@/lib/utils";
 
 /**
  * ExchangeActions component
- * Provides UI and logic for accepting or rejecting an exchange request.
+ * Provides UI and logic for accepting, rejecting, or canceling an exchange request, and for rating after acceptance.
+ *
  * Props:
  * - exchangeId: string representing the exchange to act upon.
  * - status: current status of the exchange (e.g., pending, accepted, rejected).
  * - user: role of the user (e.g., initiator or responder).
+ * - hasRated: boolean indicating if the user has already rated the exchange.
  */
-export default function ExchangeActions({ exchangeId, status, user }: { exchangeId: string, status: string, user: string }) {
+export default function ExchangeActions({ exchangeId, status, user, hasRated }:
+    { exchangeId: string, status: string, user: string, hasRated: boolean }) {
     const navigate = useNavigate();
     const [open, setOpen] = useState(false);
 
     if (status == "rejected") return;
 
     if (status == "accepted") {
-        return (
+        return hasRated ? (
+            <Button
+                asChild
+                variant="outline"
+                aria-label="Calificar">
+                <Link to={"/mi-coleccion/intercambios/calificar/" + exchangeId}>
+                    <Star />
+                    <span>Calificado</span>
+                </Link>
+            </Button>
+        ) : (
             <Button
                 asChild
                 aria-label="Calificar">

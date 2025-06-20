@@ -1,27 +1,38 @@
 import type { Exchange } from "@/lib/types";
-import { API_URL } from "@/lib/utils";
-import { useEffect, useState, type MouseEvent } from "react";
+import { API_URL, timeAgo } from "@/lib/utils";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import Spinner from "../spinner";
 import { Card, CardContent } from "../ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
 import { Textarea } from "../ui/textarea";
 import { Button } from "../ui/button";
-import { DialogClose } from "../ui/dialog";
 import { useForm } from "react-hook-form";
 import z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { X } from "lucide-react";
 
+/**
+ * Zod schema for exchange rating form validation.
+ * - rating: number (required)
+ * - comment: optional string, max 500 chars, must be empty or at least 10 chars if present
+ */
 const formSchema = z.object({
     rating: z.number(),
     comment: z.string()
-        .max(500, { message: "El comentario no debe superar los 500 caracteres." })
+        .max(500, { message: "El comentario no debe superar los 500 caracteres" })
         .refine(val => val.length === 0 || val.length >= 10, {
-            message: "Debe tener al menos 10 caracteres o dejarse vacío",
+            message: "El comentario debe tener al menos 10 caracteres o dejarse vacío",
         })
+        .optional()
 });
 
+/**
+ * ExchangeRatingForm component
+ * - Renders a form for rating an exchange (1-5 stars, half-star increments) and leaving an optional comment.
+ * - Fetches exchange data and handles both rating and viewing an existing rating.
+ * - Uses react-hook-form and Zod for validation, and submits the rating to the backend.
+ * - Handles navigation, error, and loading states.
+ */
 export default function ExchangeRatingForm() {
     const navigate = useNavigate();
     const params = useParams();
@@ -29,11 +40,13 @@ export default function ExchangeRatingForm() {
         resolver: zodResolver(formSchema),
         mode: "onChange",
         defaultValues: {
-            rating: 0
+            rating: 3.5
         }
     });
+    const { setValue } = form;
     const [loading, setLoading] = useState(true);
     const [exchangeData, setExchangeData] = useState<Exchange>();
+    const [ratingDate, setRatingDate] = useState<Date>();
 
     useEffect(() => {
         const token = localStorage.getItem("token");
@@ -71,8 +84,6 @@ export default function ExchangeRatingForm() {
                 }
                 setExchangeData(exchange);
                 setLoading(false);
-
-
             }
         } catch (e) {
             navigate("/error");
@@ -80,7 +91,86 @@ export default function ExchangeRatingForm() {
     }
 
     const handleSubmit = async (values: z.infer<typeof formSchema>) => {
-        console.log(values);
+        const rating = values.rating;
+        const comment = values.comment || undefined;
+
+        await rate(rating, comment);
+    }
+
+    const rate = async (rating: number, comment: string | undefined) => {
+        const bodyData: any = { rating };
+        if (comment) bodyData.comment = comment;
+        bodyData.exchangeId = exchangeData?._id;
+        bodyData.ratedUser = exchangeData?.user == "initiator" ? exchangeData.responder : exchangeData?.initiator;
+        bodyData.video = exchangeData?.user == "initiator" ? exchangeData.responderVideo : exchangeData?.initiatorVideo;
+
+        const token = localStorage.getItem("token");
+
+        try {
+            const res = await fetch(API_URL + "/ratings", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(bodyData)
+            });
+
+            const data = await res.json();
+            if (data.error) {
+                if (res.status == 401 || res.status == 404) {
+                    localStorage.clear();
+                    navigate("/");
+                } else {
+                    form.setError("root", { message: data.error });
+                }
+            } else if (res.status == 201) {
+                localStorage.setItem("msg", "¡Calificado correctamente!");
+                navigate(location.pathname.split("/calificar")[0]);
+                navigate(0);
+            }
+        } catch (e) {
+            form.setError("root", { message: "Ha ocurrido un error inesperado." });
+        }
+    }
+
+    useEffect(() => {
+        if (!exchangeData) return;
+
+        if (exchangeData.hasRated) {
+            setLoading(true);
+            getRating();
+        }
+    }, [exchangeData]);
+
+    const getRating = async () => {
+        const token = localStorage.getItem("token");
+
+        try {
+            const res = await fetch(API_URL + "/ratings?exchangeId=" + exchangeData?._id, {
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            });
+
+            const data = await res.json();
+            if (data.error) {
+                if (res.status == 401 || res.status == 404) {
+                    localStorage.clear();
+                    navigate("/");
+                } else {
+                    navigate("/error?msg=" + encodeURIComponent(data.error));
+                }
+            } else if (res.status == 200 && data.data) {
+                const ratingData = data.data;
+                setValue("rating", ratingData.rating);
+                setValue("comment", ratingData.comment);
+                setRatingDate(ratingData.createdAt)
+                setLoading(false);
+            }
+        } catch (e) {
+            navigate("/error");
+        }
     }
 
     if (loading) return (
@@ -104,7 +194,10 @@ export default function ExchangeRatingForm() {
                                         </p>
                                     </div>
                                     <FormControl>
-                                        <StarRating rating={field.value} onChange={field.onChange} />
+                                        {exchangeData?.hasRated
+                                            ? <StarRating rating={field.value} />
+                                            : <StarRating rating={field.value} onChange={field.onChange} />
+                                        }
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -114,18 +207,21 @@ export default function ExchangeRatingForm() {
                             control={form.control}
                             name="comment"
                             render={({ field }) => (
-                                <FormItem>
+                                <FormItem className={exchangeData?.hasRated && !field.value ? "hidden" : ""}>
                                     <div className="flex items-center justify-between">
-                                        <FormLabel htmlFor="description">Comentario (opcional)</FormLabel>
-                                        <p className="text-xs text-muted-foreground">
-                                            {field.value ? field.value.length : 0}/500
-                                        </p>
+                                        <FormLabel htmlFor="description">Comentario {!exchangeData?.hasRated && "(opcional)"}</FormLabel>
+                                        {!exchangeData?.hasRated && (
+                                            <p className="text-xs text-muted-foreground">
+                                                {field.value ? field.value.length : 0}/500
+                                            </p>
+                                        )}
                                     </div>
                                     <FormControl>
                                         <Textarea
                                             id="description"
                                             placeholder="Comentario de ejemplo"
                                             className="resize-none"
+                                            disabled={exchangeData?.hasRated}
                                             {...field}
                                         />
                                     </FormControl>
@@ -139,14 +235,13 @@ export default function ExchangeRatingForm() {
                                 {form.formState.errors.root.message}
                             </FormMessage>
                         )}
-                        <div className="grid gap-3 md:grid-cols-2">
-                            <Button type="submit" aria-label="Editar">
+                        {!exchangeData?.hasRated ? (
+                            <Button type="submit" aria-label="Calificar">
                                 Calificar
                             </Button>
-                            <DialogClose>
-                                <Button variant="outline" className="w-full" aria-label="Cancelar">Cancelar</Button>
-                            </DialogClose>
-                        </div>
+                        ) : (
+                            <p className="text-xs text-muted-foreground">Calificado {timeAgo(ratingDate)}</p>
+                        )}
                     </form>
                 </Form>
             </CardContent>
@@ -154,11 +249,24 @@ export default function ExchangeRatingForm() {
     );
 }
 
-const StarRating = ({ rating = 3.5, onChange }: { rating: number, onChange: (value: number) => void }) => {
+
+/**
+ * StarRating component
+ * - Displays a 1-5 star rating UI with support for half-star increments.
+ * - Allows users to select a rating by clicking on stars (if onChange is provided).
+ * - Shows the current rating visually, and is read-only if onChange is not provided.
+ *
+ * Props:
+ * - rating: number (current rating value, default 3.5)
+ * - onChange?: function to call when the rating is changed by the user
+ */
+const StarRating = ({ rating = 3.5, onChange }: { rating: number, onChange?: (value: number) => void }) => {
     const [currentRating, setCurrentRating] = useState(rating);
     const max = 5;
 
     const handleClick = (e: any, index: number) => {
+        if (!onChange) return;
+
         const { left, width } = e.currentTarget.getBoundingClientRect();
         const clickX = e.clientX - left;
         const isHalf = clickX < width / 2;

@@ -1,6 +1,7 @@
 import { Router } from "express";
 import User from "../models/User.js";
 import Video from "../models/Video.js";
+import Rating from "../models/Rating.js";
 import auth from "../middleware/auth.js";
 import { cloudinary } from "../config.js";
 import { sightEngineValidation, upload } from "../lib/utils.js";
@@ -241,6 +242,8 @@ router.get("/:id/videos", auth, async (req, res) => {
  * - Uses 'auth' middleware to verify JWT and extract user ID.
  * - Populates the user's exchanges, sorting them by requestedDate (descending).
  * - For each exchange, includes usernames and video thumbnails for both initiator and responder.
+ * - Adds the current user's role in the exchange ("initiator" or "responder").
+ * - Includes a hasRated flag for accepted exchanges, indicating if the user has already rated the exchange.
  * - Returns 200 with the exchanges array, 404 if the user does not exist, or 500 for unexpected errors.
  */
 router.get("/me/exchanges", auth, async (req, res) => {
@@ -264,6 +267,14 @@ router.get("/me/exchanges", auth, async (req, res) => {
             const initiatorVideo = await Video.findById(exchange.initiatorVideo);
             const responderVideo = await Video.findById(exchange.responderVideo);
 
+            let hasRated = false;
+            if (exchange.status == "accepted") {
+                hasRated = await Rating.exists({
+                    exchangeId: exchange._id,
+                    ratingUser: exchange.initiator.equals(user._id) ? exchange.initiator._id : exchange.responder._id
+                });
+            }
+
             const { _id, status, requestedDate } = exchange.toJSON();
             const exchangeData = {
                 _id,
@@ -273,7 +284,8 @@ router.get("/me/exchanges", auth, async (req, res) => {
                 responder: responderUser,
                 initiatorVideoUrl: initiatorVideo ? initiatorVideo.createThumbnail() : null,
                 responderVideoUrl: responderVideo.createThumbnail(),
-                user: exchange.initiator.equals(user._id) ? "initiator" : "responder"
+                user: exchange.initiator.equals(user._id) ? "initiator" : "responder",
+                hasRated
             }
 
             return exchangeData;

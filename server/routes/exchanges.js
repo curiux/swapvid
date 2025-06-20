@@ -3,6 +3,7 @@ import auth from "../middleware/auth.js";
 import Exchange from "../models/Exchange.js";
 import User from "../models/User.js";
 import Video from "../models/Video.js";
+import Rating from "../models/Rating.js";
 
 const router = Router();
 
@@ -113,7 +114,15 @@ router.get("/:id", auth, async (req, res) => {
             });
         }
 
-        res.status(200).send({ data: exchangeData });
+        let hasRated = false;
+        if (exchange.status == "accepted") {
+            hasRated = await Rating.exists({
+                exchangeId: exchange._id,
+                ratingUser: exchange.initiator.equals(user._id) ? exchange.initiator._id : exchange.responder._id
+            });
+        }
+
+        res.status(200).send({ data: { ...exchangeData, hasRated } });
     } catch (e) {
         if (e.name == "CastError") {
             res.status(400).send({

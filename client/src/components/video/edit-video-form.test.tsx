@@ -80,7 +80,6 @@ describe("EditVideoForm", () => {
         expect(screen.getByLabelText(/palabras clave/i)).toBeTruthy();
         expect(screen.getByLabelText(/contenido sensible/i)).toBeTruthy();
         expect(screen.getByRole("button", { name: /editar/i })).toBeTruthy();
-        expect(screen.getAllByRole("button", { name: /cancelar/i })[0]).toBeTruthy();
     });
 
     it("muestra errores si el formulario está incompleto", async () => {

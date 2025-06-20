@@ -24,4 +24,5 @@ export interface Exchange {
     user?: string;
     initiatorVideoUrl?: string;
     responderVideoUrl?: string;
+    hasRated?: boolean;
 }

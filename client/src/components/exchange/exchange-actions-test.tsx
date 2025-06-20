@@ -56,13 +56,13 @@ describe("ExchangeActions", () => {
     it("no muestra acciones si el estado es 'accepted' o 'rejected'", () => {
         const { container: accepted } = render(
             <MemoryRouter>
-                <ExchangeActions exchangeId="ex1" status="accepted" user="initiator" />
+                <ExchangeActions exchangeId="ex1" status="accepted" user="initiator" hasRated={false} />
             </MemoryRouter>
         );
         expect(accepted.firstChild).toBeNull();
         const { container: rejected } = render(
             <MemoryRouter>
-                <ExchangeActions exchangeId="ex2" status="rejected" user="responder" />
+                <ExchangeActions exchangeId="ex2" status="rejected" user="responder" hasRated={false} />
             </MemoryRouter>
         );
         expect(rejected.firstChild).toBeNull();
@@ -71,7 +71,7 @@ describe("ExchangeActions", () => {
     it("muestra botón de aceptar solo para el usuario 'responder'", () => {
         render(
             <MemoryRouter>
-                <ExchangeActions exchangeId="ex3" status="pending" user="responder" />
+                <ExchangeActions exchangeId="ex3" status="pending" user="responder" hasRated={false} />
             </MemoryRouter>
         );
         expect(screen.getByLabelText(/aceptar intercambio/i)).toBeTruthy();
@@ -80,7 +80,7 @@ describe("ExchangeActions", () => {
     it("abre y cierra el diálogo de rechazar/cancelar", async () => {
         render(
             <MemoryRouter>
-                <ExchangeActions exchangeId="ex4" status="pending" user="initiator" />
+                <ExchangeActions exchangeId="ex4" status="pending" user="initiator" hasRated={false} />
             </MemoryRouter>
         );
         fireEvent.click(screen.getByLabelText(/cancelar petición/i));
@@ -98,7 +98,7 @@ describe("ExchangeActions", () => {
         }) as any;
         render(
             <MemoryRouter>
-                <ExchangeActions exchangeId="ex5" status="pending" user="responder" />
+                <ExchangeActions exchangeId="ex5" status="pending" user="responder" hasRated={false} />
             </MemoryRouter>
         );
         fireEvent.click(screen.getByLabelText(/rechazar intercambio/i));
@@ -125,7 +125,7 @@ describe("ExchangeActions", () => {
         }) as any;
         render(
             <MemoryRouter>
-                <ExchangeActions exchangeId="ex6" status="pending" user="responder" />
+                <ExchangeActions exchangeId="ex6" status="pending" user="responder" hasRated={false} />
             </MemoryRouter>
         );
         fireEvent.click(screen.getByLabelText(/rechazar intercambio/i));
@@ -140,7 +140,7 @@ describe("ExchangeActions", () => {
         global.fetch = vi.fn().mockRejectedValue(new Error("Network error"));
         render(
             <MemoryRouter>
-                <ExchangeActions exchangeId="ex7" status="pending" user="responder" />
+                <ExchangeActions exchangeId="ex7" status="pending" user="responder" hasRated={false} />
             </MemoryRouter>
         );
         fireEvent.click(screen.getByLabelText(/rechazar intercambio/i));
@@ -157,7 +157,7 @@ describe("ExchangeActions", () => {
         }) as any;
         render(
             <MemoryRouter>
-                <ExchangeActions exchangeId="ex8" status="pending" user="initiator" />
+                <ExchangeActions exchangeId="ex8" status="pending" user="initiator" hasRated={false} />
             </MemoryRouter>
         );
         fireEvent.click(screen.getByLabelText(/cancelar petición/i));
@@ -184,7 +184,7 @@ describe("ExchangeActions", () => {
         }) as any;
         render(
             <MemoryRouter>
-                <ExchangeActions exchangeId="ex9" status="pending" user="initiator" />
+                <ExchangeActions exchangeId="ex9" status="pending" user="initiator" hasRated={false} />
             </MemoryRouter>
         );
         fireEvent.click(screen.getByLabelText(/cancelar petición/i));
@@ -199,7 +199,7 @@ describe("ExchangeActions", () => {
         global.fetch = vi.fn().mockRejectedValue(new Error("Network error"));
         render(
             <MemoryRouter>
-                <ExchangeActions exchangeId="ex10" status="pending" user="initiator" />
+                <ExchangeActions exchangeId="ex10" status="pending" user="initiator" hasRated={false} />
             </MemoryRouter>
         );
         fireEvent.click(screen.getByLabelText(/cancelar petición/i));

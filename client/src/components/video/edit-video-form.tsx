@@ -15,7 +15,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { API_URL, videoCategories } from "@/lib/utils";
 import { useVideoStore } from "@/lib/store";
 import { formSchema as videoSchema } from "./video-upload-form";
-import { DialogClose } from "../ui/dialog";
 
 const formSchema = videoSchema.omit({ video: true });
 
@@ -254,14 +253,9 @@ export default function EditVideoForm() {
                                 {form.formState.errors.root.message}
                             </FormMessage>
                         )}
-                        <div className="grid gap-3 md:grid-cols-2">
-                            <Button type="submit" aria-label="Editar">
-                                Editar
-                            </Button>
-                            <DialogClose>
-                                <Button variant="outline" className="w-full" aria-label="Cancelar">Cancelar</Button>
-                            </DialogClose>
-                        </div>
+                        <Button type="submit" aria-label="Editar">
+                            Editar
+                        </Button>
                     </form>
                 </Form>
             </CardContent>
