@@ -142,11 +142,12 @@ function DeleteAction({ videoData }: { videoData: Video }) {
 
 /**
  * ExchangeAction component
- * - Handles the UI and logic for requesting a video exchange with another user.
- * - If the current user has already requested an exchange for this video, displays the request status and a cancel button (cancel logic not implemented).
+ * - Handles the UI and logic for requesting or cancelling a video exchange with another user.
+ * - If the current user has already requested an exchange for this video, displays the request status and a cancel button (now with implemented cancel logic).
  * - If not requested, provides a dialog to confirm the exchange action, including a warning about losing access to the video if the exchange is accepted.
  * - On confirmation, sends a POST request to the backend to initiate the exchange and updates the store state accordingly.
- * - Handles navigation on error or authentication issues.
+ * - Allows cancelling a pending exchange request via a DELETE request and updates the store state.
+ * - Handles navigation on error or authentication issues, and displays toast notifications for conflicts.
  */
 function ExchangeAction({ videoData }: { videoData: Video }) {
     const navigate = useNavigate();
@@ -192,6 +193,35 @@ function ExchangeAction({ videoData }: { videoData: Video }) {
         }
     }
 
+    const handleCancel = async () => {
+        setOpen(false);
+
+        const token = localStorage.getItem("token");
+
+        try {
+            const res = await fetch(API_URL + "/exchanges?videoId=" + videoData._id, {
+                method: "DELETE",
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            });
+
+            const data = await res.json();
+            if (data.error) {
+                if (res.status == 401 || res.status == 404) {
+                    localStorage.clear();
+                    navigate("/");
+                } else {
+                    navigate("/error?msg=" + encodeURIComponent(data.error));
+                }
+            } else {
+                update({ ...videoData, hasRequested: false });
+            }
+        } catch (e) {
+            navigate("/error");
+        }
+    }
+
     if (videoData?.hasRequested) {
         return (
             <div>
@@ -199,9 +229,27 @@ function ExchangeAction({ videoData }: { videoData: Video }) {
                     <Repeat />
                     <span>Pedido</span>
                 </Button>
-                <Button className="rounded-l-none cursor-pointer text-primary bg-red-500 hover:bg-red-700 dark:text-secondary">
-                    <X />
-                </Button>
+                <Dialog open={open} onOpenChange={(open) => setOpen(open)}>
+                    <DialogTrigger asChild>
+                        <Button className="rounded-l-none cursor-pointer text-primary bg-red-500 hover:bg-red-700 dark:text-secondary">
+                            <X />
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent className="min-w-1/2 max-w-full max-h-screen overflow-y-auto sm:max-w-[425px]">
+                        <DialogHeader>
+                            <DialogTitle className="text-2xl">Cancelar Petición</DialogTitle>
+                            <DialogDescription>
+                                Estás seguro de que quieres cancelar esta petición?
+                            </DialogDescription>
+                        </DialogHeader>
+                        <DialogFooter>
+                            <DialogClose asChild>
+                                <Button variant="outline" aria-label="Cancelar">Cancelar</Button>
+                            </DialogClose>
+                            <Button onClick={handleCancel}>Cancelar petición</Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
             </div>
         );
     }
