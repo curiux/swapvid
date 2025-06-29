@@ -42,28 +42,45 @@ export const exchangeStatusList = [
  * Uses Intl.RelativeTimeFormat for Spanish localization.
  */
 export function timeAgo(dateISO: any) {
-    const date: any = new Date(dateISO);
-    const now: any = new Date();
-    const seconds = Math.floor((now - date) / 1000);
+  const date: any = new Date(dateISO);
+  const now: any = new Date();
+  const seconds = Math.floor((now - date) / 1000);
 
-    const rtf = new Intl.RelativeTimeFormat("es", { numeric: "auto" });
+  const rtf = new Intl.RelativeTimeFormat("es", { numeric: "auto" });
 
-    const intervals: { unit: Intl.RelativeTimeFormatUnit, seconds: number }[] = [
-        { unit: "year", seconds: 31536000 },
-        { unit: "month", seconds: 2592000 },
-        { unit: "week", seconds: 604800 },
-        { unit: "day", seconds: 86400 },
-        { unit: "hour", seconds: 3600 },
-        { unit: "minute", seconds: 60 },
-        { unit: "second", seconds: 1 },
-    ];
+  const intervals: { unit: Intl.RelativeTimeFormatUnit, seconds: number }[] = [
+    { unit: "year", seconds: 31536000 },
+    { unit: "month", seconds: 2592000 },
+    { unit: "week", seconds: 604800 },
+    { unit: "day", seconds: 86400 },
+    { unit: "hour", seconds: 3600 },
+    { unit: "minute", seconds: 60 },
+    { unit: "second", seconds: 1 },
+  ];
 
-    for (const { unit, seconds: intervalSeconds } of intervals) {
-        const delta = Math.floor(seconds / intervalSeconds);
-        if (delta >= 1) {
-            return rtf.format(-delta, unit);
-        }
+  for (const { unit, seconds: intervalSeconds } of intervals) {
+    const delta = Math.floor(seconds / intervalSeconds);
+    if (delta >= 1) {
+      return rtf.format(-delta, unit);
     }
+  }
 
-    return "justo ahora";
+  return "justo ahora";
+}
+
+/**
+ * Converts a number of bytes into a human-readable string with appropriate units (e.g., KB, MB).
+ * Rounds the value to the nearest integer and selects the largest possible unit.
+ */
+export function formatBytes(bytes: number): string {
+  const units = ["B", "KB", "MB", "GB", "TB"];
+  let i = 0;
+  let value = bytes;
+
+  while (value >= 1024 && i < units.length - 1) {
+    value /= 1024;
+    i++;
+  }
+
+  return `${Math.round(value)} ${units[i]}`;
 }

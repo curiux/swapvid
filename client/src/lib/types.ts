@@ -26,3 +26,17 @@ export interface Exchange {
     responderVideoUrl?: string;
     hasRated?: boolean;
 }
+
+export interface Plan {
+    _id: string,
+    name: string,
+    monthlyPrice: number,
+    libraryStorage: number,
+    librarySize: number,
+    videoMaxSize: number,
+    exchangeLimit: number,
+    stats: boolean,
+    exchangePriority: boolean,
+    searchPriority: boolean,
+    supportPriority: boolean
+}

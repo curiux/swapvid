@@ -9,6 +9,7 @@ import users from "./routes/users.js";
 import videos from "./routes/videos.js";
 import exchanges from "./routes/exchanges.js";
 import ratings from "./routes/ratings.js";
+import plans from "./routes/plans.js";
 
 const app = express();
 
@@ -22,6 +23,7 @@ app.use("/users", users);
 app.use("/videos", videos);
 app.use("/exchanges", exchanges);
 app.use("/ratings", ratings);
+app.use("/plans", plans);
 
 mongoose.connect(MONGODB_URI);
 

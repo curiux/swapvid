@@ -20,6 +20,7 @@ import Profile from "./pages/profile.tsx";
 import MyExchanges from "./pages/collection/my-exchanges.tsx";
 import Exchange from "./pages/collection/exchange.tsx";
 import Rating from "./pages/collection/rating.tsx";
+import Plans from "./pages/plans.tsx";
 
 const router = createBrowserRouter([
   {
@@ -38,9 +39,11 @@ const router = createBrowserRouter([
         path: "mi-coleccion", element: <MyCollection />, children: [
           { path: "", element: <MyVideos /> },
           { path: "subir", element: <VideoUpload /> },
-          { path: "intercambios", element: <MyExchanges />, children: [
-            { path: "calificar/:id", element: <Rating /> }
-          ] },
+          {
+            path: "intercambios", element: <MyExchanges />, children: [
+              { path: "calificar/:id", element: <Rating /> }
+            ]
+          },
           { path: "intercambios/:id", element: <Exchange /> }
         ]
       },
@@ -49,6 +52,7 @@ const router = createBrowserRouter([
           { path: "editar", element: <EditVideo /> }
         ]
       },
+      { path: "planes", element: <Plans /> },
       { path: "*", element: <NotFound /> }
     ]
   }
