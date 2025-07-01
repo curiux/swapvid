@@ -50,6 +50,7 @@ import { MongoMemoryServer } from "mongodb-memory-server";
 import { generateToken } from "../lib/jwt.js";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import * as utilsModule from "../lib/utils.js";
+import Plan from "../models/Plan.js";
 
 // Mock sightEngineValidation to avoid real API calls
 vi.spyOn(utilsModule, "sightEngineValidation").mockImplementation(() => {});
@@ -79,10 +80,23 @@ beforeAll(async () => {
 });
 
 beforeEach(async () => {
+    const plan = await Plan.create({
+        name: "basic",
+        monthlyPrice: 0,
+        libraryStorage: 1000000000,
+        librarySize: 10,
+        videoMaxSize: 50000000,
+        exchangeLimit: 5,
+        stats: false,
+        exchangePriority: false,
+        searchPriority: false,
+        supportPriority: false
+    });
     const user = await User.create({
         email: "test@example.com",
         username: "usuario123",
-        password: "Password123!"
+        password: "Password123!",
+        subscription: { plan: plan._id }
     });
     userId = user._id;
     token = generateToken({ _id: user._id });
@@ -90,6 +104,7 @@ beforeEach(async () => {
 
 afterEach(async () => {
     await User.deleteMany();
+    await Plan.deleteMany();
 });
 
 afterAll(async () => {

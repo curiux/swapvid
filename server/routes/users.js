@@ -2,6 +2,7 @@ import { Router } from "express";
 import User from "../models/User.js";
 import Video from "../models/Video.js";
 import Rating from "../models/Rating.js";
+import Exchange from "../models/Exchange.js";
 import auth from "../middleware/auth.js";
 import { cloudinary } from "../config.js";
 import { sightEngineValidation, upload } from "../lib/utils.js";
@@ -12,23 +13,27 @@ const router = Router();
 
 /**
  * This route returns the authenticated user's information.
- * It uses the 'auth' middleware to verify the JWT and extract the user ID.
- * If the user exists, it returns the user's email, username, and id with a 200 status.
- * If the user does not exist, it returns a 404 error.
- * Any other errors are logged and a generic 500 error is returned.
+ * - Uses the 'auth' middleware to verify the JWT and extract the user ID.
+ * - If the user exists, returns the user's email, username, id, and subscription (with plan name) with a 200 status.
+ * - If the user does not exist, returns a 404 error.
+ * - Any other errors are logged and a generic 500 error is returned.
  */
 router.get("/me", auth, async (req, res) => {
     try {
-        const user = await User.findById(req.userId);
+        const user = await User.findById(req.userId).populate("subscription.plan");
         if (!user) {
             return res.status(404).send({
                 error: "El usuario no existe"
             });
         }
-        const { _id, email, username } = user.toObject();
-        const userData = { email, username };
-        userData.id = String(_id);
-        res.status(200).send(userData);
+        const { _id, email, username, subscription } = user.toObject();
+        subscription.plan = subscription.plan.name;
+        res.status(200).send({
+            id: String(_id),
+            email,
+            username,
+            subscription
+        });
     } catch (e) {
         console.log(e);
         res.status(500).send({
@@ -38,20 +43,46 @@ router.get("/me", auth, async (req, res) => {
 });
 
 /**
- * This route deletes the authenticated user's account.
- * It uses the 'auth' middleware to verify the JWT and extract the user ID.
- * If the user exists, it deletes the user and returns a 200 status.
- * If the user does not exist, it returns a 404 error.
- * Any other errors are logged and a generic 500 error is returned.
+ * This route deletes the authenticated user's account and all related data.
+ * - Uses the 'auth' middleware to verify the JWT and extract the user ID.
+ * - If the user exists, deletes the user, their videos (from Cloudinary and DB), and their exchanges (removing references from other users).
+ * - If the user does not exist, returns a 404 error.
+ * - Any other errors are logged and a generic 500 error is returned.
  */
 router.delete("/me", auth, async (req, res) => {
     try {
-        const user = await User.findByIdAndDelete(req.userId);
+        const user = await User.findById(req.userId);
         if (!user) {
             return res.status(404).send({
                 error: "El usuario no existe"
             });
         }
+
+        await user.videos.forEach(async videoId => {
+            await cloudinary.v2.uploader.destroy(`videos/${String(videoId)}`,
+                {
+                    resource_type: "video",
+                    type: "private"
+                }
+            );
+            await Video.findByIdAndDelete(videoId);
+        });
+
+        await user.exchanges.forEach(async exchangeId => {
+            const exchange = await Exchange.findById(exchangeId);
+            if (exchange) {
+                await User.findByIdAndUpdate(exchange.initiator, {
+                    $pull: { exchanges: exchange._id }
+                });
+                await User.findByIdAndUpdate(exchange.responder, {
+                    $pull: { exchanges: exchange._id }
+                });
+                await exchange.deleteOne();
+            }
+        });
+
+        await user.deleteOne();
+
         res.status(200).send({});
     } catch (e) {
         console.log(e);

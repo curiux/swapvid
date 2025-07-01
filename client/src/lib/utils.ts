@@ -7,6 +7,8 @@ export function cn(...inputs: ClassValue[]) {
 
 export const API_URL = import.meta.env.VITE_API_URL;
 
+export const MP_PUBLIC_KEY = import.meta.env.VITE_MP_PUBLIC_KEY;
+
 export const videoCategories = [
   { id: "entretenimiento", label: "Entretenimiento" },
   { id: "educacion", label: "Educación" },

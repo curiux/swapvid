@@ -272,6 +272,12 @@ router.delete("/:id", auth, async (req, res) => {
             });
         }
 
+        await User.findByIdAndUpdate(exchange.initiator, {
+            $pull: { exchanges: exchange._id }
+        });
+        await User.findByIdAndUpdate(exchange.responder, {
+            $pull: { exchanges: exchange._id }
+        });
         await exchange.deleteOne();
         return res.status(200).send({});
     } catch (e) {
@@ -320,6 +326,12 @@ router.delete("/", auth, async (req, res) => {
             });
         }
 
+        await User.findByIdAndUpdate(exchange.initiator, {
+            $pull: { exchanges: exchange._id }
+        });
+        await User.findByIdAndUpdate(exchange.responder, {
+            $pull: { exchanges: exchange._id }
+        });
         await exchange.deleteOne();
         return res.status(200).send({});
     } catch (e) {

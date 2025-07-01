@@ -1,4 +1,5 @@
 import Spinner from "@/components/spinner";
+import SubscriptionDialog from "@/components/subscription-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -54,6 +55,7 @@ export default function Plans() {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [plans, setPlans] = useState<Plan[]>();
+    const [openDialog, setOpenDialog] = useState(false);
 
     useEffect(() => {
         getPlans();
@@ -83,6 +85,7 @@ export default function Plans() {
 
     return (
         <section className="py-18 px-4">
+            <SubscriptionDialog open={openDialog} handleChange={(open: boolean) => setOpenDialog(open)} />
             <div className="flex flex-col items-center gap-6 text-center">
                 <h2 className="text-4xl font-semibold text-pretty lg:text-6xl">Planes</h2>
                 <div className="flex flex-col gap-1">
@@ -110,7 +113,7 @@ export default function Plans() {
                                     ) : (
                                         <>
                                             <span className="text-4xl font-semibold">
-                                                {plan.monthlyPrice}
+                                                ${plan.monthlyPrice}
                                             </span>
                                             <span className="text-2xl font-semibold text-muted-foreground">
                                                 /mes
@@ -142,10 +145,8 @@ export default function Plans() {
                             </CardContent>
                             <CardFooter className="mt-auto">
                                 {plan.name != "basic" && (
-                                    <Button asChild className="w-full">
-                                        <a href="#" target="_blank">
-                                            Elegir este plan
-                                        </a>
+                                    <Button className="w-full" onClick={() => setOpenDialog(true)}>
+                                        Elegir este plan
                                     </Button>
                                 )}
                             </CardFooter>

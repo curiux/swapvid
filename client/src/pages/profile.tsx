@@ -15,7 +15,7 @@ import { preloadedPlans } from "./plans";
 export default function Profile() {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
-    const [subscription, setSubscription] = useState("");
+    const [plan, setPlan] = useState("");
 
     useEffect(() => {
         const token = localStorage.getItem("token");
@@ -44,7 +44,7 @@ export default function Profile() {
                 }
             } else {
                 setLoading(false);
-                setSubscription("basic");
+                setPlan(data.subscription.plan);
             }
         } catch (e) {
             navigate("/error");
@@ -63,7 +63,7 @@ export default function Profile() {
                 <h1 className="text-3xl">Mi perfil</h1>
                 <Separator />
                 <div className="flex items-center justify-between">
-                    <p>Plan <span className="font-bold">{preloadedPlans.find(p => p.name == subscription)?.nameShown}</span></p>
+                    <p>Plan <span className="font-bold">{preloadedPlans.find(p => p.name == plan)?.nameShown}</span></p>
                     <Button asChild variant="outline">
                         <Link to="/planes">Cambiar plan</Link>
                     </Button>

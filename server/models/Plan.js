@@ -18,6 +18,7 @@ const { Schema, model } = mongoose;
  * - exchangePriority: Boolean flag for exchange priority (default: false).
  * - searchPriority: Boolean flag for search priority (default: false).
  * - supportPriority: Boolean flag for support priority (default: false).
+ * - preApprovalId: String for MercadoPago pre-approval plan ID.
  */
 
 const planSchema = new Schema({
@@ -51,7 +52,8 @@ const planSchema = new Schema({
     stats: { type: Boolean, default: false },
     exchangePriority: { type: Boolean, default: false },
     searchPriority: { type: Boolean, default: false },
-    supportPriority: { type: Boolean, default: false }
+    supportPriority: { type: Boolean, default: false },
+    preApprovalId: { type: String }
 });
 
 const Plan = model("Plan", planSchema);

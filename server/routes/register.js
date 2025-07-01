@@ -1,5 +1,6 @@
 import { Router } from "express";
 import User from "../models/User.js";
+import Plan from "../models/Plan.js";
 import { generateToken } from "../lib/jwt.js";
 
 const router = Router();
@@ -14,10 +15,16 @@ const router = Router();
  */
 router.post("/", async (req, res) => {
     try {
+        const basicPlan = await Plan.findOne({
+            name: "basic"
+        });
         const user = await User.create({
             email: req.body.email,
             username: req.body.username,
-            password: req.body.password
+            password: req.body.password,
+            subscription: {
+                plan: basicPlan._id
+            }
         });
         const token = generateToken({ _id: user._id });
         res.status(201).send({ token });

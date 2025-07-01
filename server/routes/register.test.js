@@ -20,9 +20,10 @@
 import request from "supertest";
 import app from "../server.js";
 import User from "../models/User.js";
+import Plan from "../models/Plan.js";
 import mongoose from "mongoose";
 import { MongoMemoryServer } from "mongodb-memory-server";
-import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 let mongoServer;
 
@@ -34,8 +35,24 @@ beforeAll(async () => {
     await mongoose.connect(mongoServer.getUri(), { dbName: "test" });
 });
 
+beforeEach(async () => {
+    await Plan.create({
+        name: "basic",
+        monthlyPrice: 0,
+        libraryStorage: 1000000000,
+        librarySize: 10,
+        videoMaxSize: 50000000,
+        exchangeLimit: 5,
+        stats: false,
+        exchangePriority: false,
+        searchPriority: false,
+        supportPriority: false
+    });
+});
+
 afterEach(async () => {
     await User.deleteMany();
+    await Plan.deleteMany();
 });
 
 afterAll(async () => {

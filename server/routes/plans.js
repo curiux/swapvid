@@ -9,7 +9,7 @@ const router = Router();
  * - Responds with an array of plan objects on success (status 200).
  * - On error, logs the error and responds with status 500 and an error message.
  */
-router.get("/", async (res) => {
+router.get("/", async (req, res) => {
     try {
         const plans = (await Plan.find({})).map(plan => {
             const { __v, ...planData } = plan.toJSON();
