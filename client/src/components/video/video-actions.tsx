@@ -6,7 +6,7 @@ import { useVideoStore } from "@/lib/store";
 import { Link, Outlet, useLocation, useNavigate } from "react-router";
 import { API_URL } from "@/lib/utils";
 import type { Video } from "@/lib/types";
-import { toast, Toaster } from "sonner";
+import { toast } from "sonner";
 
 /**
  * VideoActions component
@@ -256,7 +256,6 @@ function ExchangeAction({ videoData }: { videoData: Video }) {
 
     return (
         <Dialog open={open} onOpenChange={(open) => setOpen(open)}>
-            <Toaster position="top-center" />
             <DialogTrigger asChild>
                 <Button className="cursor-pointer" aria-label="Intercambiar">
                     <Repeat />

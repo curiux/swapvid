@@ -5,7 +5,7 @@ import Rating from "../models/Rating.js";
 import Exchange from "../models/Exchange.js";
 import auth from "../middleware/auth.js";
 import { cloudinary } from "../config.js";
-import { sightEngineValidation, upload } from "../lib/utils.js";
+import { getBillingDate, sightEngineValidation, upload } from "../lib/utils.js";
 import streamifier from "streamifier";
 import crypto from "crypto";
 
@@ -28,11 +28,13 @@ router.get("/me", auth, async (req, res) => {
         }
         const { _id, email, username, subscription } = user.toObject();
         subscription.plan = subscription.plan.name;
+        const nextPaymentDate = await getBillingDate(user);
         res.status(200).send({
             id: String(_id),
             email,
             username,
-            subscription
+            subscription,
+            nextPaymentDate
         });
     } catch (e) {
         console.log(e);

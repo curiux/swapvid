@@ -7,7 +7,7 @@ import { API_URL } from "@/lib/utils";
 import { Repeat } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
-import { toast, Toaster } from "sonner";
+import { toast } from "sonner";
 
 /**
  * Exchange page
@@ -104,7 +104,6 @@ export default function Exchange() {
 
     return (
         <div className="flex w-full items-center justify-center p-5">
-            <Toaster position="top-center" />
             {loading ? (
                 <Spinner className="w-14 h-14" />
             ) : (

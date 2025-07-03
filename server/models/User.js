@@ -14,7 +14,9 @@ const { Schema, model } = mongoose;
  * - password: User's password. Required and must match a pattern enforcing 8-32 characters, at least one uppercase letter, one lowercase letter, one number, and one special character.
  * - videos: Array of references to Video documents owned by the user.
  * - exchanges: Array of references to Exchange documents related to the user.
- * - subscription: Object containing the user's subscription plan (reference to Plan document).
+ * - subscription: Object containing:
+ *     - plan: Reference to the user's subscription Plan document.
+ *     - subscriptionId: MercadoPago subscription/preapproval ID (string).
  *
  * Middleware:
  * - Pre-save hook hashes the password using bcrypt before saving, only if the password is new or modified.
@@ -52,7 +54,8 @@ const userSchema = new Schema({
     videos: [{ type: mongoose.Schema.Types.ObjectId, ref: "Video" }],
     exchanges: [{ type: mongoose.Schema.Types.ObjectId, ref: "Exchange" }],
     subscription: {
-        plan: { type: mongoose.Schema.Types.ObjectId, ref: "Plan" }
+        plan: { type: mongoose.Schema.Types.ObjectId, ref: "Plan" },
+        subscriptionId: { type: String }
     }
 });
 

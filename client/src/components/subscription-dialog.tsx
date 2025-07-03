@@ -1,19 +1,21 @@
 import { useEffect } from "react";
 import { CardPayment, initMercadoPago } from "@mercadopago/sdk-react";
 import { API_URL, MP_PUBLIC_KEY } from "@/lib/utils";
-import { Dialog, DialogContent } from "./ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "./ui/dialog";
 import { useNavigate } from "react-router";
-import { Toaster } from "./ui/sonner";
 import { toast } from "sonner";
+import type { Plan } from "@/lib/types";
 
 /**
  * SubscriptionDialog component
  * - Renders a dialog for subscribing to a service using MercadoPago payment integration.
- * - Handles MercadoPago initialization and user authentication (redirects to login if not authenticated).
- * - Submits payment data to the backend and displays error messages using toast notifications.
- * - Used to allow users to subscribe and make payments securely within a modal dialog.
+ * - Initializes MercadoPago and checks user authentication (redirects to login if not authenticated).
+ * - Submits payment data to the backend and handles errors with toast notifications.
+ * - Navigates and stores messages based on payment result.
+ * - Used to securely subscribe and make payments within a modal dialog.
  */
-export default function SubscriptionDialog({ open, handleChange }: { open: boolean, handleChange: (open: boolean) => void }) {
+export default function SubscriptionDialog({ open, handleChange, plan }:
+    { open: boolean, handleChange: (open: boolean) => void, plan: Plan | undefined }) {
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -29,13 +31,12 @@ export default function SubscriptionDialog({ open, handleChange }: { open: boole
         }
     }, [open]);
 
-    return (
+    return plan && (
         <Dialog open={open} onOpenChange={(open) => handleChange(open)}>
             <DialogContent className="min-w-1/2 max-w-full max-h-screen overflow-y-auto md:m-5">
-                <Toaster />
-                <h2 className="text-2xl font-semibold">Suscríbete</h2>
+                <DialogTitle className="text-2xl font-semibold">Suscríbete</DialogTitle>
                 <CardPayment
-                    initialization={{ amount: 100 }}
+                    initialization={{ amount: plan.monthlyPrice }}
                     onSubmit={async (formData) => {
                         const email = formData.payer.email;
                         const cardTokenId = formData.token;
@@ -48,6 +49,7 @@ export default function SubscriptionDialog({ open, handleChange }: { open: boole
                                 "Content-Type": "application/json"
                             },
                             body: JSON.stringify({
+                                planId: plan._id,
                                 email,
                                 cardTokenId
                             })
@@ -55,13 +57,19 @@ export default function SubscriptionDialog({ open, handleChange }: { open: boole
                         const data = await res.json();
                         if (data.error) {
                             if (res.status == 401) {
-                                localStorage.clear();
-                                navigate("/");
+                                if (data.mp) {
+                                    toast.error("Tu pago fue rechazado. Intentá con otra tarjeta o medio de pago.");
+                                } else {
+                                    localStorage.clear();
+                                    navigate("/");
+                                }
                             } else {
                                 toast.error("Ha ocurrido un error");
                             }
-                        } else {
-                            console.log(data);
+                            return Promise.reject(new Error("Ha ocurrido un error"));
+                        } else if (res.status == 200) {
+                            localStorage.setItem("msg", "¡Todo listo! Te suscribiste correctamente. Ahora podés disfrutar de tu plan sin límites.");
+                            navigate("/perfil");
                         }
                     }}
                 />

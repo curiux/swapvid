@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { Toaster } from "@/components/ui/sonner";
 import VideoLibrary from "@/components/video/video-library";
 import { FileVideo } from "lucide-react";
 import { useEffect } from "react";
@@ -23,7 +22,6 @@ export default function MyVideos() {
 
     return (
         <div className="p-5">
-            <Toaster position="top-center" />
             <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
                 <h1 className="text-2xl font-semibold">Biblioteca de videos</h1>
                 <Button asChild size="lg" aria-label="Subir video">

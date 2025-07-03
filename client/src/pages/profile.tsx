@@ -5,17 +5,23 @@ import { API_URL } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { preloadedPlans } from "./plans";
+import { toast } from "sonner";
+import CancelSubscriptionDialog from "@/components/cancel-subscription-dialog";
 
 /**
  * Profile page component
- * - Fetches and displays the current user's subscription plan
+ * - Fetches and displays the current user's subscription plan and next billing date
  * - Handles authentication and error redirects
  * - Shows plan info and allows changing plan or deleting account
+ * - Navigates to home and clears storage if user is unauthorized or not found
+ * - Displays toast messages from localStorage
+ * - Handles loading and error states
  */
 export default function Profile() {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [plan, setPlan] = useState("");
+    const [billingDate, setBillingDate] = useState<Date | undefined>();
 
     useEffect(() => {
         const token = localStorage.getItem("token");
@@ -23,6 +29,14 @@ export default function Profile() {
             navigate("/");
         } else {
             getUserData(token);
+        }
+
+        const msg = localStorage.getItem("msg");
+        if (msg) {
+            setTimeout(() => {
+                toast.success(msg);
+                localStorage.removeItem("msg");
+            }, 50);
         }
     }, []);
 
@@ -45,6 +59,7 @@ export default function Profile() {
             } else {
                 setLoading(false);
                 setPlan(data.subscription.plan);
+                data.nextPaymentDate && setBillingDate(new Date(data.nextPaymentDate));
             }
         } catch (e) {
             navigate("/error");
@@ -62,16 +77,31 @@ export default function Profile() {
             <div className="flex flex-col gap-5 w-full max-w-lg">
                 <h1 className="text-3xl">Mi perfil</h1>
                 <Separator />
-                <div className="flex items-center justify-between">
-                    <p>Plan <span className="font-bold">{preloadedPlans.find(p => p.name == plan)?.nameShown}</span></p>
-                    <Button asChild variant="outline">
-                        <Link to="/planes">Cambiar plan</Link>
-                    </Button>
+                <div>
+                    <div className="flex items-center justify-between mb-1">
+                        <p className="bg-muted p-1 rounded-sm">
+                            Plan <span className="font-bold">{preloadedPlans.find(p => p.name == plan)?.nameShown}</span>
+                        </p>
+                        <Button asChild variant="outline" aria-label="Cambiar plan">
+                            <Link to="/planes">Cambiar plan</Link>
+                        </Button>
+                    </div>
+                    {plan != "basic" && (
+                        <div className="flex items-center justify-between gap-5">
+                            <CancelSubscriptionDialog />
+                            <p className="text-xs italic">Tu próxima fecha de facturación es el {billingDate!.toLocaleDateString("es-ES", {
+                                day: "numeric",
+                                month: "long",
+                                year: "numeric"
+                            })}</p>
+                        </div>
+
+                    )}
                 </div>
                 <Separator />
                 <div className="flex items-center justify-between">
                     <p className="text-destructive">Eliminar cuenta</p>
-                    <Button asChild variant="destructive">
+                    <Button asChild variant="destructive" aria-label="Eliminar cuenta">
                         <Link to="/eliminar-cuenta">Eliminar</Link>
                     </Button>
                 </div>

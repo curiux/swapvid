@@ -50,15 +50,25 @@ export const preloadedPlans: PricingPlan[] = [
  * - Renders plan details, pricing, and action buttons
  * - Uses PlanDetails for displaying plan limits and features
  * - Handles loading and error states
+ * - Fetches and displays the current user subscription if a token is present
+ * - Navigates to error page on API error or fetch exception
+ * - Navigates to home and clears storage if user is unauthorized or not found
  */
 export default function Plans() {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [plans, setPlans] = useState<Plan[]>();
     const [openDialog, setOpenDialog] = useState(false);
+    const [selectedPlan, setSelectedPlan] = useState<Plan>();
+    const [currentPlan, setCurrentPlan] = useState();
 
     useEffect(() => {
         getPlans();
+
+        const token = localStorage.getItem("token");
+        if (token) {
+            getUserSubscription(token);
+        }
     }, []);
 
     const getPlans = async () => {
@@ -77,6 +87,36 @@ export default function Plans() {
         }
     }
 
+    const getUserSubscription = async (token: String) => {
+        try {
+            const res = await fetch(API_URL + "/users/me", {
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            });
+
+            const data = await res.json();
+            if (data.error) {
+                if (res.status == 401 || res.status == 404) {
+                    localStorage.clear();
+                    navigate("/");
+                } else {
+                    navigate("/error?msg=" + encodeURIComponent(data.error));
+                }
+            } else {
+                setLoading(false);
+                setCurrentPlan(data.subscription.plan);
+            }
+        } catch (e) {
+            navigate("/error");
+        }
+    }
+
+    const handleClick = (plan: Plan) => {
+        setSelectedPlan(plan);
+        setOpenDialog(true);
+    }
+
     if (loading) return (
         <div className="flex min-h-svh w-full items-center justify-center">
             <Spinner className="w-14 h-14" />
@@ -85,12 +125,12 @@ export default function Plans() {
 
     return (
         <section className="py-18 px-4">
-            <SubscriptionDialog open={openDialog} handleChange={(open: boolean) => setOpenDialog(open)} />
+            <SubscriptionDialog open={openDialog} handleChange={(open: boolean) => setOpenDialog(open)} plan={selectedPlan} />
             <div className="flex flex-col items-center gap-6 text-center">
                 <h2 className="text-4xl font-semibold text-pretty lg:text-6xl">Planes</h2>
                 <div className="flex flex-col gap-1">
                     <p className="text-muted-foreground lg:text-lg">Descubrí las ventajas de cada plan y potencia tu experiencia.</p>
-                    <p className="text-muted-foreground text-xs">(Precios en dólares estadounidenses)</p>
+                    <p className="text-muted-foreground text-xs">Todos los precios están expresados en pesos uruguayos (UYU).</p>
                 </div>
                 <div className="flex flex-col flex-wrap items-stretch justify-center gap-6 md:flex-row">
                     {plans!.map((plan) => (
@@ -113,7 +153,7 @@ export default function Plans() {
                                     ) : (
                                         <>
                                             <span className="text-4xl font-semibold">
-                                                ${plan.monthlyPrice}
+                                                UYU {plan.monthlyPrice}
                                             </span>
                                             <span className="text-2xl font-semibold text-muted-foreground">
                                                 /mes
@@ -144,10 +184,16 @@ export default function Plans() {
                                 </ul>
                             </CardContent>
                             <CardFooter className="mt-auto">
-                                {plan.name != "basic" && (
-                                    <Button className="w-full" onClick={() => setOpenDialog(true)}>
-                                        Elegir este plan
-                                    </Button>
+                                {plan.name !== "basic" && (
+                                    currentPlan === plan.name ? (
+                                        <Button variant="outline" disabled={true} className="w-full">
+                                            Ya tienes este plan
+                                        </Button>
+                                    ) : (
+                                        <Button className="w-full" onClick={() => handleClick(plan)}>
+                                            Elegir este plan
+                                        </Button>
+                                    )
                                 )}
                             </CardFooter>
                         </Card>

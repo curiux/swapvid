@@ -27,7 +27,7 @@ import multer from "multer";
 const storage = multer.memoryStorage();
 export const upload = multer({ storage });
 
-import { HOST, SIGHTENGINE_API_SECRET } from "../config.js";
+import { HOST, MP_ACCESS_TOKEN, SIGHTENGINE_API_SECRET } from "../config.js";
 import { Readable } from "stream";
 import axios from "axios";
 import FormData from "form-data";
@@ -98,3 +98,21 @@ export const validateIfOwner = async (videoId, userId) => {
 
     return video.getCurrentUser().toString() === userId.toString();
 };
+
+import { MercadoPagoConfig, PreApproval } from "mercadopago";
+const config = new MercadoPagoConfig({ accessToken: MP_ACCESS_TOKEN });
+
+/**
+ * Retrieves the next billing date for a user's MercadoPago subscription.
+ * @param {object} user - The user object containing subscription info.
+ * @returns {Promise<string|null>} - The next payment date as an ISO string, or null if not available.
+ */
+export async function getBillingDate(user) {
+    const subscriptionId = user.subscription.subscriptionId;
+    if (!subscriptionId) {
+        return null;
+    }
+    const preApproval = new PreApproval(config);
+    const subscription = await preApproval.get({ id: subscriptionId });
+    return subscription.next_payment_date;
+}

@@ -5,14 +5,14 @@ const router = Router();
 
 /**
  * Returns a list of all available subscription plans.
- * - Fetches all plans from the database, excluding the __v field.
+ * - Fetches all plans from the database, excluding __v and preApprovalId fields.
  * - Responds with an array of plan objects on success (status 200).
  * - On error, logs the error and responds with status 500 and an error message.
  */
 router.get("/", async (req, res) => {
     try {
         const plans = (await Plan.find({})).map(plan => {
-            const { __v, ...planData } = plan.toJSON();
+            const { __v, preApprovalId, ...planData } = plan.toJSON();
 
             return planData;
         });
