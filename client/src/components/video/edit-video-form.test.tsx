@@ -70,7 +70,7 @@ describe("EditVideoForm", () => {
     it("renderiza el formulario de edición de video", () => {
         render(
             <Dialog>
-                <EditVideoForm />
+                <EditVideoForm plan="basic" />
             </Dialog>,
             { wrapper: MemoryRouter }
         );
@@ -85,7 +85,7 @@ describe("EditVideoForm", () => {
     it("muestra errores si el formulario está incompleto", async () => {
         render(
             <Dialog>
-                <EditVideoForm />
+                <EditVideoForm plan="basic" />
             </Dialog>,
             { wrapper: MemoryRouter }
         );
@@ -107,7 +107,7 @@ describe("EditVideoForm", () => {
         localStorage.setItem("token", "fake-token");
         render(
             <Dialog>
-                <EditVideoForm />
+                <EditVideoForm plan="basic" />
             </Dialog>,
             { wrapper: MemoryRouter }
         );
@@ -128,7 +128,7 @@ describe("EditVideoForm", () => {
         localStorage.setItem("token", "fake-token");
         render(
             <Dialog>
-                <EditVideoForm />
+                <EditVideoForm plan="basic" />
             </Dialog>,
             { wrapper: MemoryRouter }
         );
@@ -147,7 +147,7 @@ describe("EditVideoForm", () => {
         localStorage.setItem("token", "fake-token");
         render(
             <Dialog>
-                <EditVideoForm />
+                <EditVideoForm plan="basic" />
             </Dialog>,
             { wrapper: MemoryRouter }
         );

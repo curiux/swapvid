@@ -18,7 +18,6 @@ import { Progress } from "../ui/progress";
 import { useNavigate } from "react-router";
 import { Checkbox } from "../ui/checkbox";
 
-
 /**
  * This schema defines validation rules for the video upload form using Zod.
  * - title: Required, 5-60 characters.
