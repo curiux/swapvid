@@ -183,7 +183,7 @@ function ExchangeAction({ videoData }: { videoData: Video }) {
                 } else if (res.status == 409) {
                     toast.error("Ya existe un intercambio pendiente para el mismo usuario. Revista tu lista de intercambios.");
                 } else {
-                    navigate("/error?msg=" + encodeURIComponent(data.error));
+                    toast.error(data.error);
                 }
             } else if (res.status == 201) {
                 update({ ...videoData, hasRequested: true });

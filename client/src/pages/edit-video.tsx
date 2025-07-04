@@ -1,17 +1,57 @@
 import EditVideoForm from "@/components/video/edit-video-form";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useLocation, useNavigate } from "react-router";
+import { useEffect, useState } from "react";
+import { API_URL } from "@/lib/utils";
+import Spinner from "@/components/spinner";
 
 /**
  * EditVideo page component
- * - Renders a dialog for editing video information.
+ * - Shows a dialog for editing video information using EditVideoForm.
+ * - Checks for a valid user token and fetches user subscription data.
+ * - Redirects to home if not authenticated, or to error page on fetch error.
  * - Navigates back to the video page when the dialog is closed.
- * - Uses EditVideoForm for the form UI and logic.
  */
 export default function EditVideo() {
     const navigate = useNavigate();
     const location = useLocation();
-    
+    const [plan, setPlan] = useState("");
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const token = localStorage.getItem("token");
+        if (!token) {
+            navigate("/");
+        } else {
+            getUserData(token);
+        }
+    }, []);
+
+    const getUserData = async (token: String) => {
+        try {
+            const res = await fetch(API_URL + "/users/me", {
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            });
+
+            const data = await res.json();
+            if (data.error) {
+                if (res.status == 401 || res.status == 404) {
+                    localStorage.clear();
+                    navigate("/");
+                } else {
+                    navigate("/error?msg=" + encodeURIComponent(data.error));
+                }
+            } else {
+                setPlan(data.subscription.plan);
+                setLoading(false);
+            }
+        } catch (e) {
+            navigate("/error");
+        }
+    }
+
     const handleOpenChange = (open: boolean) => {
         if (!open) {
             navigate(location.pathname.split("/editar")[0]);
@@ -27,7 +67,13 @@ export default function EditVideo() {
                         Edita la información de tu video
                     </DialogDescription>
                 </DialogHeader>
-                <EditVideoForm />
+                {loading ? (
+                    <div className="w-full flex justify-center">
+                        <Spinner className="w-14 h-14" />
+                    </div>
+                ) : (
+                    <EditVideoForm plan={plan as any} />
+                )}
             </DialogContent>
         </Dialog>
     );

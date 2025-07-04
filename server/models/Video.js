@@ -18,6 +18,7 @@ const { Schema, model } = mongoose;
  * - uploadedDate: Date the video was uploaded (default: now).
  * - hash: String hash of the video file.
  * - isSensitiveContent: Boolean flag for sensitive content (default: false).
+ * - size: Number of bytes of the video file (required).
  *
  * Methods:
  * - getCurrentUser: Returns the most recent user associated with the video.
@@ -71,6 +72,10 @@ const videoSchema = new Schema({
     isSensitiveContent: {
         type: Boolean,
         default: false
+    },
+    size: {
+        type: Number,
+        required: true
     }
 });
 

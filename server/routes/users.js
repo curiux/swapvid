@@ -5,7 +5,7 @@ import Rating from "../models/Rating.js";
 import Exchange from "../models/Exchange.js";
 import auth from "../middleware/auth.js";
 import { cloudinary } from "../config.js";
-import { getBillingDate, sightEngineValidation, upload } from "../lib/utils.js";
+import { formatBytes, getBillingDate, plans, sightEngineValidation, upload } from "../lib/utils.js";
 import streamifier from "streamifier";
 import crypto from "crypto";
 
@@ -99,13 +99,14 @@ router.delete("/me", auth, async (req, res) => {
  * - Uses 'auth' middleware for JWT verification.
  * - Accepts a video file and metadata, validates and saves them.
  * - Checks for duplicate videos by title (per user) and by file hash (global).
+ * - Enforces plan limits for video size, library size, and total storage.
  * - Uploads the video to Cloudinary and saves the reference in the database.
  * - Triggers content moderation with Sightengine API if isSensitiveContent is false.
- * - Returns 201 on success, 400 for validation errors, 409 for duplicates, and 500 for unexpected errors or upload failures.
+ * - Returns 201 on success, 400 for validation errors or plan limit exceeded, 409 for duplicates, and 500 for unexpected errors or upload failures.
  */
 router.post("/me/videos", auth, upload.single("video"), async (req, res) => {
     try {
-        const user = await User.findById(req.userId).populate("videos");
+        const user = await User.findById(req.userId).populate("videos").populate("subscription.plan");
         if (!user) {
             return res.status(404).send({
                 error: "El usuario no existe"
@@ -127,7 +128,24 @@ router.post("/me/videos", auth, upload.single("video"), async (req, res) => {
 
         const hash = crypto.createHash("sha256").update(req.file.buffer).digest("hex");
 
-        const videoData = { ...req.body, keywords, users: [user._id], hash };
+        const size = req.file.size;
+        const plan = user.subscription.plan;
+
+        if (size > plan.videoMaxSize) {
+            return res.status(400).send({ error: `El video excede el tamaño máximo permitido de ${formatBytes(plan.videoMaxSize)} para el plan ${plans[plan.name]}.` });
+        }
+
+        if (user.videos.length >= plan.librarySize) {
+            return res.status(400).send({ error: `Has alcanzado el máximo de ${plan.librarySize} videos permitidos para tu plan ${plans[plan.name]}.` });
+        }
+
+        const totalUsed = user.videos.length > 0 ? user.videos.reduce((acc, video) => acc + video.size) : 0;
+        const nextTotal = totalUsed + size;
+        if (nextTotal > plan.libraryStorage) {
+            return res.status(400).send({ error: `Este video supera tu límite total de almacenamiento de ${formatBytes(plan.libraryStorage)} para el plan ${plans[plan.name]}.` });
+        }
+
+        const videoData = { ...req.body, keywords, users: [user._id], hash, size };
         const video = new Video(videoData);
         await video.validate();
 

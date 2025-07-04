@@ -85,7 +85,7 @@ vi.mock("../ui/select", () => {
 
 describe("VideoUploadForm", () => {
     it("renderiza el formulario de subida de video", () => {
-        render(<VideoUploadForm />, { wrapper: MemoryRouter });
+        render(<VideoUploadForm plan="basic" />, { wrapper: MemoryRouter });
         expect(screen.getByLabelText(/archivo de video/i)).toBeTruthy();
         expect(screen.getByLabelText(/título/i)).toBeTruthy();
         expect(screen.getByLabelText(/descripción/i)).toBeTruthy();
@@ -96,7 +96,7 @@ describe("VideoUploadForm", () => {
     });
 
     it("muestra errores si el formulario está incompleto", async () => {
-        render(<VideoUploadForm />, { wrapper: MemoryRouter });
+        render(<VideoUploadForm plan="basic" />, { wrapper: MemoryRouter });
         fireEvent.click(screen.getByRole("button", { name: /subir/i }));
         await waitFor(() => {
             expect(screen.getAllByText(/debe/i).length).toBeGreaterThan(1);
@@ -104,7 +104,7 @@ describe("VideoUploadForm", () => {
     });
 
     it("muestra error si el archivo de video es inválido", async () => {
-        render(<VideoUploadForm />, { wrapper: MemoryRouter });
+        render(<VideoUploadForm plan="basic" />, { wrapper: MemoryRouter });
         const fileInput = screen.getByLabelText(/archivo de video/i);
         const invalidFile = new File(["test"], "test.txt", { type: "text/plain" });
         fireEvent.change(fileInput, { target: { files: [invalidFile] } });
@@ -120,7 +120,7 @@ describe("VideoUploadForm", () => {
         (axios.default.post as any) = vi.fn().mockResolvedValue({});
         localStorage.setItem("token", "fake-token");
 
-        render(<VideoUploadForm />, { wrapper: MemoryRouter });
+        render(<VideoUploadForm plan="basic" />, { wrapper: MemoryRouter });
         // Fill fields
         fireEvent.change(screen.getByLabelText(/archivo de video/i), {
             target: {
@@ -148,7 +148,7 @@ describe("VideoUploadForm", () => {
             response: { data: { error: "Error del backend" } }
         });
         localStorage.setItem("token", "fake-token");
-        render(<VideoUploadForm />, { wrapper: MemoryRouter });
+        render(<VideoUploadForm plan="basic" />, { wrapper: MemoryRouter });
         fireEvent.change(screen.getByLabelText(/archivo de video/i), {
             target: {
                 files: [new File(["video"], "video.mp4", { type: "video/mp4" })]

@@ -22,6 +22,12 @@ export const videoCategoryIds = [
     "otros"
 ];
 
+export const plans = {
+    basic: "Básico",
+    advanced: "Avanzado",
+    premium: "Premium"
+}
+
 import multer from "multer";
 
 const storage = multer.memoryStorage();
@@ -115,4 +121,23 @@ export async function getBillingDate(user) {
     const preApproval = new PreApproval(config);
     const subscription = await preApproval.get({ id: subscriptionId });
     return subscription.next_payment_date;
+}
+
+/**
+ * Converts a byte value into a human-readable string with appropriate units (B, KB, MB, GB, TB).
+ * Rounds the value to the nearest integer.
+ * @param {number} bytes - The number of bytes to format.
+ * @returns {string} - The formatted string with units.
+ */
+export function formatBytes(bytes) {
+    const units = ["B", "KB", "MB", "GB", "TB"];
+    let i = 0;
+    let value = bytes;
+
+    while (value >= 1024 && i < units.length - 1) {
+        value /= 1024;
+        i++;
+    }
+
+    return `${Math.round(value)} ${units[i]}`;
 }

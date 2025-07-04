@@ -52,9 +52,11 @@ import mongoose from "mongoose";
 import { MongoMemoryServer } from "mongodb-memory-server";
 import { generateToken } from "../lib/jwt.js";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import Plan from "../models/Plan.js";
 
 let mongoServer;
 let initiatorId, responderId, token;
+let plan;
 
 beforeAll(async () => {
     mongoServer = await MongoMemoryServer.create();
@@ -65,11 +67,28 @@ beforeAll(async () => {
 });
 
 beforeEach(async () => {
+    await (await import("../models/User.js")).default.deleteMany();
+    await Exchange.deleteMany();
+    await Plan.deleteMany();
+    plan = await Plan.create({
+        name: "basic",
+        monthlyPrice: 0,
+        libraryStorage: 1000000000,
+        librarySize: 10,
+        videoMaxSize: 50000000,
+        exchangeLimit: 5,
+        stats: false,
+        exchangePriority: false,
+        searchPriority: false,
+        supportPriority: false
+    });
     // Create initiator and responder users
+    const User = (await import("../models/User.js")).default;
     const initiator = await User.create({
         email: "initiator@example.com",
         username: "initiator",
-        password: "Password123!"
+        password: "Password123!",
+        subscription: { plan: plan._id }
     });
     initiatorId = initiator._id;
     token = generateToken({ _id: initiator._id });
@@ -77,14 +96,16 @@ beforeEach(async () => {
     const responder = await User.create({
         email: "responder@example.com",
         username: "responder",
-        password: "Password123!"
+        password: "Password123!",
+        subscription: { plan: plan._id }
     });
     responderId = responder._id;
 });
 
 afterEach(async () => {
-    await User.deleteMany();
+    await (await import("../models/User.js")).default.deleteMany();
     await Exchange.deleteMany();
+    await Plan.deleteMany();
 });
 
 afterAll(async () => {
@@ -102,7 +123,8 @@ describe("POST /exchanges/request", () => {
             category: "entretenimiento",
             keywords: ["prueba"],
             users: [responderId],
-            url: "http://test.com/video.mp4"
+            url: "http://test.com/video.mp4",
+            size: 12345
         });
         await User.findByIdAndUpdate(responderId, { $push: { videos: video._id } });
 
@@ -162,7 +184,8 @@ describe("POST /exchanges/request", () => {
             category: "entretenimiento",
             keywords: ["prueba"],
             users: [initiatorId],
-            url: "http://test.com/video.mp4"
+            url: "http://test.com/video.mp4",
+            size: 12345
         });
         const res = await request(app)
             .post("/exchanges/request")
@@ -180,7 +203,8 @@ describe("POST /exchanges/request", () => {
             category: "entretenimiento",
             keywords: ["prueba"],
             users: [responderId],
-            url: "http://test.com/video.mp4"
+            url: "http://test.com/video.mp4",
+            size: 12345
         });
         await User.findByIdAndUpdate(responderId, { $push: { videos: video._id } });
         await Exchange.create({
@@ -208,7 +232,8 @@ describe("GET /exchanges/:id", () => {
             category: "entretenimiento",
             keywords: ["prueba"],
             users: [responderId],
-            url: "http://test.com/video.mp4"
+            url: "http://test.com/video.mp4",
+            size: 12345
         });
         await User.findByIdAndUpdate(responderId, { $push: { videos: video._id } });
         const exchange = await Exchange.create({
@@ -305,7 +330,8 @@ describe("PATCH /exchanges/:id", () => {
             category: "entretenimiento",
             keywords: ["prueba"],
             users: [responderId],
-            url: "http://test.com/video.mp4"
+            url: "http://test.com/video.mp4",
+            size: 12345
         });
         await User.findByIdAndUpdate(responderId, { $push: { videos: video._id } });
         const exchange = await Exchange.create({
@@ -328,7 +354,8 @@ describe("PATCH /exchanges/:id", () => {
             category: "entretenimiento",
             keywords: ["prueba"],
             users: [initiatorId],
-            url: "http://test.com/video2.mp4"
+            url: "http://test.com/video2.mp4",
+            size: 12345
         });
         await User.findByIdAndUpdate(initiatorId, { $push: { videos: initiatorVideo._id } });
         const res = await request(app)
@@ -436,7 +463,8 @@ describe("DELETE /exchanges/:id", () => {
             category: "entretenimiento",
             keywords: ["prueba"],
             users: [responderId],
-            url: "http://test.com/video.mp4"
+            url: "http://test.com/video.mp4",
+            size: 12345
         });
         await User.findByIdAndUpdate(responderId, { $push: { videos: video._id } });
         const exchange = await Exchange.create({

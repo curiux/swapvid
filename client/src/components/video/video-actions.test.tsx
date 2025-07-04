@@ -181,23 +181,6 @@ describe("VideoActions", () => {
         expect(screen.getByText(/pedido/i)).toBeTruthy();
     });
 
-    it("navega a la página de error si la API responde con error en intercambio", async () => {
-        mockVideo.isOwner = false;
-        mockVideo.hasRequested = false;
-        (global.fetch as any) = vi.fn().mockResolvedValue({
-            status: 403,
-            json: async () => ({ error: "No tienes acceso a este video." })
-        });
-        render(<VideoActions />, { wrapper: MemoryRouter });
-        const btn = screen.getAllByRole("button", { name: /intercambiar/i })[0];
-        fireEvent.click(btn);
-        const pedirBtn = screen.getAllByRole("button", { name: /pedir intercambio/i })[0];
-        fireEvent.click(pedirBtn);
-        await waitFor(() => {
-            expect(mockNavigate).toHaveBeenCalledWith(expect.stringContaining("/error?msg="));
-        });
-    });
-
     it("navega a la página de error si ocurre una excepción en fetch de intercambio", async () => {
         mockVideo.isOwner = false;
         mockVideo.hasRequested = false;

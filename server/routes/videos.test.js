@@ -59,7 +59,8 @@ describe("GET /videos/:id", () => {
             keywords: ["palabra", "clave"],
             users: [userId],
             hash: "hash",
-            isSensitiveContent: false
+            isSensitiveContent: false,
+            size: 12345
         });
     });
 
@@ -119,7 +120,8 @@ describe("DELETE /videos/:id", () => {
             keywords: ["palabra", "clave"],
             users: [userId],
             hash: "hash",
-            isSensitiveContent: false
+            isSensitiveContent: false,
+            size: 12345
         });
     });
 
@@ -190,7 +192,8 @@ describe("PATCH /videos/:id", () => {
             keywords: ["palabra", "clave"],
             users: [userId],
             hash: "hash",
-            isSensitiveContent: false
+            isSensitiveContent: false,
+            size: 12345
         });
     });
 
@@ -312,7 +315,8 @@ describe("POST /videos/sightengine", () => {
             keywords: ["palabra", "clave"],
             users: [new mongoose.Types.ObjectId()],
             hash: "hash",
-            isSensitiveContent: false
+            isSensitiveContent: false,
+            size: 12345
         });
         const res = await request(app)
             .post("/videos/sightengine")
@@ -346,7 +350,8 @@ describe("POST /videos/sightengine", () => {
             keywords: ["palabra", "clave"],
             users: [new mongoose.Types.ObjectId()],
             hash: "hash",
-            isSensitiveContent: false
+            isSensitiveContent: false,
+            size: 12345
         });
         const res = await request(app)
             .post("/videos/sightengine")

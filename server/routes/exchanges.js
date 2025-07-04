@@ -4,19 +4,30 @@ import Exchange from "../models/Exchange.js";
 import User from "../models/User.js";
 import Video from "../models/Video.js";
 import Rating from "../models/Rating.js";
+import { plans } from "../lib/utils.js";
 
 const router = Router();
 
 /**
  * Creates a new exchange request between two users.
  * - Requires authentication via the 'auth' middleware.
- * - Checks if the responder user exists and if there is already a pending exchange between the users.
- * - On success, creates a new Exchange document and returns it.
- * - Returns 404 if the responder does not exist, 409 if a pending request exists, or 500 for unexpected errors.
+ * - Checks if the initiator and responder users exist.
+ * - Prevents duplicate or counter pending requests between the same users.
+ * - Enforces a monthly exchange limit based on the initiator's subscription plan.
+ * - On success, creates a new Exchange document and updates both users' exchanges arrays.
+ * - Returns 404 if either user does not exist, 409 if a pending request exists, 400 if the exchange limit is reached, or 500 for unexpected errors.
  */
 router.post("/request", auth, async (req, res) => {
     try {
         const initiator = req.userId;
+
+        const initiatorUser = await User.findById(initiator).populate("subscription.plan");
+        if (!initiatorUser) {
+            return res.status(404).send({
+                error: "El usuario iniciador no existe"
+            });
+        }
+
         const responderUser = await User.findOne({ username: req.body.username });
         if (!responderUser) {
             return res.status(404).send({
@@ -41,6 +52,22 @@ router.post("/request", auth, async (req, res) => {
             return res.status(409).send({
                 error: "Ya existe una petición de intercambio pendiente entre estos usuarios"
             });
+        }
+
+        const now = new Date();
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+        const exchanges = await Exchange.find({
+            initiator,
+            requestedDate: {
+                $gte: startOfMonth,
+                $lt: startOfNextMonth
+            }
+        });
+        const plan = initiatorUser.subscription.plan;
+        
+        if (exchanges.length >= plan.exchangeLimit && plan.exchangeLimit != 0) {
+            return res.status(400).send({ error: `Has alcanzado el máximo de ${plan.exchangeLimit} intercambios este mes permitidos para tu plan ${plans[plan.name]}.` });
         }
 
         const data = {

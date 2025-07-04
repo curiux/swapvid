@@ -12,11 +12,9 @@ import { Checkbox } from "../ui/checkbox";
 import { TagInput, type Tag } from "emblor";
 import { Textarea } from "../ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
-import { API_URL, videoCategories } from "@/lib/utils";
+import { API_URL, videoCategories, MAX_FILE_SIZE_BY_PLAN } from "@/lib/utils";
 import { useVideoStore } from "@/lib/store";
-import { formSchema as videoSchema } from "./video-upload-form";
-
-const formSchema = videoSchema.omit({ video: true });
+import { createFormSchema } from "./video-upload-form";
 
 /**
  * EditVideoForm component
@@ -25,9 +23,10 @@ const formSchema = videoSchema.omit({ video: true });
  * - Submits changes to the backend and handles navigation and error states.
  * - Used inside a dialog for editing an existing video.
  */
-export default function EditVideoForm() {
+export default function EditVideoForm({ plan }: { plan: keyof typeof MAX_FILE_SIZE_BY_PLAN }) {
     const navigate = useNavigate();
     const location = useLocation()
+    const formSchema = createFormSchema(plan).omit({ video: true });
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         mode: "onChange",

@@ -11,47 +11,56 @@ import videojs from "video.js";
 import "video.js/dist/video-js.css";
 import { Separator } from "../ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
-import { API_URL, videoCategories } from "@/lib/utils";
+import { API_URL, videoCategories, MAX_FILE_SIZE_BY_PLAN, formatBytes } from "@/lib/utils";
 import { UploadIcon } from "lucide-react";
 import axios from "axios";
 import { Progress } from "../ui/progress";
 import { useNavigate } from "react-router";
 import { Checkbox } from "../ui/checkbox";
 
+
 /**
- * Zod schema for validating the video upload form fields:
- * - title: Required, 5-60 characters
- * - description: Required, 10-500 characters
- * - category: Required string (must select a category)
- * - keywords: Required array of at least 1 tag object ({id, text})
- * - isSensitiveContent: Boolean flag for sensitive content
- * - video: Required File, max 500MB, must be mp4, webm, ogg, or mov
+ * This schema defines validation rules for the video upload form using Zod.
+ * - title: Required, 5-60 characters.
+ * - description: Required, 10-500 characters.
+ * - category: Required.
+ * - keywords: Required, array of at least 1 keyword object.
+ * - isSensitiveContent: Boolean flag for sensitive content.
+ * - video: Required, must be a supported video file and within size limit for the user's plan.
  */
-export const formSchema = z.object({
-    title: z.string({
-        required_error: "Ingresa un título."
-    })
-        .min(5, { message: "El título debe tener al menos 5 caracteres." })
-        .max(60, { message: "El título no debe superar los 60 caracteres." }),
-    description: z.string({
-        required_error: "Ingresa una descripción."
-    })
-        .min(10, { message: "La descripción debe tener al menos 10 caracteres." })
-        .max(500, { message: "La descripción no debe superar los 500 caracteres." }),
-    category: z.string({
-        required_error: "Debes seleccionar una categoría."
-    }),
-    keywords: z.array(
-        z.object({
-            id: z.string(),
-            text: z.string()
+export function createFormSchema(plan: keyof typeof MAX_FILE_SIZE_BY_PLAN) {
+    const maxSize = MAX_FILE_SIZE_BY_PLAN[plan];
+
+    return z.object({
+        title: z.string({
+            required_error: "Ingresa un título."
         })
-    ).min(1, { message: "Debes ingresar al menos una palabra clave." }),
-    isSensitiveContent: z.boolean(),
-    video: z.instanceof(File, { message: "Debes subir un video" })
-        .refine(file => file.size <= 500 * 1024 * 1024, { message: "El archivo debe pesar menos de 500MB." })
-        .refine(file => ["video/mp4", "video/webm", "video/ogg", "video/quicktime"].includes(file.type), { message: "Formato no soportado." })
-});
+            .min(5, { message: "El título debe tener al menos 5 caracteres." })
+            .max(60, { message: "El título no debe superar los 60 caracteres." }),
+        description: z.string({
+            required_error: "Ingresa una descripción."
+        })
+            .min(10, { message: "La descripción debe tener al menos 10 caracteres." })
+            .max(500, { message: "La descripción no debe superar los 500 caracteres." }),
+        category: z.string({
+            required_error: "Debes seleccionar una categoría."
+        }),
+        keywords: z.array(
+            z.object({
+                id: z.string(),
+                text: z.string()
+            })
+        ).min(1, { message: "Debes ingresar al menos una palabra clave." }),
+        isSensitiveContent: z.boolean(),
+        video: z.instanceof(File, { message: "Debes subir un video" })
+            .refine(file => file.size <= maxSize, {
+                message: `El archivo debe pesar menos de ${formatBytes(maxSize)}.`
+            })
+            .refine(file => ["video/mp4", "video/webm", "video/ogg", "video/quicktime"].includes(file.type), {
+                message: "Formato no soportado."
+            })
+    });
+}
 
 /**
  * Renders the video upload form with validation, preview, and upload logic.
@@ -59,10 +68,10 @@ export const formSchema = z.object({
  * Collects video file, title, description, category, keywords, and sensitive content flag.
  * Shows upload progress, handles errors, and navigates on success.
  */
-export default function VideoUploadForm() {
+export default function VideoUploadForm({ plan }: { plan: keyof typeof MAX_FILE_SIZE_BY_PLAN }) {
     const navigate = useNavigate();
-    const form = useForm<z.infer<typeof formSchema>>({
-        resolver: zodResolver(formSchema),
+    const form = useForm<z.infer<ReturnType<typeof createFormSchema>>>({
+        resolver: zodResolver(createFormSchema(plan)),
         mode: "onChange",
         defaultValues: {
             keywords: [],
@@ -134,7 +143,7 @@ export default function VideoUploadForm() {
         };
     }, [src]);
 
-    const handleSubmit = async (values: z.infer<typeof formSchema>) => {
+    const handleSubmit = async (values: z.infer<ReturnType<typeof createFormSchema>>) => {
         const keywords = values.keywords.map(keyword => keyword.text);
 
         const formData = new FormData();
@@ -166,6 +175,7 @@ export default function VideoUploadForm() {
 
             localStorage.setItem("msg", "¡Tu video se subió correctamente!");
             navigate("/mi-coleccion");
+            navigate(0);
         } catch (e: any) {
             if (e.name == "AxiosError") {
                 if (e.response) {
@@ -212,6 +222,7 @@ export default function VideoUploadForm() {
                                                 type="file"
                                                 className="hidden"
                                                 onChange={(e) => {
+                                                    setSrc(null);
                                                     const file = e.target.files?.[0];
                                                     field.onChange(file);
                                                     setFile(file);
@@ -231,7 +242,7 @@ export default function VideoUploadForm() {
                                         Por favor, sube un archivo de video con alguna de estas extensiones: .mp4, .webm, .ogg, .mov.
                                     </FormDescription>
                                     <FormDescription className="text-xs">
-                                        El tamaño máximo permitido es de 500 MB.
+                                        El tamaño máximo permitido es de {formatBytes(MAX_FILE_SIZE_BY_PLAN[plan])}.
                                     </FormDescription>
                                     <FormMessage />
                                 </FormItem>

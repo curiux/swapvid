@@ -15,8 +15,10 @@ export default function MyVideos() {
     useEffect(() => {
         const msg = localStorage.getItem("msg");
         if (msg) {
-            toast.success(msg);
-            localStorage.removeItem("msg");
+            setTimeout(() => {
+                toast.success(msg);
+                localStorage.removeItem("msg");
+            }, 50);
         }
     }, []);
 
