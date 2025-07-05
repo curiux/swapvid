@@ -7,6 +7,7 @@ import { Separator } from "../ui/separator";
 import { BadgeX, Repeat } from "lucide-react";
 import ExchangeActions from "./exchange-actions";
 import Spinner from "../spinner";
+import { toast } from "sonner";
 
 /**
  * ExchangeList component
@@ -39,6 +40,7 @@ export default function ExchangeList() {
             if (data.error) {
                 if (res.status == 401 || res.status == 404) {
                     localStorage.clear();
+                    toast("Tu sesión ha expirado.")
                     navigate("/");
                 } else {
                     navigate("/error?msg=" + encodeURIComponent(data.error));
@@ -94,17 +96,23 @@ function ExchangeItem({ exchange, user, status }: { exchange: Exchange, user: st
             <CardContent>
                 <div className="grid grid-cols-5 w-full">
                     {exchange.initiatorVideoUrl ? (
-                        <img src={exchange.initiatorVideoUrl} alt={"Video del iniciador"} className="col-span-2 object-contain h-full w-full" />
+                        <img
+                            src={exchange.initiatorVideoUrl}
+                            alt="Video del iniciador"
+                            className="col-span-2 object-contain h-full w-full" />
                     ) : (
                         <div className="col-span-2 flex flex-col items-center justify-center">
                             <BadgeX className="w-1/3 h-full" />
                             <p className="text-center text-sm">Todavía no se ha elegido un video</p>
                         </div>
                     )}
-                    <div className="flex items-center justify-center">
+                    <div className={`flex items-center justify-center ${exchange.user == "initiator" ? "-order-1" : ""}`}>
                         <Repeat className="w-1/2 h-full" />
                     </div>
-                    <img src={exchange.responderVideoUrl} alt={"Video del receptor"} className="col-span-2 object-contain h-full w-full" />
+                    <img
+                        src={exchange.responderVideoUrl}
+                        alt="Video del receptor"
+                        className={`col-span-2 object-contain h-full w-full ${exchange.user == "initiator" ? "-order-2" : ""}`} />
                 </div>
             </CardContent>
         </Card>

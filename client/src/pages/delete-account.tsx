@@ -3,6 +3,7 @@ import Spinner from "@/components/spinner";
 import { API_URL } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
+import { toast } from "sonner";
 
 /**
  * This component renders the delete account page.
@@ -37,6 +38,7 @@ export default function DeleteAccount() {
             if (data.error) {
                 if (res.status == 401 || res.status == 404) {
                     localStorage.clear();
+                    toast("Tu sesión ha expirado.")
                     navigate("/");
                 } else {
                     navigate("/error?msg=" + encodeURIComponent(data.error));

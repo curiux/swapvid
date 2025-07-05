@@ -4,6 +4,7 @@ import { Check, Star, X } from "lucide-react";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
 import { useState } from "react";
 import { API_URL } from "@/lib/utils";
+import { toast } from "sonner";
 
 /**
  * ExchangeActions component
@@ -62,6 +63,7 @@ export default function ExchangeActions({ exchangeId, status, user, hasRated }:
             if (data.error) {
                 if (res.status == 401 || res.status == 404) {
                     localStorage.clear();
+                    toast("Tu sesión ha expirado.")
                     navigate("/");
                 } else {
                     navigate("/error?msg=" + encodeURIComponent(data.error));
@@ -96,6 +98,7 @@ export default function ExchangeActions({ exchangeId, status, user, hasRated }:
             if (data.error) {
                 if (res.status == 401 || res.status == 404) {
                     localStorage.clear();
+                    toast("Tu sesión ha expirado.")
                     navigate("/");
                 } else {
                     navigate("/error?msg=" + encodeURIComponent(data.error));

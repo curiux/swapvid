@@ -3,6 +3,7 @@ import { Button } from "./ui/button";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
 import { useState } from "react";
 import { useNavigate } from "react-router";
+import { toast } from "sonner";
 
 /**
  * CancelSubscriptionDialog component
@@ -33,6 +34,7 @@ export default function CancelSubscriptionDialog() {
             if (data.error) {
                 if (res.status == 401 || res.status == 404) {
                     localStorage.clear();
+                    toast("Tu sesión ha expirado.")
                     navigate("/");
                 } else {
                     navigate("/error?msg=" + encodeURIComponent(data.error));

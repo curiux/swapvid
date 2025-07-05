@@ -3,6 +3,7 @@ import VideoUploadForm from "@/components/video/video-upload-form";
 import { API_URL } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
+import { toast } from "sonner";
 
 /**
  * VideoUpload page component
@@ -37,6 +38,7 @@ export default function VideoUpload() {
             if (data.error) {
                 if (res.status == 401 || res.status == 404) {
                     localStorage.clear();
+                    toast("Tu sesión ha expirado.")
                     navigate("/");
                 } else {
                     navigate("/error?msg=" + encodeURIComponent(data.error));

@@ -8,6 +8,7 @@ import type { Video as VideoType } from "@/lib/types";
 import Spinner from "@/components/spinner";
 import { Separator } from "@/components/ui/separator";
 import VideoPreview from "@/components/video/video-preview";
+import { toast } from "sonner";
 
 /**
  * Video page component
@@ -45,6 +46,7 @@ export default function Video() {
             if (data.error) {
                 if (res.status == 401 || (res.status == 404 && data.type == "user")) {
                     localStorage.clear();
+                    toast("Tu sesión ha expirado.")
                     navigate("/");
                 } else if (res.status == 400 || (res.status == 404 && data.type == "video")) {
                     navigate("/404");

@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { API_URL, videoCategories, MAX_FILE_SIZE_BY_PLAN } from "@/lib/utils";
 import { useVideoStore } from "@/lib/store";
 import { createFormSchema } from "./video-upload-form";
+import { toast } from "sonner";
 
 /**
  * EditVideoForm component
@@ -98,6 +99,7 @@ export default function EditVideoForm({ plan }: { plan: keyof typeof MAX_FILE_SI
             if (data.error) {
                 if (res.status == 401 || res.status == 404) {
                     localStorage.clear();
+                    toast("Tu sesión ha expirado.")
                     navigate("/");
                 } else {
                     form.setError("root", { message: data.error });

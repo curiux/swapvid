@@ -36,6 +36,12 @@ router.post("/request", auth, async (req, res) => {
         }
         const responder = responderUser._id.toString();
 
+        if (initiatorUser.videos.length == 0) {
+            return res.status(400).send({
+                error: "Necesitas tener al menos un video en tu biblioteca para realizar una petición de intercambio"
+            });
+        }
+
         const hasRequest = await Exchange.exists({
             initiator,
             responder,
@@ -225,7 +231,7 @@ router.patch("/:id", auth, async (req, res) => {
             status: "accepted",
             initiatorVideo: videoId
         });
-        await exchangeVideos(exchange);
+        await exchangeVideos(exchange, videoId);
         return res.status(200).send({});
     } catch (e) {
         console.log(e);
@@ -241,8 +247,8 @@ router.patch("/:id", auth, async (req, res) => {
  * - Updates the videos array in both users to reflect exchanged videos.
  * - Used internally after an exchange is accepted.
  */
-async function exchangeVideos(exchange) {
-    await Video.findByIdAndUpdate(exchange.initiatorVideo, {
+async function exchangeVideos(exchange, initiatorVideo) {
+    await Video.findByIdAndUpdate(initiatorVideo, {
         $push: { users: exchange.responder }
     });
     await Video.findByIdAndUpdate(exchange.responderVideo, {
@@ -250,7 +256,7 @@ async function exchangeVideos(exchange) {
     });
 
     await User.findByIdAndUpdate(exchange.initiator, {
-        $pull: { videos: exchange.initiatorVideo }
+        $pull: { videos: initiatorVideo }
     });
     await User.findByIdAndUpdate(exchange.initiator, {
         $push: { videos: exchange.responderVideo }
@@ -260,7 +266,7 @@ async function exchangeVideos(exchange) {
         $pull: { videos: exchange.responderVideo }
     });
     await User.findByIdAndUpdate(exchange.responder, {
-        $push: { videos: exchange.initiatorVideo }
+        $push: { videos: initiatorVideo }
     });
 }
 

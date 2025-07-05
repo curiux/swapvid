@@ -61,6 +61,7 @@ export default function SubscriptionDialog({ open, handleChange, plan }:
                                     toast.error("Tu pago fue rechazado. Intentá con otra tarjeta o medio de pago.");
                                 } else {
                                     localStorage.clear();
+                                    toast("Tu sesión ha expirado.")
                                     navigate("/");
                                 }
                             } else {

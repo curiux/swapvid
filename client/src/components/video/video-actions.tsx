@@ -179,6 +179,7 @@ function ExchangeAction({ videoData }: { videoData: Video }) {
             if (data.error) {
                 if (res.status == 401 || res.status == 404) {
                     localStorage.clear();
+                    toast("Tu sesión ha expirado.")
                     navigate("/");
                 } else if (res.status == 409) {
                     toast.error("Ya existe un intercambio pendiente para el mismo usuario. Revista tu lista de intercambios.");
@@ -210,6 +211,7 @@ function ExchangeAction({ videoData }: { videoData: Video }) {
             if (data.error) {
                 if (res.status == 401 || res.status == 404) {
                     localStorage.clear();
+                    toast("Tu sesión ha expirado.")
                     navigate("/");
                 } else {
                     navigate("/error?msg=" + encodeURIComponent(data.error));

@@ -115,8 +115,19 @@ afterAll(async () => {
 
 describe("POST /exchanges/request", () => {
     it("debería crear una solicitud de intercambio con datos y autenticación válidos", async () => {
-        // Create a dummy video owned by responder
         const Video = (await import("../models/Video.js")).default;
+
+        const initiatorVideo = await Video.create({
+            title: "Video del iniciador",
+            description: "Video del usuario iniciador",
+            category: "entretenimiento",
+            keywords: ["iniciador"],
+            users: [initiatorId],
+            url: "http://test.com/video-iniciador.mp4",
+            size: 54321
+        });
+        await User.findByIdAndUpdate(initiatorId, { $push: { videos: initiatorVideo._id } });
+
         const video = await Video.create({
             title: "Video de prueba",
             description: "Descripción de prueba",
@@ -178,6 +189,18 @@ describe("POST /exchanges/request", () => {
     it("debería fallar si responderVideo no pertenece al receptor", async () => {
         // Create a dummy video not owned by responder
         const Video = (await import("../models/Video.js")).default;
+
+        const initiatorVideo = await Video.create({
+            title: "Video del iniciador",
+            description: "Video del usuario iniciador",
+            category: "entretenimiento",
+            keywords: ["iniciador"],
+            users: [initiatorId],
+            url: "http://test.com/video-iniciador.mp4",
+            size: 54321
+        });
+        await User.findByIdAndUpdate(initiatorId, { $push: { videos: initiatorVideo._id } });
+
         const video = await Video.create({
             title: "Video ajeno",
             description: "Descripción de prueba",
@@ -197,6 +220,18 @@ describe("POST /exchanges/request", () => {
 
     it("debería fallar si ya existe una petición pendiente entre los usuarios", async () => {
         const Video = (await import("../models/Video.js")).default;
+
+        const initiatorVideo = await Video.create({
+            title: "Video del iniciador",
+            description: "Video del usuario iniciador",
+            category: "entretenimiento",
+            keywords: ["iniciador"],
+            users: [initiatorId],
+            url: "http://test.com/video-iniciador.mp4",
+            size: 54321
+        });
+        await User.findByIdAndUpdate(initiatorId, { $push: { videos: initiatorVideo._id } });
+
         const video = await Video.create({
             title: "Video de prueba",
             description: "Descripción de prueba",

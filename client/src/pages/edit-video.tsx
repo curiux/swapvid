@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from "react-router";
 import { useEffect, useState } from "react";
 import { API_URL } from "@/lib/utils";
 import Spinner from "@/components/spinner";
+import { toast } from "sonner";
 
 /**
  * EditVideo page component
@@ -39,6 +40,7 @@ export default function EditVideo() {
             if (data.error) {
                 if (res.status == 401 || res.status == 404) {
                     localStorage.clear();
+                    toast("Tu sesión ha expirado.")
                     navigate("/");
                 } else {
                     navigate("/error?msg=" + encodeURIComponent(data.error));

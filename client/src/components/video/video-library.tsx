@@ -3,6 +3,7 @@ import { API_URL, timeAgo } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import Spinner from "../spinner";
+import { toast } from "sonner";
 
 /**
  * Displays the authenticated user's video library as a responsive grid of video cards.
@@ -35,6 +36,7 @@ export default function VideoLibrary() {
             if (data.error) {
                 if (res.status == 401 || res.status == 404) {
                     localStorage.clear();
+                    toast("Tu sesión ha expirado.")
                     navigate("/");
                 } else {
                     navigate("/error?msg=" + encodeURIComponent(data.error));

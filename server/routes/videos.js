@@ -44,7 +44,8 @@ router.get("/:id", auth, async (req, res) => {
         if (!videoData.isOwner) {
             videoData.hasRequested = await Exchange.exists({
                 initiator: user._id,
-                responderVideo: videoData._id
+                responderVideo: videoData._id,
+                status: "pending"
             });
         } else {
             videoData.url = video.createSecureUrl();

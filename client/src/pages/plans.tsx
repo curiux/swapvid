@@ -8,6 +8,7 @@ import { API_URL, formatBytes } from "@/lib/utils";
 import { CircleCheck, Infinity } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
+import { toast } from "sonner";
 
 interface PricingPlan {
     name: string;
@@ -99,6 +100,7 @@ export default function Plans() {
             if (data.error) {
                 if (res.status == 401 || res.status == 404) {
                     localStorage.clear();
+                    toast("Tu sesión ha expirado.")
                     navigate("/");
                 } else {
                     navigate("/error?msg=" + encodeURIComponent(data.error));

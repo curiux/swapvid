@@ -17,6 +17,7 @@ import axios from "axios";
 import { Progress } from "../ui/progress";
 import { useNavigate } from "react-router";
 import { Checkbox } from "../ui/checkbox";
+import { toast } from "sonner";
 
 /**
  * This schema defines validation rules for the video upload form using Zod.
@@ -181,6 +182,7 @@ export default function VideoUploadForm({ plan }: { plan: keyof typeof MAX_FILE_
                     const data = e.response.data;
                     if (e.status == 401 || e.status == 404) {
                         localStorage.clear();
+                        toast("Tu sesión ha expirado.")
                         navigate("/");
                     } else {
                         form.setError("root", { message: data.error });
