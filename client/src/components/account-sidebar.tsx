@@ -1,4 +1,5 @@
 import { Sidebar, SidebarContent, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
+import { Repeat, SquarePlay } from "lucide-react";
 import { Link } from "react-router";
 
 const baseUrl = "/mi-coleccion";
@@ -6,11 +7,13 @@ const baseUrl = "/mi-coleccion";
 const items = [
     {
         title: "Mis videos",
-        url: "/"
+        url: "/",
+        icon: <SquarePlay />
     },
     {
         title: "Mis intercambios",
-        url: "/intercambios"
+        url: "/intercambios",
+        icon: <Repeat />
     }
 ];
 
@@ -31,7 +34,10 @@ export default function AccountSidebar() {
                     {items.map((item) => (
                         <SidebarMenuItem key={item.title}>
                             <SidebarMenuButton asChild tooltip={item.title} onClick={handleClick}>
-                                <Link to={baseUrl + item.url}>{item.title}</Link>
+                                <Link to={baseUrl + item.url}>
+                                    {item.icon}
+                                    {item.title}
+                                </Link>
                             </SidebarMenuButton>
                         </SidebarMenuItem>
                     ))}

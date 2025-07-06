@@ -40,6 +40,7 @@ import { Readable } from "stream";
 import axios from "axios";
 import FormData from "form-data";
 import mongoose from "mongoose";
+import Plan from "../models/Plan.js";
 
 /**
  * Handles video content moderation using the Sightengine API.
@@ -123,6 +124,50 @@ export async function getBillingDate(user) {
     const preApproval = new PreApproval(config);
     const subscription = await preApproval.get({ id: subscriptionId });
     return subscription.next_payment_date;
+}
+
+export async function validateSubscription(user) {
+    if (!user.subscription.subscriptionId) {
+        const nextPaymentDate = await getBillingDate(user);
+        return {
+            plan: user.subscription.plan,
+            isCancelled: false,
+            nextPaymentDate
+        }
+    }
+
+    const subscriptionId = user.subscription.subscriptionId;
+    const preApproval = new PreApproval(config);
+    const subscription = await preApproval.get({ id: subscriptionId });
+
+    let plan = user.subscription.plan;
+    const isCancelled = subscription.status == "cancelled";
+    const nextPaymentDate = new Date(subscription.next_payment_date);
+    const dateCreated = new Date(subscription.date_created);
+    nextPaymentDate.setHours(0, 0, 0, 0);
+    dateCreated.setHours(0, 0, 0, 0);
+    if (nextPaymentDate.toString() == dateCreated.toString()) {
+        nextPaymentDate.setMonth(nextPaymentDate.getMonth() + 1);
+    }
+
+    if (isCancelled) {
+        if (nextPaymentDate < new Date()) {
+            const basicPlan = await Plan.findOne({
+                name: "basic"
+            });
+            await user.updateOne({
+                "subscription.plan": basicPlan._id,
+                $unset: { "subscription.subscriptionId": "" }
+            });
+            plan = basicPlan;
+        }
+    }
+
+    return {
+        plan,
+        isCancelled,
+        nextPaymentDate
+    };
 }
 
 /**

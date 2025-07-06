@@ -22,6 +22,7 @@ export default function Profile() {
     const [loading, setLoading] = useState(true);
     const [plan, setPlan] = useState("");
     const [billingDate, setBillingDate] = useState<Date | undefined>();
+    const [isCancelled, setIsCancelled] = useState(false);
 
     useEffect(() => {
         const token = localStorage.getItem("token");
@@ -60,6 +61,7 @@ export default function Profile() {
             } else {
                 setLoading(false);
                 setPlan(data.subscription.plan);
+                setIsCancelled(data.isCancelled);
                 data.nextPaymentDate && setBillingDate(new Date(data.nextPaymentDate));
             }
         } catch (e) {
@@ -89,12 +91,17 @@ export default function Profile() {
                     </div>
                     {plan != "basic" && (
                         <div className="flex items-center justify-between gap-5">
-                            <CancelSubscriptionDialog />
-                            <p className="text-xs italic">Tu próxima fecha de facturación es el {billingDate!.toLocaleDateString("es-ES", {
-                                day: "numeric",
-                                month: "long",
-                                year: "numeric"
-                            })}</p>
+                            <CancelSubscriptionDialog isCancelled={isCancelled} />
+                            <p className="text-xs italic">
+                                {isCancelled
+                                    ? "Seguirás disfrutando de todos los beneficios hasta el "
+                                    : "Tu próxima fecha de facturación es el "
+                                }
+                                {billingDate!.toLocaleDateString("es-ES", {
+                                    day: "numeric",
+                                    month: "long",
+                                    year: "numeric"
+                                })}</p>
                         </div>
 
                     )}

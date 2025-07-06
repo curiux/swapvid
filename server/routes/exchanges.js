@@ -4,7 +4,7 @@ import Exchange from "../models/Exchange.js";
 import User from "../models/User.js";
 import Video from "../models/Video.js";
 import Rating from "../models/Rating.js";
-import { plans } from "../lib/utils.js";
+import { plans, validateSubscription } from "../lib/utils.js";
 
 const router = Router();
 
@@ -70,7 +70,7 @@ router.post("/request", auth, async (req, res) => {
                 $lt: startOfNextMonth
             }
         });
-        const plan = initiatorUser.subscription.plan;
+        const { plan } = await validateSubscription(initiatorUser);
         
         if (exchanges.length >= plan.exchangeLimit && plan.exchangeLimit != 0) {
             return res.status(400).send({ error: `Has alcanzado el máximo de ${plan.exchangeLimit} intercambios este mes permitidos para tu plan ${plans[plan.name]}.` });

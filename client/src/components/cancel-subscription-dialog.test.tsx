@@ -34,7 +34,7 @@ describe("CancelSubscriptionDialog", () => {
     it("abre y cierra el diálogo", () => {
         render(
             <MemoryRouter>
-                <CancelSubscriptionDialog />
+                <CancelSubscriptionDialog isCancelled={false} />
             </MemoryRouter>
         );
         // Open dialog
@@ -52,7 +52,7 @@ describe("CancelSubscriptionDialog", () => {
         }) as any;
         render(
             <MemoryRouter>
-                <CancelSubscriptionDialog />
+                <CancelSubscriptionDialog isCancelled={false} />
             </MemoryRouter>
         );
         fireEvent.click(screen.getAllByText(/cancelar/i)[0]);
@@ -73,7 +73,7 @@ describe("CancelSubscriptionDialog", () => {
         }) as any;
         render(
             <MemoryRouter>
-                <CancelSubscriptionDialog />
+                <CancelSubscriptionDialog isCancelled={false} />
             </MemoryRouter>
         );
         fireEvent.click(screen.getAllByText(/cancelar/i)[0]);
@@ -93,7 +93,7 @@ describe("CancelSubscriptionDialog", () => {
         }) as any;
         render(
             <MemoryRouter>
-                <CancelSubscriptionDialog />
+                <CancelSubscriptionDialog isCancelled={false} />
             </MemoryRouter>
         );
         fireEvent.click(screen.getAllByText(/cancelar/i)[0]);
@@ -110,7 +110,7 @@ describe("CancelSubscriptionDialog", () => {
         global.fetch = vi.fn().mockRejectedValue(new Error("Network error"));
         render(
             <MemoryRouter>
-                <CancelSubscriptionDialog />
+                <CancelSubscriptionDialog isCancelled={false} />
             </MemoryRouter>
         );
         fireEvent.click(screen.getAllByText(/cancelar/i)[0]);

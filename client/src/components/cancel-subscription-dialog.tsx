@@ -13,7 +13,7 @@ import { toast } from "sonner";
  * - Displays appropriate messages and navigates based on the result of the cancellation.
  * - Used to allow users to securely cancel their subscription within a modal dialog.
  */
-export default function CancelSubscriptionDialog() {
+export default function CancelSubscriptionDialog({ isCancelled }: { isCancelled: boolean }) {
     const navigate = useNavigate();
     const [open, setOpen] = useState(false);
 
@@ -50,8 +50,10 @@ export default function CancelSubscriptionDialog() {
 
     return (
         <Dialog open={open} onOpenChange={(open) => setOpen(open)}>
-            <DialogTrigger asChild>
-                <Button variant="link" className="text-red-400 cursor-pointer p-0 pl-1">Cancelar</Button>
+            <DialogTrigger asChild disabled={isCancelled}>
+                <Button variant="link" className="text-red-400 cursor-pointer p-0 pl-1">
+                    {isCancelled ? "Cancelado" : "Cancelar"}
+                </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>

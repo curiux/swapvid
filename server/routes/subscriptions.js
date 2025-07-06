@@ -43,12 +43,15 @@ router.post("/", auth, async (req, res) => {
         const preApproval = new PreApproval(config);
 
         if (user.subscription.subscriptionId) {
-            await preApproval.update({
-                id: user.subscription.subscriptionId,
-                body: {
-                    status: "cancelled"
-                }
-            });
+            const subscription = await preApproval.get({ id: user.subscription.subscriptionId });
+            if (subscription.status != "cancelled") {
+                await preApproval.update({
+                    id: user.subscription.subscriptionId,
+                    body: {
+                        status: "cancelled"
+                    }
+                });
+            }
         }
 
         const newSubscriber = await preApproval.create({
@@ -93,7 +96,6 @@ router.post("/", auth, async (req, res) => {
  * - Uses 'auth' middleware for JWT verification.
  * - Validates the user and active subscription.
  * - Cancels the current MercadoPago subscription.
- * - Updates the user's subscription to the basic plan and removes the MercadoPago subscription ID.
  * - Returns 200 on success, 400/404 for validation errors, and 500 for unexpected errors.
  */
 router.put("/", auth, async (req, res) => {
@@ -114,14 +116,6 @@ router.put("/", auth, async (req, res) => {
             body: {
                 status: "cancelled"
             }
-        });
-
-        const basicPlan = await Plan.findOne({
-            name: "basic"
-        });
-        await user.updateOne({
-            "subscription.plan": basicPlan._id,
-            $unset: { "subscription.subscriptionId": "" }
         });
 
         res.status(200).send({});

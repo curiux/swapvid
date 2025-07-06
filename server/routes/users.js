@@ -5,16 +5,16 @@ import Rating from "../models/Rating.js";
 import Exchange from "../models/Exchange.js";
 import auth from "../middleware/auth.js";
 import { cloudinary } from "../config.js";
-import { formatBytes, getBillingDate, ITEMS_PER_PAGE, plans, sightEngineValidation, upload } from "../lib/utils.js";
+import { formatBytes, getBillingDate, ITEMS_PER_PAGE, plans, sightEngineValidation, upload, validateSubscription } from "../lib/utils.js";
 import streamifier from "streamifier";
 import crypto from "crypto";
 
 const router = Router();
 
 /**
- * This route returns the authenticated user's information.
+ * Returns the authenticated user's profile information.
  * - Uses the 'auth' middleware to verify the JWT and extract the user ID.
- * - If the user exists, returns the user's email, username, id, and subscription (with plan name) with a 200 status.
+ * - If the user exists, returns the user's id, email, username, and subscription details (plan name, cancellation status, next payment date) with a 200 status.
  * - If the user does not exist, returns a 404 error.
  * - Any other errors are logged and a generic 500 error is returned.
  */
@@ -26,14 +26,16 @@ router.get("/me", auth, async (req, res) => {
                 error: "El usuario no existe"
             });
         }
-        const { _id, email, username, subscription } = user.toObject();
-        subscription.plan = subscription.plan.name;
-        const nextPaymentDate = await getBillingDate(user);
+        const { _id, email, username } = user.toObject();
+        const { plan, isCancelled, nextPaymentDate } = await validateSubscription(user);
         res.status(200).send({
             id: String(_id),
             email,
             username,
-            subscription,
+            subscription: {
+                plan: plan.name
+            },
+            isCancelled,
             nextPaymentDate
         });
     } catch (e) {
@@ -129,7 +131,7 @@ router.post("/me/videos", auth, upload.single("video"), async (req, res) => {
         const hash = crypto.createHash("sha256").update(req.file.buffer).digest("hex");
 
         const size = req.file.size;
-        const plan = user.subscription.plan;
+        const { plan } = await validateSubscription(user);
 
         if (size > plan.videoMaxSize) {
             return res.status(400).send({ error: `El video excede el tamaño máximo permitido de ${formatBytes(plan.videoMaxSize)} para el plan ${plans[plan.name]}.` });
