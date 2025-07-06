@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import Spinner from "../spinner";
 import { toast } from "sonner";
+import Pagination from "../pagination";
 
 /**
  * Displays the authenticated user's video library as a responsive grid of video cards.
@@ -12,21 +13,26 @@ import { toast } from "sonner";
  */
 export default function VideoLibrary() {
     const navigate = useNavigate();
+    const params = new URLSearchParams(location.search);
     const [videos, setVideos] = useState<Video[]>([]);
     const [loading, setLoading] = useState(true);
+    const [page, setPage] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
 
     useEffect(() => {
         const token = localStorage.getItem("token");
         if (!token) {
             navigate("/");
         } else {
-            getVideos(token);
+            const page = parseInt(params.get("page") || "0")
+            setPage(page);
+            getVideos(token, page);
         }
     }, []);
 
-    const getVideos = async (token: String) => {
+    const getVideos = async (token: String, page: number) => {
         try {
-            const res = await fetch(API_URL + "/users/me/videos", {
+            const res = await fetch(API_URL + "/users/me/videos?page=" + page, {
                 headers: {
                     "Authorization": `Bearer ${token}`
                 }
@@ -43,6 +49,7 @@ export default function VideoLibrary() {
                 }
             } else {
                 setVideos(data.videos);
+                setTotalPages(data.totalPages);
                 setLoading(false);
             }
         } catch (e) {
@@ -57,10 +64,18 @@ export default function VideoLibrary() {
     );
 
     return (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 lg:gap-8">
-            {videos.map(video => (
-                <VideoItem key={video._id} video={video} />
-            ))}
+        <div className="flex flex-col gap-8">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 lg:gap-8">
+                {videos.length == 0 ? (
+                    <p className="text-sm text-muted-foreground">
+                        {videos.length == 0 && page == 0 ? "Tu biblioteca está vacía." : "No hay videos para mostrar."}
+                    </p>
+                )
+                    : videos.map(video => (
+                        <VideoItem key={video._id} video={video} />
+                    ))}
+            </div>
+            <Pagination list={videos} page={page} totalPages={totalPages} />
         </div>
     );
 }

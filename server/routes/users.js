@@ -5,7 +5,7 @@ import Rating from "../models/Rating.js";
 import Exchange from "../models/Exchange.js";
 import auth from "../middleware/auth.js";
 import { cloudinary } from "../config.js";
-import { formatBytes, getBillingDate, plans, sightEngineValidation, upload } from "../lib/utils.js";
+import { formatBytes, getBillingDate, ITEMS_PER_PAGE, plans, sightEngineValidation, upload } from "../lib/utils.js";
 import streamifier from "streamifier";
 import crypto from "crypto";
 
@@ -232,7 +232,16 @@ router.get("/me/videos", auth, async (req, res) => {
             });
         }
 
-        const videos = user.videos.map(video => {
+        const page = parseInt(req.query.page) || 0;
+        const limit = ITEMS_PER_PAGE;
+
+        const start = page * limit;
+        const end = start + limit;
+
+        const totalVideos = user.videos.length;
+        const totalPages = Math.ceil(totalVideos / limit);
+
+        const videos = user.videos.slice(start, end).map(video => {
             const { users, hash, __v, ...videoData } = video.toJSON();
             videoData.user = user.username;
             videoData.thumbnail = video.createThumbnail();
@@ -240,7 +249,10 @@ router.get("/me/videos", auth, async (req, res) => {
             return videoData;
         });
 
-        return res.status(200).send({ videos });
+        return res.status(200).send({
+            videos,
+            totalPages
+        });
     } catch (e) {
         console.log(e);
         res.status(500).send({
@@ -309,7 +321,16 @@ router.get("/me/exchanges", auth, async (req, res) => {
             });
         }
 
-        const exchanges = await Promise.all(user.exchanges.map(async (exchange) => {
+        const page = parseInt(req.query.page) || 0;
+        const limit = ITEMS_PER_PAGE;
+
+        const start = page * limit;
+        const end = start + limit;
+
+        const totalExchanges = user.exchanges.length;
+        const totalPages = Math.ceil(totalExchanges / limit);
+
+        const exchanges = await Promise.all(user.exchanges.slice(start, end).map(async (exchange) => {
             const initiator = await User.findById(exchange.initiator);
             const responder = await User.findById(exchange.responder);
             const initiatorUser = initiator ? initiator.username : "indefinido";
@@ -342,7 +363,10 @@ router.get("/me/exchanges", auth, async (req, res) => {
             return exchangeData;
         }));
 
-        return res.status(200).send({ exchanges });
+        return res.status(200).send({
+            exchanges,
+            totalPages
+        });
     } catch (e) {
         console.log(e);
         res.status(500).send({

@@ -28,6 +28,8 @@ export const plans = {
     premium: "Premium"
 }
 
+export const ITEMS_PER_PAGE = 5;
+
 import multer from "multer";
 
 const storage = multer.memoryStorage();

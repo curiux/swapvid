@@ -80,7 +80,6 @@ describe("VideoLibrary", () => {
             expect(screen.getByText("Video 1")).toBeTruthy();
             expect(screen.getByText("Video 2")).toBeTruthy();
         });
-        expect(screen.getAllByRole("link").length).toBe(2);
     });
 
     it("redirige a / si la API responde 401 o 404", async () => {

@@ -8,6 +8,7 @@ import { BadgeX, Repeat } from "lucide-react";
 import ExchangeActions from "./exchange-actions";
 import Spinner from "../spinner";
 import { toast } from "sonner";
+import Pagination from "../pagination";
 
 /**
  * ExchangeList component
@@ -16,21 +17,26 @@ import { toast } from "sonner";
  */
 export default function ExchangeList() {
     const navigate = useNavigate();
+    const params = new URLSearchParams(location.search);
     const [exchanges, setExchanges] = useState<Exchange[]>([]);
     const [loading, setLoading] = useState(true);
+    const [page, setPage] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
 
     useEffect(() => {
         const token = localStorage.getItem("token");
         if (!token) {
             navigate("/");
         } else {
-            getExchanges(token);
+            const page = parseInt(params.get("page") || "0")
+            setPage(page);
+            getExchanges(token, page);
         }
     }, []);
 
-    const getExchanges = async (token: String) => {
+    const getExchanges = async (token: String, page: number) => {
         try {
-            const res = await fetch(API_URL + "/users/me/exchanges", {
+            const res = await fetch(API_URL + "/users/me/exchanges?page=" + page, {
                 headers: {
                     "Authorization": `Bearer ${token}`
                 }
@@ -47,6 +53,7 @@ export default function ExchangeList() {
                 }
             } else {
                 setExchanges(data.exchanges);
+                setTotalPages(data.totalPages);
                 setLoading(false);
             }
         } catch (e) {
@@ -61,12 +68,20 @@ export default function ExchangeList() {
     );
 
     return (
-        <div className="flex flex-col gap-6">
-            {exchanges.map(exchange => {
-                const user = exchange.user == "initiator" ? exchange.responder : exchange.initiator
-                const status = exchangeStatusList.find(s => s.id == exchange.status);
-                return <ExchangeItem key={exchange._id} exchange={exchange} user={user} status={status} />
-            })}
+        <div className="flex flex-col gap-8">
+            <div className="flex flex-col gap-6">
+                {exchanges.length == 0 ? (
+                    <p className="text-sm text-muted-foreground text-center">
+                        {exchanges.length == 0 && page == 0 ? "Tu lista de intercambios está vacía." : "No hay intercambios para mostrar."}
+                    </p>
+                )
+                    : exchanges.map(exchange => {
+                        const user = exchange.user == "initiator" ? exchange.responder : exchange.initiator
+                        const status = exchangeStatusList.find(s => s.id == exchange.status);
+                        return <ExchangeItem key={exchange._id} exchange={exchange} user={user} status={status} />
+                    })}
+            </div>
+            <Pagination list={exchanges} page={page} totalPages={totalPages} />
         </div>
     );
 }
