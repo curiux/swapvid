@@ -1,0 +1,104 @@
+import type { Video } from "@/lib/types";
+import Pagination from "../pagination";
+import { API_URL, timeAgo } from "@/lib/utils";
+import { Link, useNavigate } from "react-router";
+import { useEffect, useState } from "react";
+import Spinner from "../spinner";
+
+/**
+ * SearchVideoList component
+ * - Fetches and displays a paginated list of videos based on the search query from the URL.
+ * - Handles loading state, error navigation, and pagination.
+ * - Uses the VideoItem component to render each video card.
+ */
+export default function SearchVideoList() {
+    const navigate = useNavigate();
+    const params = new URLSearchParams(location.search);
+    const [videos, setVideos] = useState<Video[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [query, setQuery] = useState("");
+    const [page, setPage] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
+
+    useEffect(() => {
+        const page = parseInt(params.get("page") || "0")
+        setPage(page);
+
+        const query = params.get("q") || "";
+        setQuery("q=" + query + "&");
+        getVideos(query, page);
+    }, [params.get("q")]);
+
+    const getVideos = async (query: String, page: number) => {
+        try {
+            const res = await fetch(API_URL + `/videos?q=${query}&page=${page}`);
+
+            const data = await res.json();
+            if (data.error) {
+                navigate("/error?msg=" + encodeURIComponent(data.error));
+            } else {
+                setVideos(data.videos);
+                setTotalPages(data.totalPages);
+                setLoading(false);
+            }
+        } catch (e) {
+            navigate("/error");
+        }
+    }
+
+    if (loading) return (
+        <div className="w-full flex justify-center">
+            <Spinner className="w-14 h-14" />
+        </div>
+    );
+
+    return (
+        <div className="flex flex-col gap-8 p-6">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 lg:gap-8">
+                {videos.length == 0 ? (
+                    <p className="text-sm text-muted-foreground text-center col-span-4">
+                        No se encontraron videos.
+                    </p>
+                )
+                    : videos.map(video => (
+                        <VideoItem key={video._id} video={video} />
+                    ))}
+            </div>
+            <Pagination list={videos} page={page} totalPages={totalPages} query={query} />
+        </div>
+    );
+}
+
+/**
+ * VideoItem component
+ * - Renders a clickable card for a single video, showing its thumbnail, title, upload date, and user.
+ * - Navigates to the video detail page when clicked.
+ */
+function VideoItem({ video }: { video: Video }) {
+    return (
+        <Link
+            to={`/video/${video._id}`}
+            className="flex flex-col overflow-clip rounded-xl border border-border
+            transition-transform duration-200 hover:scale-[1.02] hover:shadow-sm"
+        >
+            <div>
+                <img
+                    src={video.thumbnail}
+                    alt={video.title}
+                    className="aspect-16/9 h-full w-full object-cover object-center"
+                />
+            </div>
+            <div className="p-3">
+                <h3 className="mb-1 text-lg font-semibold md:text-2xl">
+                    {video.title}
+                </h3>
+                <div className="flex items-center justify-between gap-2">
+                    <p className="text-muted-foreground text-xs">
+                        {timeAgo(video.uploadedDate)}
+                    </p>
+                    <p className="text-xs font-semibold">{video.user}</p>
+                </div>
+            </div>
+        </Link>
+    );
+}

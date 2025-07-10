@@ -3,30 +3,101 @@ import User from "../models/User.js";
 import Video from "../models/Video.js";
 import auth from "../middleware/auth.js";
 import { cloudinary } from "../config.js";
-import { sightEngineValidation } from "../lib/utils.js";
+import { ITEMS_PER_PAGE, sightEngineValidation } from "../lib/utils.js";
 import axios from "axios";
 import Exchange from "../models/Exchange.js";
+import { verifyToken } from "../lib/jwt.js";
 
 const router = Router();
 
 /**
+ * GET /
+ * Fetches a paginated list of videos matching the search query.
+ * - Accepts query parameters: 'q' for search term, 'page' for pagination.
+ * - Searches videos by title, description, or keywords using a case-insensitive regex.
+ * - Returns video data with user info and thumbnail for each video.
+ * - Responds with total pages and videos for the current page.
+ * - Returns 500 on unexpected errors.
+ */
+router.get("/", async (req, res) => {
+    try {
+        const query = req.query.q;
+
+        const page = parseInt(req.query.page) || 0;
+        const limit = ITEMS_PER_PAGE;
+
+        const start = page * limit;
+        const end = start + limit;
+
+        const regex = new RegExp(query, "i");
+
+        const allVideos = await Video.find({
+            $or: [
+                { title: { $regex: regex } },
+                { description: { $regex: regex } },
+                { keywords: { $in: [regex] } }
+            ]
+        });
+
+        const totalVideos = allVideos.length;
+        const totalPages = Math.ceil(totalVideos / limit);
+
+        const videos = await Promise.all(allVideos.slice(start, end).map(async (video) => {
+            const { users, hash, __v, ...videoData } = video.toJSON();
+            const user = await User.findById(video.getCurrentUser());
+            if (!user) return null;
+            videoData.user = user.username;
+            videoData.thumbnail = video.createThumbnail();
+
+            return videoData;
+        }));
+
+        return res.status(200).send({
+            videos,
+            totalPages
+        });
+    } catch (e) {
+        console.log(e);
+        res.status(500).send({
+            error: "Ha ocurrido un error inesperado"
+        });
+    }
+});
+
+/**
  * GET /:id
- * Fetches a video by its ID for an authenticated user.
+ * Fetches a video by its ID for an authenticated or unauthenticated user.
  * - Returns 404 if the user or video does not exist.
- * - Determines if the current user is the owner of the video.
+ * - Determines if the current user is the owner of the video (if authenticated).
  *   - If owner: returns a secure video URL.
  *   - If not owner: returns a 'hasRequested' flag indicating if the user has already requested an exchange for this video (checked via the Exchange model).
- * - Populates a thumbnail, user info and includes username and ownership status in the response.
- * - Returns video data or appropriate error response.
+ * - Populates thumbnail, user info, username, and ownership status in the response.
+ * - Returns video data, authentication status, or appropriate error response.
  */
-router.get("/:id", auth, async (req, res) => {
+router.get("/:id", async (req, res) => {
     try {
-        const user = await User.findById(req.userId);
-        if (!user) {
-            return res.status(404).send({
-                error: "El usuario no existe",
-                type: "user"
-            });
+        let authenticated = true;
+
+        const authHeader = req.headers["authorization"];
+        if (!authHeader || !authHeader.startsWith("Bearer ")) {
+            authenticated = false;
+        }
+
+        let user;
+        if (authenticated) {
+            const token = authHeader.split(" ")[1];
+            try {
+                const decoded = await verifyToken(token);
+                user = await User.findById(decoded._id);
+                if (!user) {
+                    return res.status(404).send({
+                        error: "El usuario no existe",
+                        type: "user"
+                    });
+                }
+            } catch (err) {
+                authenticated = false;
+            }
         }
 
         const video = await Video.findById(req.params.id).populate("users");
@@ -40,10 +111,10 @@ router.get("/:id", auth, async (req, res) => {
 
         const currentUser = video.getCurrentUser();
         videoData.user = currentUser.username;
-        videoData.isOwner = currentUser._id == String(user._id);
+        videoData.isOwner = authenticated ? currentUser._id == String(user._id) : false;
         if (!videoData.isOwner) {
             videoData.hasRequested = await Exchange.exists({
-                initiator: user._id,
+                initiator: currentUser._id,
                 responderVideo: videoData._id,
                 status: "pending"
             });
@@ -52,7 +123,7 @@ router.get("/:id", auth, async (req, res) => {
         }
         videoData.thumbnail = video.createThumbnail();
 
-        return res.status(200).send({ data: videoData });
+        return res.status(200).send({ data: videoData, isAuth: authenticated });
     } catch (e) {
         if (e.name == "CastError") {
             res.status(400).send({

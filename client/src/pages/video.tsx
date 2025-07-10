@@ -12,9 +12,10 @@ import { toast } from "sonner";
 
 /**
  * Video page component
- * - Fetches and displays a single video's details and player/thumbnail
- * - Handles authentication, error, and not-found redirects
- * - Shows video info, keywords, and actions
+ * - Fetches and displays a single video's details, including player or preview, title, description, category, keywords, and actions.
+ * - Handles authentication, error, and not-found redirects based on API responses.
+ * - Updates global video store state and manages session expiration.
+ * - Shows video info, keywords, and owner-specific actions (edit, delete, exchange).
  */
 export default function Video() {
     const navigate = useNavigate();
@@ -25,26 +26,27 @@ export default function Video() {
 
     useEffect(() => {
         const token = localStorage.getItem("token");
-        if (!token) {
-            navigate("/");
-        } else {
-            if (params.id && !location.pathname.includes("edit")) {
-                getVideoData(token);
-            }
+        if (params.id && !location.pathname.includes("edit")) {
+            getVideoData(token);
         }
     }, [location]);
 
-    const getVideoData = async (token: string) => {
+    const getVideoData = async (token: string | null) => {
         try {
-            const res = await fetch(API_URL + "/videos/" + params.id, {
-                headers: {
-                    "Authorization": `Bearer ${token}`
-                }
-            });
+            let res;
+            if (token) {
+                res = await fetch(API_URL + "/videos/" + params.id, {
+                    headers: {
+                        "Authorization": `Bearer ${token}`
+                    }
+                });
+            } else {
+                res = await fetch(API_URL + "/videos/" + params.id);
+            }
 
             const data = await res.json();
             if (data.error) {
-                if (res.status == 401 || (res.status == 404 && data.type == "user")) {
+                if (res.status == 404 && data.type == "user") {
                     localStorage.clear();
                     toast("Tu sesión ha expirado.")
                     navigate("/");
@@ -55,8 +57,14 @@ export default function Video() {
                 }
             } else {
                 if (data.data) {
-                    setVideoData(data.data);
-                    update(data.data);
+                    if (token && !data.isAuth) {
+                        localStorage.clear();
+                        toast("Tu sesión ha expirado.")
+                        navigate("/");
+                    } else {
+                        setVideoData(data.data);
+                        update(data.data);
+                    }
                 }
             }
         } catch (e) {

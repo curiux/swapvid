@@ -21,6 +21,7 @@ import MyExchanges from "./pages/collection/my-exchanges.tsx";
 import Exchange from "./pages/collection/exchange.tsx";
 import Rating from "./pages/collection/rating.tsx";
 import Plans from "./pages/plans.tsx";
+import Search from "./pages/search.tsx";
 
 const router = createBrowserRouter([
   {
@@ -53,6 +54,7 @@ const router = createBrowserRouter([
         ]
       },
       { path: "planes", element: <Plans /> },
+      { path: "buscar", element: <Search /> },
       { path: "*", element: <NotFound /> }
     ]
   }

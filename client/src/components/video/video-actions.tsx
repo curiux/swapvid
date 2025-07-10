@@ -154,6 +154,17 @@ function ExchangeAction({ videoData }: { videoData: Video }) {
     const [open, setOpen] = useState(false);
     const update = useVideoStore(state => state.update);
 
+    const handleOpenChange = (open: boolean) => {
+        const token = localStorage.getItem("token");
+        if (!token) {
+            localStorage.clear();
+            toast("Inicia sesión para intercambiar.");
+            navigate("/login");
+        } else {
+            setOpen(open);
+        }
+    }
+
     const handleRequest = async () => {
         sendRequest();
         setOpen(false);
@@ -257,7 +268,7 @@ function ExchangeAction({ videoData }: { videoData: Video }) {
     }
 
     return (
-        <Dialog open={open} onOpenChange={(open) => setOpen(open)}>
+        <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogTrigger asChild>
                 <Button className="cursor-pointer" aria-label="Intercambiar">
                     <Repeat />
