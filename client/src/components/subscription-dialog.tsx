@@ -35,6 +35,7 @@ export default function SubscriptionDialog({ open, handleChange, plan }:
         <Dialog open={open} onOpenChange={(open) => handleChange(open)}>
             <DialogContent className="min-w-1/2 max-w-full max-h-screen overflow-y-auto md:m-5">
                 <DialogTitle className="text-2xl font-semibold">Suscríbete</DialogTitle>
+                <p className="text-sm">Solo <span className="font-semibold">UYU {plan.monthlyPrice}</span> al mes</p>
                 <CardPayment
                     initialization={{ amount: plan.monthlyPrice }}
                     onSubmit={async (formData) => {
