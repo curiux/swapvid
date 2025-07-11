@@ -12,16 +12,21 @@ const router = Router();
 
 /**
  * GET /
- * Fetches a paginated list of videos matching the search query.
- * - Accepts query parameters: 'q' for search term, 'page' for pagination.
- * - Searches videos by title, description, or keywords using a case-insensitive regex.
+ * Fetches a paginated list of videos matching the search query and filters.
+ * - Accepts query parameters:
+ *   - 'q': search term (case-insensitive, matches title, description, or keywords)
+ *   - 'category': filter by video category
+ *   - 'order': sort by upload date ('newFirst' or 'oldFirst')
+ *   - 'sensitive': include sensitive content (boolean)
+ *   - 'page': pagination (zero-based)
+ * - Applies filters and sorting based on query parameters.
  * - Returns video data with user info and thumbnail for each video.
  * - Responds with total pages and videos for the current page.
  * - Returns 500 on unexpected errors.
  */
 router.get("/", async (req, res) => {
     try {
-        const query = req.query.q;
+        const q = req.query.q;
 
         const page = parseInt(req.query.page) || 0;
         const limit = ITEMS_PER_PAGE;
@@ -29,15 +34,33 @@ router.get("/", async (req, res) => {
         const start = page * limit;
         const end = start + limit;
 
-        const regex = new RegExp(query, "i");
+        const regex = new RegExp(q, "i");
 
-        const allVideos = await Video.find({
-            $or: [
-                { title: { $regex: regex } },
-                { description: { $regex: regex } },
-                { keywords: { $in: [regex] } }
-            ]
-        });
+        const orConditions = [
+            { title: { $regex: regex } },
+            { description: { $regex: regex } },
+            { keywords: { $in: [regex] } }
+        ];
+
+        const filters = {
+            $or: orConditions
+        };
+
+        if (req.query.category) filters.category = req.query.category;
+        let sensitiveContent = false;
+        if (req.query.sensitive) {
+            sensitiveContent = JSON.parse(req.query.sensitive);
+        }
+        if (!sensitiveContent) filters.isSensitiveContent = false;
+
+        let videosQuery = Video.find(filters);
+        if (req.query.order) {
+            videosQuery = req.query.order == "newFirst"
+            ? videosQuery.sort({ uploadedDate: -1 })
+            : videosQuery.sort({ uploadedDate: 1 })
+        }
+        
+        const allVideos = await videosQuery;
 
         const totalVideos = allVideos.length;
         const totalPages = Math.ceil(totalVideos / limit);

@@ -10,7 +10,7 @@ import SearchVideoList from "@/components/video/search-video-list";
 export default function Search() {
     return (
         <div className="flex flex-col items-center justify-center pt-18">
-            <SearchInput />
+            <SearchInput filters={true} />
             <Separator className="my-4" />
             <SearchVideoList />
         </div>

@@ -7,9 +7,11 @@ import Spinner from "../spinner";
 
 /**
  * SearchVideoList component
- * - Fetches and displays a paginated list of videos based on the search query from the URL.
- * - Handles loading state, error navigation, and pagination.
+ * - Fetches and displays a paginated list of videos based on search filters and query parameters from the URL.
+ * - Constructs the query string from category, order, sensitive content, and page parameters.
+ * - Handles loading state, error navigation, and updates pagination.
  * - Uses the VideoItem component to render each video card.
+ * - Displays a spinner while loading and a message if no videos are found.
  */
 export default function SearchVideoList() {
     const navigate = useNavigate();
@@ -24,14 +26,21 @@ export default function SearchVideoList() {
         const page = parseInt(params.get("page") || "0")
         setPage(page);
 
-        const query = params.get("q") || "";
-        setQuery("q=" + query + "&");
+        const q = params.get("q") || "";
+
+        let query = "?q=" + q;
+        if (params.get("category")) query += "&category=" + params.get("category");
+        if (params.get("order")) query += "&order=" + params.get("order");
+        if (params.get("sensitive")) query += "&sensitive=" + params.get("sensitive");
+
+        setQuery(query);
+
         getVideos(query, page);
-    }, [params.get("q")]);
+    }, [params.get("q"), params.get("category"), params.get("order"), params.get("sensitive")]);
 
     const getVideos = async (query: String, page: number) => {
         try {
-            const res = await fetch(API_URL + `/videos?q=${query}&page=${page}`);
+            const res = await fetch(API_URL + `/videos${query}&page=${page}`);
 
             const data = await res.json();
             if (data.error) {
