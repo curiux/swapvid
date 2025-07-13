@@ -3,7 +3,7 @@ import User from "../models/User.js";
 import Video from "../models/Video.js";
 import auth from "../middleware/auth.js";
 import { cloudinary } from "../config.js";
-import { ITEMS_PER_PAGE, sightEngineValidation } from "../lib/utils.js";
+import { cancelPendingExchanges, ITEMS_PER_PAGE, sightEngineValidation } from "../lib/utils.js";
 import axios from "axios";
 import Exchange from "../models/Exchange.js";
 import { verifyToken } from "../lib/jwt.js";
@@ -195,10 +195,13 @@ router.delete("/:id", auth, async (req, res) => {
                 }
             );
 
+            const videoId = video._id;
             await user.updateOne({
-                videos: user.videos.filter(v => !v.equals(video._id))
+                videos: user.videos.filter(v => !v.equals(videoId))
             });
             await video.deleteOne();
+
+            cancelPendingExchanges(videoId);
 
             return res.status(200).send({});
         }

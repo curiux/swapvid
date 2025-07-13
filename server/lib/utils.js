@@ -114,6 +114,7 @@ export const validateIfOwner = async (videoId, userId) => {
 import { MercadoPagoConfig, PreApproval } from "mercadopago";
 import Rating from "../models/Rating.js";
 import User from "../models/User.js";
+import Exchange from "../models/Exchange.js";
 const config = new MercadoPagoConfig({ accessToken: MP_ACCESS_TOKEN });
 
 /**
@@ -252,6 +253,20 @@ async function getUserRatings(userId) {
         totalRating: ratings.reduce((acc, r) => acc + r.rating, 0),
         length: ratings.length
     };
+}
+
+/**
+ * Cancels all pending exchanges for a given video by deleting them from the database.
+ * Used to ensure no unresolved exchanges remain when a video is removed or updated.
+ *
+ * @param {string} videoId - The ID of the video whose pending exchanges should be cancelled.
+ * @returns {Promise<void>}
+ */
+export async function cancelPendingExchanges(videoId) {
+    await Exchange.deleteMany({
+        responderVideo: videoId,
+        status: "pending"
+    });
 }
 
 /**
