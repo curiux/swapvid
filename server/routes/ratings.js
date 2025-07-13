@@ -3,14 +3,16 @@ import Rating from "../models/Rating.js";
 import Exchange from "../models/Exchange.js";
 import User from "../models/User.js";
 import auth from "../middleware/auth.js";
+import { updateRating } from "../lib/utils.js";
 
 const router = Router();
 
 /**
- * Creates a new rating for an exchange.
+ * Creates a new rating for an exchange and updates the rating for the related video and users.
  * - Requires authentication via the 'auth' middleware.
  * - Validates that the user exists and has not already rated this exchange.
  * - Accepts rating data in the request body (excluding createdAt, which is ignored).
+ * - Updates the rating value and count for the video, the rated user, and the first owner of the video (if different).
  * - Returns 201 on success, 409 if the user already rated this exchange, 400 for validation errors, and 500 for unexpected errors.
  */
 router.post("/", auth, async (req, res) => {
@@ -36,7 +38,12 @@ router.post("/", auth, async (req, res) => {
             });
         }
 
-        await Rating.create(ratingData);
+        const rating = new Rating(ratingData);
+        await rating.validate()
+
+        await updateRating(ratingData.ratedUser, ratingData.video, ratingData.rating);
+
+        await rating.save();
 
         res.status(201).send({});
     } catch (e) {

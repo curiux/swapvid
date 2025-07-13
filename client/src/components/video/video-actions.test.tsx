@@ -152,6 +152,7 @@ describe("VideoActions", () => {
         mockVideo.isOwner = false;
         mockVideo.hasRequested = false;
         render(<VideoActions />, { wrapper: MemoryRouter });
+        localStorage.setItem("token", "fake-token");
         const btn = screen.getAllByRole("button", { name: /intercambiar/i })[0];
         fireEvent.click(btn);
         expect(screen.getByText(/perderás acceso al video/i)).toBeTruthy();
@@ -165,6 +166,7 @@ describe("VideoActions", () => {
             json: async () => ({})
         });
         render(<VideoActions />, { wrapper: MemoryRouter });
+        localStorage.setItem("token", "fake-token");
         const btn = screen.getAllByRole("button", { name: /intercambiar/i })[0];
         fireEvent.click(btn);
         const pedirBtn = screen.getAllByRole("button", { name: /pedir intercambio/i })[0];
@@ -186,6 +188,7 @@ describe("VideoActions", () => {
         mockVideo.hasRequested = false;
         (global.fetch as any) = vi.fn().mockRejectedValue(new Error("Network error"));
         render(<VideoActions />, { wrapper: MemoryRouter });
+        localStorage.setItem("token", "fake-token");
         const btn = screen.getAllByRole("button", { name: /intercambiar/i })[0];
         fireEvent.click(btn);
         const pedirBtn = screen.getAllByRole("button", { name: /pedir intercambio/i })[0];

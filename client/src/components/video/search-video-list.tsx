@@ -4,6 +4,7 @@ import { API_URL, timeAgo } from "@/lib/utils";
 import { Link, useNavigate } from "react-router";
 import { useEffect, useState } from "react";
 import Spinner from "../spinner";
+import { EmptyStar, FullStar, HalfStar } from "../exchange/exchange-rating-form";
 
 /**
  * SearchVideoList component
@@ -98,9 +99,15 @@ function VideoItem({ video }: { video: Video }) {
                 />
             </div>
             <div className="p-3">
-                <h3 className="mb-1 text-lg font-semibold md:text-2xl">
-                    {video.title}
-                </h3>
+                <div className="flex items-end justify-between gap-2">
+                    <h3 className="mb-1 text-lg font-semibold md:text-2xl">
+                        {video.title}
+                    </h3>
+                    <div className="flex items-center gap-1">
+                        <StarRating rating={video.rating!.value}/>
+                        <p className="text-xs">({video.rating!.count})</p>
+                    </div>
+                </div>
                 <div className="flex items-center justify-between gap-2">
                     <p className="text-muted-foreground text-xs">
                         {timeAgo(video.uploadedDate)}
@@ -110,4 +117,20 @@ function VideoItem({ video }: { video: Video }) {
             </div>
         </Link>
     );
+}
+
+function StarRating({ rating }: { rating: number }) {
+  return (
+    <div className="flex items-center gap-1 w-18">
+      {[1, 2, 3, 4, 5].map((i) =>
+        rating >= i ? (
+          <FullStar key={i} />
+        ) : rating >= i - 0.5 ? (
+          <HalfStar key={i} />
+        ) : (
+          <EmptyStar key={i} />
+        )
+      )}
+    </div>
+  );
 }

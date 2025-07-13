@@ -11,6 +11,10 @@ export interface Video {
     isOwner?: boolean;
     url?: string;
     hasRequested?: boolean;
+    rating?: {
+        value: number;
+        count: number;
+    }
 }
 
 export interface Exchange {

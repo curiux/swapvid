@@ -76,7 +76,7 @@ router.get("/", async (req, res) => {
         }));
 
         return res.status(200).send({
-            videos,
+            videos: videos.filter(v => v !== null),
             totalPages
         });
     } catch (e) {

@@ -38,7 +38,7 @@ export default function SearchInput({ filters }: { filters: boolean }) {
                     className="w-full p-2 placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                 />
             </div>
-            <Button asChild variant="outline" className="h-10 cursor-pointer">
+            <Button asChild variant="outline" className="h-10 cursor-pointer" data-testid="searchbtn">
                 <Link to={`/buscar?q=${query}`}>
                     <StepForward />
                 </Link>

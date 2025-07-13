@@ -41,6 +41,7 @@ import axios from "axios";
 import FormData from "form-data";
 import mongoose from "mongoose";
 import Plan from "../models/Plan.js";
+import Video from "../models/Video.js";
 
 /**
  * Handles video content moderation using the Sightengine API.
@@ -85,12 +86,14 @@ export function sightEngineValidation(buffer, videoId) {
  * @param {string} message - The error message to display if validation fails.
  * @returns {object} - Validator config for Mongoose schema.
  */
-export const validateExists = (modelName, message) => ({
-    validator: async function (id) {
-        return await mongoose.model(modelName).exists({ _id: id });
-    },
-    message,
-});
+export function validateExists(modelName, message) {
+    return {
+        validator: async function (id) {
+            return await mongoose.model(modelName).exists({ _id: id });
+        },
+        message
+    };
+}
 
 /**
  * Checks if the given user is the owner of the specified video.
@@ -109,6 +112,8 @@ export const validateIfOwner = async (videoId, userId) => {
 };
 
 import { MercadoPagoConfig, PreApproval } from "mercadopago";
+import Rating from "../models/Rating.js";
+import User from "../models/User.js";
 const config = new MercadoPagoConfig({ accessToken: MP_ACCESS_TOKEN });
 
 /**
@@ -126,6 +131,12 @@ export async function getBillingDate(user) {
     return subscription.next_payment_date;
 }
 
+/**
+ * Validates a user's MercadoPago subscription and updates their plan if cancelled and expired.
+ * Handles next payment date calculation and plan downgrade logic.
+ * @param {object} user - The user object containing subscription info.
+ * @returns {Promise<object>} - An object with plan, isCancelled, and nextPaymentDate.
+ */
 export async function validateSubscription(user) {
     if (!user.subscription.subscriptionId) {
         const nextPaymentDate = await getBillingDate(user);
@@ -167,6 +178,79 @@ export async function validateSubscription(user) {
         plan,
         isCancelled,
         nextPaymentDate
+    };
+}
+
+/**
+ * Updates the rating for a video and its associated users.
+ * Calculates the new average rating for the video, the user who rated, and the first owner of the video (if different).
+ * Updates the rating value and count for each entity in the database.
+ *
+ * @param {string} userId - The ID of the user submitting the rating.
+ * @param {string} videoId - The ID of the video being rated.
+ * @param {number} ratingValue - The rating value to add.
+ * @returns {Promise<void>}
+ */
+export async function updateRating(userId, videoId, ratingValue) {
+    const videoRatings = await Rating.find({ video: videoId });
+    const newVideoRating = (videoRatings.reduce((acc, vr) => acc + vr.rating, 0) + ratingValue) / (videoRatings.length + 1);
+
+    const ratedUserRatings = await getUserRatings(userId);
+    const newRatedUserRating = (ratedUserRatings.totalRating + ratingValue) / (ratedUserRatings.length + 1);
+
+    await Video.updateOne(
+        { _id: videoId },
+        { $set: { rating: {
+            value: newVideoRating,
+            count: videoRatings.length + 1
+        } } }
+    );
+    
+    await User.updateOne(
+        { _id: userId },
+        { $set: { rating: {
+            value: newRatedUserRating,
+            count: ratedUserRatings.length + 1
+        } } }
+    );
+
+    const video = await Video.findById(videoId);
+    const firstOwnerId = video.users[0];
+
+    if (String(firstOwnerId) != String(userId)) {
+        const firstOwnerRatings = await getUserRatings(firstOwnerId);
+        const newFirstOwnerRating = (firstOwnerRatings.totalRating + ratingValue) / (firstOwnerRatings.length + 1);
+        await User.updateOne(
+            { _id: firstOwnerId },
+            { $set: { rating: {
+                value: newFirstOwnerRating,
+                count: firstOwnerRatings.length + 1
+            } } }
+        );
+    }
+}
+
+/**
+ * Retrieves all ratings for videos where the user is the first owner or has been rated directly.
+ * Calculates the total rating and the number of ratings for the user.
+ *
+ * @param {string} userId - The ID of the user whose ratings are being retrieved.
+ * @returns {Promise<{totalRating: number, length: number}>} - Object with total rating sum and count.
+ */
+async function getUserRatings(userId) {
+    const videos = await Video.find({ "users.0": userId });
+    const videoIds = videos.map(v => v._id);
+
+    const ratings = await Rating.find({
+        $or: [
+            { video: { $in: videoIds } },
+            { ratedUser: userId }
+        ]
+    });
+
+    return {
+        totalRating: ratings.reduce((acc, r) => acc + r.rating, 0),
+        length: ratings.length
     };
 }
 

@@ -19,6 +19,9 @@ const { Schema, model } = mongoose;
  * - hash: String hash of the video file.
  * - isSensitiveContent: Boolean flag for sensitive content (default: false).
  * - size: Number of bytes of the video file (required).
+ * - rating: Object containing:
+ *     - value: The video's average rating (number).
+ *     - count: The number of ratings received (number).
  *
  * Methods:
  * - getCurrentUser: Returns the most recent user associated with the video.
@@ -76,6 +79,16 @@ const videoSchema = new Schema({
     size: {
         type: Number,
         required: true
+    },
+    rating: {
+        value: {
+            type: Number,
+            default: 0
+        },
+        count: {
+            type: Number,
+            default: 0
+        }
     }
 });
 

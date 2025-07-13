@@ -4,6 +4,7 @@
  * This file contains automated tests that verify the behavior of the video moderation and video management endpoints.
  *
  * The tests cover the following cases:
+ *   - GET /videos: Fetches videos with search, filter, order, pagination, and error handling.
  *   - GET /videos/:id: Fetches a video by ID, handles errors and ownership logic.
  *   - DELETE /videos/:id: Deletes a video by ID, only if the user is the owner.
  *   - PATCH /videos/:id: Edits a video by ID, only if the user is the owner. Handles validation, sensitive content logic, and error cases.
@@ -21,6 +22,7 @@ import mongoose from "mongoose";
 import { MongoMemoryServer } from "mongodb-memory-server";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import * as utilsModule from "../lib/utils.js";
+import User from "../models/User.js";
 
 // Mock sightEngineValidation to avoid real API calls
 vi.spyOn(utilsModule, "sightEngineValidation").mockImplementation(() => {});
@@ -37,15 +39,111 @@ beforeAll(async () => {
 
 beforeEach(async () => {
     await Video.deleteMany();
+    await User.deleteMany();
 });
 
 afterEach(async () => {
     await Video.deleteMany();
+    await User.deleteMany();
 });
 
 afterAll(async () => {
     await mongoose.connection.close();
     await mongoServer.stop();
+});
+
+describe("GET /videos", () => {
+    let userId;
+    beforeEach(async () => {
+        // Create a user so referenced user exists
+        const User = (await import("../models/User.js")).default;
+        userId = new mongoose.Types.ObjectId();
+        await User.create({
+            _id: userId,
+            username: "testuser",
+            email: "testuser@example.com",
+            password: "Password123!"
+        });
+        await Video.create({
+            title: "Video de prueba 1",
+            description: "Descripción de prueba para video 1.",
+            category: "entretenimiento",
+            keywords: ["palabra", "clave"],
+            users: [userId],
+            hash: "hash1",
+            isSensitiveContent: false,
+            size: 12345
+        });
+        await Video.create({
+            title: "Video de prueba 2",
+            description: "Otra descripción.",
+            category: "educacion",
+            keywords: ["educativo"],
+            users: [userId],
+            hash: "hash2",
+            isSensitiveContent: true,
+            size: 54321
+        });
+    });
+
+    it("debería devolver videos que coinciden con la búsqueda", async () => {
+        const res = await request(app)
+            .get(`/videos?q=prueba`);
+        expect(res.statusCode).toBe(200);
+        expect(res.body.videos.length).toBeGreaterThan(0);
+        expect(res.body.videos[0].title).toMatch(/prueba/i);
+    });
+
+    it("debería filtrar por categoría", async () => {
+        const res = await request(app)
+            .get(`/videos?q=video&category=educacion&sensitive=true`);
+        expect(res.statusCode).toBe(200);
+        expect(res.body.videos.length).toBe(1);
+        expect(res.body.videos[0].category).toBe("educacion");
+    });
+
+    it("debería filtrar por contenido sensible", async () => {
+        // sensitive=false solo debe devolver videos no sensibles
+        const res = await request(app)
+            .get(`/videos?q=video&sensitive=false`);
+        expect(res.statusCode).toBe(200);
+        expect(res.body.videos.every(v => v.isSensitiveContent === false)).toBe(true);
+    });
+
+    it("debería ordenar por fecha de subida", async () => {
+        // Simula orden, aunque los datos de fecha no están presentes, solo prueba que no da error
+        const res = await request(app)
+            .get(`/videos?q=video&order=newFirst`);
+        expect(res.statusCode).toBe(200);
+        expect(Array.isArray(res.body.videos)).toBe(true);
+    });
+
+    it("debería paginar los resultados", async () => {
+        const res = await request(app)
+            .get(`/videos?q=video&page=0`);
+        expect(res.statusCode).toBe(200);
+        expect(res.body.videos.length).toBeGreaterThan(0);
+        expect(typeof res.body.totalPages).toBe("number");
+    });
+
+    it("debería responder 200 y lista vacía si no hay coincidencias", async () => {
+        const res = await request(app)
+            .get(`/videos?q=nomatch`);
+        expect(res.statusCode).toBe(200);
+        expect(Array.isArray(res.body.videos)).toBe(true);
+        expect(res.body.videos.length).toBe(0);
+    });
+
+    it("debería responder 500 en caso de error inesperado", async () => {
+        // Simula error forzando Video.find a lanzar excepción
+        const origFind = Video.find;
+        Video.find = () => { throw new Error("fail") };
+        const res = await request(app)
+            .get(`/videos?q=video`);
+        expect(res.statusCode).toBe(500);
+        expect(res.body.error).toBeDefined();
+        Video.find = origFind;
+    });
 });
 
 describe("GET /videos/:id", () => {
