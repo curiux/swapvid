@@ -25,8 +25,8 @@ vi.mock("./ui/select", () => {
       >
         <option value="">Selecciona una categoría</option>
         <option value="all">(Todas)</option>
-        <option value="entretenimiento">Entretenimiento</option>
-        <option value="educacion">Educación</option>
+        <option value="entertainment">Entretenimiento</option>
+        <option value="education">Educación</option>
       </select>
     ),
     SelectContent: ({ children }: any) => <>{children}</>,

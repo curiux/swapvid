@@ -7,6 +7,7 @@ import { cancelPendingExchanges, ITEMS_PER_PAGE, sightEngineValidation } from ".
 import axios from "axios";
 import Exchange from "../models/Exchange.js";
 import { verifyToken } from "../lib/jwt.js";
+import Report from "../models/Report.js";
 
 const router = Router();
 
@@ -56,10 +57,10 @@ router.get("/", async (req, res) => {
         let videosQuery = Video.find(filters);
         if (req.query.order) {
             videosQuery = req.query.order == "newFirst"
-            ? videosQuery.sort({ uploadedDate: -1 })
-            : videosQuery.sort({ uploadedDate: 1 })
+                ? videosQuery.sort({ uploadedDate: -1 })
+                : videosQuery.sort({ uploadedDate: 1 })
         }
-        
+
         const allVideos = await videosQuery;
 
         const totalVideos = allVideos.length;
@@ -136,11 +137,13 @@ router.get("/:id", async (req, res) => {
         videoData.user = currentUser.username;
         videoData.isOwner = authenticated ? currentUser._id == String(user._id) : false;
         if (!videoData.isOwner) {
-            videoData.hasRequested = await Exchange.exists({
-                initiator: currentUser._id,
-                responderVideo: videoData._id,
-                status: "pending"
-            });
+            if (authenticated) {
+                videoData.hasRequested = await Exchange.exists({
+                    initiator: user._id,
+                    responderVideo: videoData._id,
+                    status: "pending"
+                });
+            }
         } else {
             videoData.url = video.createSecureUrl();
         }
@@ -303,6 +306,68 @@ router.patch("/:id", auth, async (req, res) => {
         return res.status(403).send({
             error: "No tienes acceso a este video."
         });
+    } catch (e) {
+        if (e.name == "CastError") {
+            res.status(400).send({
+                error: "Dato inválido."
+            });
+        } else if (e.name == "ValidationError") { // Schema validations
+            let message = "";
+            for (const error in e.errors) {
+                message += e.errors[error].message + "\n";
+            }
+            res.status(400).send({ error: message });
+        } else {
+            console.log(e);
+            res.status(500).send({
+                error: "Ha ocurrido un error inesperado"
+            });
+        }
+    }
+});
+
+/**
+ * POST /:id/report
+ * Creates a report for a specific video by its ID.
+ * - Requires authentication.
+ * - The authenticated user cannot report their own video.
+ * - Accepts report data in the request body (reason, otherReason, details, etc.).
+ * - Automatically sets the reporterId to the authenticated user and reportedVideoId to the video being reported.
+ * - Validates input and creates a new Report document.
+ * - Returns 201 on success, 400 if user tries to report their own video, or appropriate error response.
+ */
+router.post("/:id/report", auth, async (req, res) => {
+    try {
+        const user = await User.findById(req.userId);
+        if (!user) {
+            return res.status(404).send({
+                error: "El usuario no existe",
+                type: "user"
+            });
+        }
+
+        const video = await Video.findById(req.params.id);
+        if (!video) {
+            return res.status(404).send({
+                error: "El video no existe",
+                type: "video"
+            });
+        }
+
+        if (video.getCurrentUser() == String(user._id)) {
+            return res.status(400).send({
+                error: "No puedes reportar tu propio video."
+            });
+        }
+
+        const { status, createdAt, reporterId, ...reportData } = req.body;
+
+        reportData.reporterId = user._id;
+        reportData.reportedVideoId = req.body.videoId;
+
+        await Report.create(reportData);
+
+        return res.status(201).send({});
     } catch (e) {
         if (e.name == "CastError") {
             res.status(400).send({

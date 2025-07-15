@@ -72,8 +72,8 @@ vi.mock("../ui/select", () => {
         {...props}
       >
         <option value="">Selecciona una categoría</option>
-        <option value="entretenimiento">Entretenimiento</option>
-        <option value="educacion">Educación</option>
+        <option value="entertainment">Entretenimiento</option>
+        <option value="education">Educación</option>
       </select>
     ),
     SelectContent: ({ children }: any) => <>{children}</>,
@@ -130,7 +130,7 @@ describe("VideoUploadForm", () => {
         fireEvent.input(screen.getByLabelText(/título/i), { target: { value: "Video de prueba" } });
         fireEvent.input(screen.getByLabelText(/descripción/i), { target: { value: "Descripción de prueba para video." } });
         // Select category (reliable native select mock)
-        fireEvent.change(screen.getByTestId("category-select"), { target: { value: "entretenimiento" } });
+        fireEvent.change(screen.getByTestId("category-select"), { target: { value: "entertainment" } });
         // Add keywords (simulate TagInput)
         const keywordInput = screen.getByLabelText(/palabras clave/i);
         fireEvent.change(keywordInput, { target: { value: "test" } });
@@ -157,7 +157,7 @@ describe("VideoUploadForm", () => {
         fireEvent.input(screen.getByLabelText(/título/i), { target: { value: "Video de prueba" } });
         fireEvent.input(screen.getByLabelText(/descripción/i), { target: { value: "Descripción de prueba para video." } });
         // Select category (reliable native select mock)
-        fireEvent.change(screen.getByTestId("category-select"), { target: { value: "entretenimiento" } });
+        fireEvent.change(screen.getByTestId("category-select"), { target: { value: "entertainment" } });
         // Add keywords (simulate TagInput)
         const keywordInput = screen.getByLabelText(/palabras clave/i);
         fireEvent.change(keywordInput, { target: { value: "test" } });

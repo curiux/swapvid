@@ -28,6 +28,7 @@ const { Schema, model } = mongoose;
  * - createThumbnail: Generates a secure Cloudinary URL for a video thumbnail (jpg).
  * - createSecureUrl: Generates a secure Cloudinary URL for streaming the video (m3u8).
  */
+
 const videoSchema = new Schema({
     title: {
         type: String,

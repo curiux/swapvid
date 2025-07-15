@@ -10,33 +10,41 @@ export const API_URL = import.meta.env.VITE_API_URL;
 export const MP_PUBLIC_KEY = import.meta.env.VITE_MP_PUBLIC_KEY;
 
 export const videoCategories = [
-    { id: "entretenimiento", label: "Entretenimiento" },
-    { id: "educacion", label: "Educación" },
-    { id: "deportes", label: "Deportes" },
-    { id: "musica", label: "Música" },
-    { id: "ciencia_tecnologia", label: "Ciencia y Tecnología" },
-    { id: "comedia", label: "Comedia" },
-    { id: "moda_belleza", label: "Moda y Belleza" },
-    { id: "viajes_aventura", label: "Viajes y Aventura" },
+    { id: "entertainment", label: "Entretenimiento" },
+    { id: "education", label: "Educación" },
+    { id: "sports", label: "Deportes" },
+    { id: "music", label: "Música" },
+    { id: "science_technology", label: "Ciencia y Tecnología" },
+    { id: "comedy", label: "Comedia" },
+    { id: "fashion_beauty", label: "Moda y Belleza" },
+    { id: "travel_adventure", label: "Viajes y Aventura" },
     { id: "gaming", label: "Gaming" },
-    { id: "noticias_politica", label: "Noticias y Política" },
-    { id: "cocina_gastronomia", label: "Cocina y Gastronomía" },
-    { id: "arte_diseno", label: "Arte y Diseño" },
-    { id: "animacion_cortometrajes", label: "Animación y Cortometrajes" },
-    { id: "salud_fitness", label: "Salud y Fitness" },
-    { id: "vlogs_estilo_vida", label: "Vlogs y Estilo de Vida" },
-    { id: "tutoriales", label: "Tutoriales" },
-    { id: "cine_series", label: "Cine y Series" },
-    { id: "eventos_conferencias", label: "Eventos y Conferencias" },
-    { id: "mascotas_animales", label: "Mascotas y Animales" },
-    { id: "automoviles_mecanica", label: "Automóviles y Mecánica" },
-    { id: "otros", label: "Otros" }
+    { id: "news_politics", label: "Noticias y Política" },
+    { id: "cooking_gastronomy", label: "Cocina y Gastronomía" },
+    { id: "art_design", label: "Arte y Diseño" },
+    { id: "animation_shortfilms", label: "Animación y Cortometrajes" },
+    { id: "health_fitness", label: "Salud y Fitness" },
+    { id: "vlogs_lifestyle", label: "Vlogs y Estilo de Vida" },
+    { id: "tutorials", label: "Tutoriales" },
+    { id: "movies_series", label: "Cine y Series" },
+    { id: "events_conferences", label: "Eventos y Conferencias" },
+    { id: "pets_animals", label: "Mascotas y Animales" },
+    { id: "automobiles_mechanics", label: "Automóviles y Mecánica" },
+    { id: "other", label: "Otros" }
 ];
 
 export const exchangeStatusList = [
     { id: "pending", label: "Pendiente", color: "bg-yellow-500" },
     { id: "accepted", label: "Aceptado", color: "bg-green-500" },
     { id: "rejected", label: "Rechazado", color: "bg-red-500" }
+];
+
+export const reportReasons = [
+    { id: "inappropriate_unmarked", label: "Contenido inapropiado sin marcar como tal" },
+    { id: "irrelevant_or_empty", label: "El video no contiene contenido relevante o está vacío" },
+    { id: "unauthorized_content", label: "Contenido con derechos de autor o sin permiso para compartirse" },
+    { id: "duplicate_video", label: "Video duplicado" },
+    { id: "other", label: "Otro (especificar)" }
 ];
 
 export const MAX_FILE_SIZE_BY_PLAN = {

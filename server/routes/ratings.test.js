@@ -60,7 +60,7 @@ beforeEach(async () => {
     const responderVideo = await Video.create({
         title: "Video de prueba responder",
         description: "Descripción de prueba para rating.",
-        category: "entretenimiento",
+        category: "entertainment",
         keywords: ["prueba"],
         users: [ratedUserId],
         url: "http://test.com/video.mp4",
@@ -72,7 +72,7 @@ beforeEach(async () => {
     const userVideo = await Video.create({
         title: "Video de prueba user",
         description: "Descripción de prueba para rating user.",
-        category: "entretenimiento",
+        category: "entertainment",
         keywords: ["prueba"],
         users: [userId],
         url: "http://test.com/video2.mp4",

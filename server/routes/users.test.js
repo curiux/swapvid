@@ -178,7 +178,7 @@ describe("POST /me/videos", () => {
             .attach("video", Buffer.from("dummy"), "video.mp4")
             .field("title", "Mi video")
             .field("description", "Descripción de prueba")
-            .field("category", "entretenimiento")
+            .field("category", "entertainment")
             .field("keywords", JSON.stringify(["prueba"]))
             .field("sensitiveContent", false);
         expect(res.statusCode).toBe(401);
@@ -192,7 +192,7 @@ describe("POST /me/videos", () => {
             .attach("video", Buffer.from("dummy"), "video.mp4")
             .field("title", "Mi video")
             .field("description", "Descripción de prueba")
-            .field("category", "entretenimiento")
+            .field("category", "entertainment")
             .field("keywords", JSON.stringify(["prueba"]))
             .field("sensitiveContent", false);
         expect(res.statusCode).toBe(401);
@@ -205,7 +205,7 @@ describe("POST /me/videos", () => {
             .set("Authorization", `Bearer ${token}`)
             .field("title", "Mi video")
             .field("description", "Descripción de prueba")
-            .field("category", "entretenimiento")
+            .field("category", "entertainment")
             .field("keywords", JSON.stringify(["prueba"]))
             .field("sensitiveContent", false);
         expect(res.statusCode).toBe(400);
@@ -220,7 +220,7 @@ describe("POST /me/videos", () => {
             .attach("video", Buffer.from("dummy"), "video.mp4")
             .field("title", "Mi video")
             .field("description", "Descripción de prueba")
-            .field("category", "entretenimiento")
+            .field("category", "entertainment")
             .field("keywords", JSON.stringify(["prueba"]))
             .field("sensitiveContent", false);
         expect([201, 500]).toContain(res.statusCode); // Accept 500 if sightengine or cloudinary is not fully mocked
@@ -234,7 +234,7 @@ describe("GET /me/videos", () => {
         const video = await Video.create({
             title: "Video de prueba",
             description: "Descripción de prueba",
-            category: "entretenimiento",
+            category: "entertainment",
             keywords: ["prueba"],
             users: [userId],
             hash: "hash1",
@@ -279,7 +279,7 @@ describe("GET /:id/videos", () => {
         const video = await Video.create({
             title: "Otro video",
             description: "Descripción de prueba",
-            category: "entretenimiento",
+            category: "entertainment",
             keywords: ["prueba"],
             users: [userId],
             hash: "hash2",
@@ -339,7 +339,7 @@ describe("GET /me/exchanges", () => {
         const video1 = await Video.create({
             title: "Video 1",
             description: "Descripción del video 1",
-            category: "entretenimiento",
+            category: "entertainment",
             keywords: ["test"],
             users: [userId],
             hash: "hash1",
@@ -349,7 +349,7 @@ describe("GET /me/exchanges", () => {
         const video2 = await Video.create({
             title: "Video 2",
             description: "Descripción del video 2",
-            category: "educacion",
+            category: "education",
             keywords: ["test"],
             users: [responder._id],
             hash: "hash2",

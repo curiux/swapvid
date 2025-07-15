@@ -120,7 +120,7 @@ describe("POST /exchanges/request", () => {
         const initiatorVideo = await Video.create({
             title: "Video del iniciador",
             description: "Video del usuario iniciador",
-            category: "entretenimiento",
+            category: "entertainment",
             keywords: ["iniciador"],
             users: [initiatorId],
             url: "http://test.com/video-iniciador.mp4",
@@ -131,7 +131,7 @@ describe("POST /exchanges/request", () => {
         const video = await Video.create({
             title: "Video de prueba",
             description: "Descripción de prueba",
-            category: "entretenimiento",
+            category: "entertainment",
             keywords: ["prueba"],
             users: [responderId],
             url: "http://test.com/video.mp4",
@@ -193,7 +193,7 @@ describe("POST /exchanges/request", () => {
         const initiatorVideo = await Video.create({
             title: "Video del iniciador",
             description: "Video del usuario iniciador",
-            category: "entretenimiento",
+            category: "entertainment",
             keywords: ["iniciador"],
             users: [initiatorId],
             url: "http://test.com/video-iniciador.mp4",
@@ -204,7 +204,7 @@ describe("POST /exchanges/request", () => {
         const video = await Video.create({
             title: "Video ajeno",
             description: "Descripción de prueba",
-            category: "entretenimiento",
+            category: "entertainment",
             keywords: ["prueba"],
             users: [initiatorId],
             url: "http://test.com/video.mp4",
@@ -224,7 +224,7 @@ describe("POST /exchanges/request", () => {
         const initiatorVideo = await Video.create({
             title: "Video del iniciador",
             description: "Video del usuario iniciador",
-            category: "entretenimiento",
+            category: "entertainment",
             keywords: ["iniciador"],
             users: [initiatorId],
             url: "http://test.com/video-iniciador.mp4",
@@ -235,7 +235,7 @@ describe("POST /exchanges/request", () => {
         const video = await Video.create({
             title: "Video de prueba",
             description: "Descripción de prueba",
-            category: "entretenimiento",
+            category: "entertainment",
             keywords: ["prueba"],
             users: [responderId],
             url: "http://test.com/video.mp4",
@@ -264,7 +264,7 @@ describe("GET /exchanges/:id", () => {
         video = await Video.create({
             title: "Video de prueba",
             description: "Descripción de prueba",
-            category: "entretenimiento",
+            category: "entertainment",
             keywords: ["prueba"],
             users: [responderId],
             url: "http://test.com/video.mp4",
@@ -362,7 +362,7 @@ describe("PATCH /exchanges/:id", () => {
         video = await Video.create({
             title: "Video de prueba",
             description: "Descripción de prueba",
-            category: "entretenimiento",
+            category: "entertainment",
             keywords: ["prueba"],
             users: [responderId],
             url: "http://test.com/video.mp4",
@@ -386,7 +386,7 @@ describe("PATCH /exchanges/:id", () => {
         const initiatorVideo = await Video.create({
             title: "Video del iniciador",
             description: "Otro video",
-            category: "entretenimiento",
+            category: "entertainment",
             keywords: ["prueba"],
             users: [initiatorId],
             url: "http://test.com/video2.mp4",
@@ -495,7 +495,7 @@ describe("DELETE /exchanges/:id", () => {
         video = await Video.create({
             title: "Video de prueba",
             description: "Descripción de prueba",
-            category: "entretenimiento",
+            category: "entertainment",
             keywords: ["prueba"],
             users: [responderId],
             url: "http://test.com/video.mp4",

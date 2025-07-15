@@ -67,7 +67,7 @@ describe("GET /videos", () => {
         await Video.create({
             title: "Video de prueba 1",
             description: "Descripción de prueba para video 1.",
-            category: "entretenimiento",
+            category: "entertainment",
             keywords: ["palabra", "clave"],
             users: [userId],
             hash: "hash1",
@@ -77,7 +77,7 @@ describe("GET /videos", () => {
         await Video.create({
             title: "Video de prueba 2",
             description: "Otra descripción.",
-            category: "educacion",
+            category: "education",
             keywords: ["educativo"],
             users: [userId],
             hash: "hash2",
@@ -96,10 +96,10 @@ describe("GET /videos", () => {
 
     it("debería filtrar por categoría", async () => {
         const res = await request(app)
-            .get(`/videos?q=video&category=educacion&sensitive=true`);
+            .get(`/videos?q=video&category=education&sensitive=true`);
         expect(res.statusCode).toBe(200);
         expect(res.body.videos.length).toBe(1);
-        expect(res.body.videos[0].category).toBe("educacion");
+        expect(res.body.videos[0].category).toBe("education");
     });
 
     it("debería filtrar por contenido sensible", async () => {
@@ -153,7 +153,7 @@ describe("GET /videos/:id", () => {
         video = await Video.create({
             title: "Video de prueba",
             description: "Descripción de prueba para video.",
-            category: "entretenimiento",
+            category: "entertainment",
             keywords: ["palabra", "clave"],
             users: [userId],
             hash: "hash",
@@ -214,7 +214,7 @@ describe("DELETE /videos/:id", () => {
         video = await Video.create({
             title: "Video de prueba",
             description: "Descripción de prueba para video.",
-            category: "entretenimiento",
+            category: "entertainment",
             keywords: ["palabra", "clave"],
             users: [userId],
             hash: "hash",
@@ -286,7 +286,7 @@ describe("PATCH /videos/:id", () => {
         video = await Video.create({
             title: "Video de prueba",
             description: "Descripción de prueba para video.",
-            category: "entretenimiento",
+            category: "entertainment",
             keywords: ["palabra", "clave"],
             users: [userId],
             hash: "hash",
@@ -409,7 +409,7 @@ describe("POST /videos/sightengine", () => {
         const video = await Video.create({
             title: "Video de prueba",
             description: "Descripción de prueba para video.",
-            category: "entretenimiento",
+            category: "entertainment",
             keywords: ["palabra", "clave"],
             users: [new mongoose.Types.ObjectId()],
             hash: "hash",
@@ -444,7 +444,7 @@ describe("POST /videos/sightengine", () => {
         const video = await Video.create({
             title: "Video de prueba",
             description: "Descripción de prueba para video.",
-            category: "entretenimiento",
+            category: "entertainment",
             keywords: ["palabra", "clave"],
             users: [new mongoose.Types.ObjectId()],
             hash: "hash",

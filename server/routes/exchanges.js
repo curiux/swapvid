@@ -339,7 +339,8 @@ router.delete("/", auth, async (req, res) => {
 
         const exchange = await Exchange.findOne({
             initiator: user._id,
-            responderVideo: req.query.videoId
+            responderVideo: req.query.videoId,
+            status: "pending"
         });
         if (!exchange) {
             return res.status(400).send({

@@ -1,4 +1,4 @@
-import { Info, Repeat, SquarePen, Trash, X } from "lucide-react";
+import { CircleAlert, Info, Repeat, SquarePen, Trash, X } from "lucide-react";
 import { Button } from "../ui/button";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
 import { useEffect, useState } from "react";
@@ -7,6 +7,7 @@ import { Link, Outlet, useLocation, useNavigate } from "react-router";
 import { API_URL } from "@/lib/utils";
 import type { Video } from "@/lib/types";
 import { toast } from "sonner";
+import ReportForm from "../report-form";
 
 /**
  * VideoActions component
@@ -18,6 +19,7 @@ import { toast } from "sonner";
 export default function VideoActions() {
     const location = useLocation();
     const videoData = useVideoStore(state => state.video);
+    const [openReport, setOpenReport] = useState(false);
 
     if (!videoData) return;
 
@@ -42,6 +44,10 @@ export default function VideoActions() {
     return (
         <div className="flex item-center gap-3">
             <ExchangeAction videoData={videoData} />
+            <Button className="cursor-pointer bg-red-500 hover:bg-red-700 dark:text-secondary" onClick={() => setOpenReport(true)}>
+                <CircleAlert />
+            </Button>
+            {openReport && <ReportForm videoId={videoData._id} openChange={() => setOpenReport(false)} />}
         </div>
     );
 }
