@@ -73,7 +73,8 @@ describe("GET /videos", () => {
             users: [userId],
             hash: "hash1",
             isSensitiveContent: false,
-            size: 12345
+            size: 12345,
+            duration: 100
         });
         await Video.create({
             title: "Video de prueba 2",
@@ -83,7 +84,8 @@ describe("GET /videos", () => {
             users: [userId],
             hash: "hash2",
             isSensitiveContent: true,
-            size: 54321
+            size: 54321,
+            duration: 50
         });
     });
 
@@ -159,7 +161,8 @@ describe("GET /videos/:id", () => {
             users: [userId],
             hash: "hash",
             isSensitiveContent: false,
-            size: 12345
+            size: 12345,
+            duration: 100
         });
     });
 
@@ -220,7 +223,8 @@ describe("DELETE /videos/:id", () => {
             users: [userId],
             hash: "hash",
             isSensitiveContent: false,
-            size: 12345
+            size: 12345,
+            duration: 100
         });
     });
 
@@ -292,7 +296,8 @@ describe("PATCH /videos/:id", () => {
             users: [userId],
             hash: "hash",
             isSensitiveContent: false,
-            size: 12345
+            size: 12345,
+            duration: 100
         });
     });
 
@@ -415,7 +420,8 @@ describe("POST /videos/sightengine", () => {
             users: [new mongoose.Types.ObjectId()],
             hash: "hash",
             isSensitiveContent: false,
-            size: 12345
+            size: 12345,
+            duration: 100
         });
         const res = await request(app)
             .post("/videos/sightengine")
@@ -450,7 +456,8 @@ describe("POST /videos/sightengine", () => {
             users: [new mongoose.Types.ObjectId()],
             hash: "hash",
             isSensitiveContent: false,
-            size: 12345
+            size: 12345,
+            duration: 100
         });
         const res = await request(app)
             .post("/videos/sightengine")
@@ -509,7 +516,8 @@ describe("POST /videos/:id/report", () => {
             users: [user._id],
             hash: "hashreport",
             isSensitiveContent: false,
-            size: 12345
+            size: 12345,
+            duration: 100
         });
     });
 

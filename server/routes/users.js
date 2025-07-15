@@ -5,7 +5,7 @@ import Rating from "../models/Rating.js";
 import Exchange from "../models/Exchange.js";
 import auth from "../middleware/auth.js";
 import { cloudinary } from "../config.js";
-import { formatBytes, getBillingDate, ITEMS_PER_PAGE, plans, sightEngineValidation, upload, validateSubscription } from "../lib/utils.js";
+import { formatBytes, getDuration, ITEMS_PER_PAGE, plans, sightEngineValidation, upload, validateSubscription } from "../lib/utils.js";
 import streamifier from "streamifier";
 import crypto from "crypto";
 
@@ -147,7 +147,9 @@ router.post("/me/videos", auth, upload.single("video"), async (req, res) => {
             return res.status(400).send({ error: `Este video supera tu límite total de almacenamiento de ${formatBytes(plan.libraryStorage)} para el plan ${plans[plan.name]}.` });
         }
 
-        const videoData = { ...req.body, keywords, users: [user._id], hash, size };
+        const duration = await getDuration(req.file.buffer);
+
+        const videoData = { ...req.body, keywords, users: [user._id], hash, size, duration };
         const video = new Video(videoData);
         await video.validate();
 

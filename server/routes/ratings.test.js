@@ -64,7 +64,8 @@ beforeEach(async () => {
         keywords: ["prueba"],
         users: [ratedUserId],
         url: "http://test.com/video.mp4",
-        size: 12345
+        size: 12345,
+        duration: 100
     });
     await User.findByIdAndUpdate(ratedUserId, { $push: { videos: responderVideo._id } });
 
@@ -76,7 +77,8 @@ beforeEach(async () => {
         keywords: ["prueba"],
         users: [userId],
         url: "http://test.com/video2.mp4",
-        size: 12345
+        size: 12345,
+        duration: 100
     });
     videoId = userVideo._id;
     await User.findByIdAndUpdate(userId, { $push: { videos: userVideo._id } });

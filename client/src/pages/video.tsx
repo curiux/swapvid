@@ -7,15 +7,14 @@ import { useLocation, useNavigate, useParams } from "react-router";
 import type { Video as VideoType } from "@/lib/types";
 import Spinner from "@/components/spinner";
 import { Separator } from "@/components/ui/separator";
-import VideoPreview from "@/components/video/video-preview";
 import { toast } from "sonner";
 
 /**
  * Video page component
- * - Fetches and displays a single video's details, including player or preview, title, description, category, keywords, and actions.
- * - Handles authentication, error, and not-found redirects based on API responses.
- * - Updates global video store state and manages session expiration.
- * - Shows video info, keywords, and owner-specific actions (edit, delete, exchange).
+ * Renders a detailed view for a single video, including player/preview, title, description, category, keywords, and user actions.
+ * Fetches video data from the API, manages authentication and session expiration, and handles error or not-found redirects.
+ * Updates the global video store with the fetched video data.
+ * Displays owner-specific actions (edit, delete, exchange) and preview notice for non-owners.
  */
 export default function Video() {
     const navigate = useNavigate();
@@ -83,9 +82,14 @@ export default function Video() {
     return (
         <div className="flex min-h-svh w-full items-stretch justify-center p-3 pt-14 md:items-center md:p-10">
             <div className="grid w-full gap-4 md:h-[50vh] md:grid-cols-2">
-                {videoData.isOwner ? <VideoPlayer /> : (
-                    <VideoPreview video={videoData} />
-                )}
+                <div>
+                    <VideoPlayer />
+                    {!videoData.isOwner && (
+                        <p className="mt-2 text-xs text-muted-foreground text-center font-semibold">
+                            Vista previa. El video completo estará disponible tras el intercambio
+                        </p>
+                    )}
+                </div>
                 <div className="flex flex-col p-4">
                     <div className="flex items-center justify-between pb-3 gap-5">
                         <div className="flex flex-col gap-2">

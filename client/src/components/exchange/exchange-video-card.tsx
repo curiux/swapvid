@@ -1,15 +1,16 @@
 import { Link, useNavigate } from "react-router";
 import { Button } from "../ui/button";
-import VideoPreview from "../video/video-preview";
 import { API_URL, timeAgo } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import type { Video } from "@/lib/types";
+import Spinner from "../spinner";
 
 /**
  * ExchangeVideoCard component
- * Fetches and displays a video card for a given video ID, including a preview and navigation logic.
+ * Renders a clickable video card for a given video ID, fetching video details from the API and handling navigation on error.
+ * Displays a thumbnail, title, and upload date. Shows a spinner while loading.
  * Props:
- * - videoId: string representing the video to display.
+ *   - videoId: string - The ID of the video to display.
  */
 export default function ExchangeVideoCard({ videoId }: { videoId: string }) {
     const navigate = useNavigate();
@@ -39,6 +40,10 @@ export default function ExchangeVideoCard({ videoId }: { videoId: string }) {
         }
     }
 
+    if (!videoData) {
+        return <Spinner />;
+    }
+
     return (
         <Button
             asChild
@@ -48,7 +53,7 @@ export default function ExchangeVideoCard({ videoId }: { videoId: string }) {
         >
             <Link to={"/video/" + videoData?._id} className="flex flex-col items-stretch" target="_blank">
                 <div>
-                    <VideoPreview video={videoData} />
+                    <img src={videoData.thumbnail} alt={videoData.title} className="object-contain h-full w-full" />
                 </div>
                 {videoData && (
                     <div className="flex flex-col w-full items-start gap-1 p-2">

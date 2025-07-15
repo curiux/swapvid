@@ -90,13 +90,13 @@ router.get("/", async (req, res) => {
 
 /**
  * GET /:id
- * Fetches a video by its ID for an authenticated or unauthenticated user.
+ * Fetches video details by ID for authenticated or unauthenticated users.
  * - Returns 404 if the user or video does not exist.
- * - Determines if the current user is the owner of the video (if authenticated).
- *   - If owner: returns a secure video URL.
- *   - If not owner: returns a 'hasRequested' flag indicating if the user has already requested an exchange for this video (checked via the Exchange model).
- * - Populates thumbnail, user info, username, and ownership status in the response.
- * - Returns video data, authentication status, or appropriate error response.
+ * - If authenticated, determines if the user is the owner:
+ *   - Owner: returns secure video URL.
+ *   - Not owner: returns preview URL and exchange request status.
+ * - Response includes video info, owner username, thumbnail, and authentication status.
+ * - Handles invalid IDs and errors.
  */
 router.get("/:id", async (req, res) => {
     try {
@@ -144,6 +144,7 @@ router.get("/:id", async (req, res) => {
                     status: "pending"
                 });
             }
+            videoData.url = await video.createPreviewUrl();
         } else {
             videoData.url = video.createSecureUrl();
         }

@@ -240,6 +240,7 @@ describe("GET /me/videos", () => {
             hash: "hash1",
             isSensitiveContent: false,
             size: 12345,
+            duration: 100,
             createThumbnail: () => "thumb-url"
         });
         await User.findByIdAndUpdate(userId, { $push: { videos: video._id } });
@@ -285,6 +286,7 @@ describe("GET /:id/videos", () => {
             hash: "hash2",
             isSensitiveContent: false,
             size: 12345,
+            duration: 100,
             createThumbnail: () => "thumb-url"
         });
         await User.findByIdAndUpdate(userId, { $push: { videos: video._id } });
@@ -344,7 +346,8 @@ describe("GET /me/exchanges", () => {
             users: [userId],
             hash: "hash1",
             isSensitiveContent: false,
-            size: 12345
+            size: 12345,
+            duration: 100
         });
         const video2 = await Video.create({
             title: "Video 2",
@@ -354,7 +357,8 @@ describe("GET /me/exchanges", () => {
             users: [responder._id],
             hash: "hash2",
             isSensitiveContent: false,
-            size: 12345
+            size: 12345,
+            duration: 100
         });
         const exchange = await Exchange.create({
             initiator: userId,

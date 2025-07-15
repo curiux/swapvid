@@ -48,8 +48,16 @@ import { Readable } from "stream";
 import axios from "axios";
 import FormData from "form-data";
 import mongoose from "mongoose";
+import streamifier from "streamifier";
+import ffmpeg from "fluent-ffmpeg";
+import ffmpegInstaller from "@ffmpeg-installer/ffmpeg";
+import ffprobeInstaller from "@ffprobe-installer/ffprobe"
+import { MercadoPagoConfig, PreApproval } from "mercadopago";
 import Plan from "../models/Plan.js";
 import Video from "../models/Video.js";
+import Rating from "../models/Rating.js";
+import User from "../models/User.js";
+import Exchange from "../models/Exchange.js";
 
 /**
  * Handles video content moderation using the Sightengine API.
@@ -119,10 +127,6 @@ export const validateIfOwner = async (videoId, userId) => {
     return video.getCurrentUser().toString() === userId.toString();
 };
 
-import { MercadoPagoConfig, PreApproval } from "mercadopago";
-import Rating from "../models/Rating.js";
-import User from "../models/User.js";
-import Exchange from "../models/Exchange.js";
 const config = new MercadoPagoConfig({ accessToken: MP_ACCESS_TOKEN });
 
 /**
@@ -209,18 +213,26 @@ export async function updateRating(userId, videoId, ratingValue) {
 
     await Video.updateOne(
         { _id: videoId },
-        { $set: { rating: {
-            value: newVideoRating,
-            count: videoRatings.length + 1
-        } } }
+        {
+            $set: {
+                rating: {
+                    value: newVideoRating,
+                    count: videoRatings.length + 1
+                }
+            }
+        }
     );
-    
+
     await User.updateOne(
         { _id: userId },
-        { $set: { rating: {
-            value: newRatedUserRating,
-            count: ratedUserRatings.length + 1
-        } } }
+        {
+            $set: {
+                rating: {
+                    value: newRatedUserRating,
+                    count: ratedUserRatings.length + 1
+                }
+            }
+        }
     );
 
     const video = await Video.findById(videoId);
@@ -231,10 +243,14 @@ export async function updateRating(userId, videoId, ratingValue) {
         const newFirstOwnerRating = (firstOwnerRatings.totalRating + ratingValue) / (firstOwnerRatings.length + 1);
         await User.updateOne(
             { _id: firstOwnerId },
-            { $set: { rating: {
-                value: newFirstOwnerRating,
-                count: firstOwnerRatings.length + 1
-            } } }
+            {
+                $set: {
+                    rating: {
+                        value: newFirstOwnerRating,
+                        count: firstOwnerRatings.length + 1
+                    }
+                }
+            }
         );
     }
 }
@@ -295,3 +311,24 @@ export function formatBytes(bytes) {
 
     return `${Math.round(value)} ${units[i]}`;
 }
+
+ffmpeg.setFfmpegPath(ffmpegInstaller.path);
+ffmpeg.setFfprobePath(ffprobeInstaller.path);
+
+/**
+ * Retrieves the duration (in seconds) of a video buffer using ffmpeg and ffprobe.
+ * Creates a readable stream from the buffer and probes metadata for duration.
+ *
+ * @param {Buffer} buffer - The video file buffer to analyze.
+ * @returns {Promise<number>} - The duration of the video in seconds.
+ */
+export function getDuration(buffer) {
+    return new Promise((resolve, reject) => {
+        const stream = streamifier.createReadStream(buffer);
+
+        ffmpeg(stream).ffprobe((err, metadata) => {
+            if (err) return reject(err);
+            resolve(metadata.format.duration);
+        });
+    });
+};

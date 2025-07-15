@@ -7,7 +7,7 @@ const { Schema, model } = mongoose;
 /**
  * Mongoose schema for the Video model.
  *
- * Defines the structure and validation rules for video documents in the database.
+ * Defines the structure, validation rules, and instance methods for video documents in the database.
  *
  * Fields:
  * - title: Required, trimmed, 5-60 characters.
@@ -19,14 +19,16 @@ const { Schema, model } = mongoose;
  * - hash: String hash of the video file.
  * - isSensitiveContent: Boolean flag for sensitive content (default: false).
  * - size: Number of bytes of the video file (required).
+ * - duration: Number of seconds of the video file (required).
  * - rating: Object containing:
  *     - value: The video's average rating (number).
  *     - count: The number of ratings received (number).
  *
- * Methods:
- * - getCurrentUser: Returns the most recent user associated with the video.
- * - createThumbnail: Generates a secure Cloudinary URL for a video thumbnail (jpg).
- * - createSecureUrl: Generates a secure Cloudinary URL for streaming the video (m3u8).
+ * Instance Methods:
+ * - getCurrentUser(): Returns the most recent user associated with the video.
+ * - createThumbnail(): Generates a secure Cloudinary URL for a video thumbnail (jpg).
+ * - createSecureUrl(): Generates a secure Cloudinary URL for streaming the video (m3u8).
+ * - createPreviewUrl(): Generates a secure Cloudinary URL for a preview segment of the video (m3u8).
  */
 
 const videoSchema = new Schema({
@@ -81,6 +83,10 @@ const videoSchema = new Schema({
         type: Number,
         required: true
     },
+    duration: {
+        type: Number,
+        required: true
+    },
     rating: {
         value: {
             type: Number,
@@ -115,6 +121,22 @@ videoSchema.methods.createSecureUrl = function () {
         type: "private",
         format: "m3u8",
         sign_url: true
+    });
+}
+
+videoSchema.methods.createPreviewUrl = async function () {
+    let duration = this.duration * 0.2;
+    if (duration < 1) duration = 1;
+    if (duration > 30) duration = 30;
+    
+    const publicId = `videos/${String(this._id)}`;
+    return cloudinary.v2.url(publicId, {
+        resource_type: "video",
+        type: "private",
+        format: "m3u8",
+        sign_url: true,
+        start_offset: 0,
+        duration
     });
 }
 

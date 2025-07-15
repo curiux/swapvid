@@ -134,7 +134,8 @@ describe("POST /exchanges/request", () => {
             keywords: ["iniciador"],
             users: [initiatorId],
             url: "http://test.com/video-iniciador.mp4",
-            size: 54321
+            size: 54321,
+            duration: 100
         });
         await User.findByIdAndUpdate(initiatorId, { $push: { videos: initiatorVideo._id } });
 
@@ -145,7 +146,8 @@ describe("POST /exchanges/request", () => {
             keywords: ["prueba"],
             users: [responderId],
             url: "http://test.com/video.mp4",
-            size: 12345
+            size: 12345,
+            duration: 100
         });
         await User.findByIdAndUpdate(responderId, { $push: { videos: video._id } });
 
@@ -207,7 +209,8 @@ describe("POST /exchanges/request", () => {
             keywords: ["iniciador"],
             users: [initiatorId],
             url: "http://test.com/video-iniciador.mp4",
-            size: 54321
+            size: 54321,
+            duration: 100
         });
         await User.findByIdAndUpdate(initiatorId, { $push: { videos: initiatorVideo._id } });
 
@@ -218,7 +221,8 @@ describe("POST /exchanges/request", () => {
             keywords: ["prueba"],
             users: [initiatorId],
             url: "http://test.com/video.mp4",
-            size: 12345
+            size: 12345,
+            duration: 100
         });
         const res = await request(app)
             .post("/exchanges/request")
@@ -238,7 +242,8 @@ describe("POST /exchanges/request", () => {
             keywords: ["iniciador"],
             users: [initiatorId],
             url: "http://test.com/video-iniciador.mp4",
-            size: 54321
+            size: 54321,
+            duration: 100
         });
         await User.findByIdAndUpdate(initiatorId, { $push: { videos: initiatorVideo._id } });
 
@@ -249,7 +254,8 @@ describe("POST /exchanges/request", () => {
             keywords: ["prueba"],
             users: [responderId],
             url: "http://test.com/video.mp4",
-            size: 12345
+            size: 12345,
+            duration: 100
         });
         await User.findByIdAndUpdate(responderId, { $push: { videos: video._id } });
         await Exchange.create({
@@ -278,7 +284,8 @@ describe("GET /exchanges/:id", () => {
             keywords: ["prueba"],
             users: [responderId],
             url: "http://test.com/video.mp4",
-            size: 12345
+            size: 12345,
+            duration: 100
         });
         await User.findByIdAndUpdate(responderId, { $push: { videos: video._id } });
         const exchange = await Exchange.create({
@@ -376,7 +383,8 @@ describe("PATCH /exchanges/:id", () => {
             keywords: ["prueba"],
             users: [responderId],
             url: "http://test.com/video.mp4",
-            size: 12345
+            size: 12345,
+            duration: 100
         });
         await User.findByIdAndUpdate(responderId, { $push: { videos: video._id } });
         const exchange = await Exchange.create({
@@ -400,7 +408,8 @@ describe("PATCH /exchanges/:id", () => {
             keywords: ["prueba"],
             users: [initiatorId],
             url: "http://test.com/video2.mp4",
-            size: 12345
+            size: 12345,
+            duration: 100
         });
         await User.findByIdAndUpdate(initiatorId, { $push: { videos: initiatorVideo._id } });
         const res = await request(app)
@@ -509,7 +518,8 @@ describe("DELETE /exchanges/:id", () => {
             keywords: ["prueba"],
             users: [responderId],
             url: "http://test.com/video.mp4",
-            size: 12345
+            size: 12345,
+            duration: 100
         });
         await User.findByIdAndUpdate(responderId, { $push: { videos: video._id } });
         const exchange = await Exchange.create({
@@ -597,7 +607,8 @@ describe("POST /exchanges/:id/report", () => {
             keywords: ["prueba"],
             users: [responderId],
             url: "http://test.com/video.mp4",
-            size: 12345
+            size: 12345,
+            duration: 100
         });
         initiatorVideo = await Video.create({
             title: "Video del iniciador",
@@ -606,7 +617,8 @@ describe("POST /exchanges/:id/report", () => {
             keywords: ["iniciador"],
             users: [initiatorId],
             url: "http://test.com/video-iniciador.mp4",
-            size: 54321
+            size: 54321,
+            duration: 100
         });
         await User.findByIdAndUpdate(responderId, { $push: { videos: video._id } });
         await User.findByIdAndUpdate(initiatorId, { $push: { videos: initiatorVideo._id } });
