@@ -5,6 +5,7 @@ import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, Di
 import { useState } from "react";
 import { API_URL } from "@/lib/utils";
 import { toast } from "sonner";
+import ReportBtn from "../video/report-btn";
 
 /**
  * ExchangeActions component
@@ -24,25 +25,30 @@ export default function ExchangeActions({ exchangeId, status, user, hasRated }:
     if (status == "rejected") return;
 
     if (status == "accepted") {
-        return hasRated ? (
-            <Button
-                asChild
-                variant="outline"
-                aria-label="Calificar">
-                <Link to={"/mi-coleccion/intercambios/calificar/" + exchangeId}>
-                    <Star />
-                    <span>Calificado</span>
-                </Link>
-            </Button>
-        ) : (
-            <Button
-                asChild
-                aria-label="Calificar">
-                <Link to={"/mi-coleccion/intercambios/calificar/" + exchangeId}>
-                    <Star />
-                    <span>Calificar</span>
-                </Link>
-            </Button>
+        return (
+            <div className="flex gap-2">
+                {hasRated ? (
+                    <Button
+                        asChild
+                        variant="outline"
+                        aria-label="Calificar">
+                        <Link to={"/mi-coleccion/intercambios/calificar/" + exchangeId}>
+                            <Star />
+                            <span>Calificado</span>
+                        </Link>
+                    </Button>
+                ) : (
+                    <Button
+                        asChild
+                        aria-label="Calificar">
+                        <Link to={"/mi-coleccion/intercambios/calificar/" + exchangeId}>
+                            <Star />
+                            <span>Calificar</span>
+                        </Link>
+                    </Button>
+                )}
+                <ReportBtn exchangeId={exchangeId} />
+            </div>
         );
     }
 

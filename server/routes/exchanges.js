@@ -5,6 +5,7 @@ import User from "../models/User.js";
 import Video from "../models/Video.js";
 import Rating from "../models/Rating.js";
 import { plans, validateSubscription } from "../lib/utils.js";
+import Report from "../models/Report.js";
 
 const router = Router();
 
@@ -71,7 +72,7 @@ router.post("/request", auth, async (req, res) => {
             }
         });
         const { plan } = await validateSubscription(initiatorUser);
-        
+
         if (exchanges.length >= plan.exchangeLimit && plan.exchangeLimit != 0) {
             return res.status(400).send({ error: `Has alcanzado el máximo de ${plan.exchangeLimit} intercambios este mes permitidos para tu plan ${plans[plan.name]}.` });
         }
@@ -373,6 +374,76 @@ router.delete("/", auth, async (req, res) => {
         res.status(500).send({
             error: "Ha ocurrido un error inesperado"
         });
+    }
+});
+
+/**
+ * Reports a video involved in an accepted exchange.
+ * - Requires authentication via the 'auth' middleware.
+ * - Checks if the user and exchange exist.
+ * - Only allows reporting if the exchange status is 'accepted'.
+ * - Only the initiator or responder of the exchange can report.
+ * - Determines which video to report based on the user (initiator reports responderVideo, responder reports initiatorVideo).
+ * - Creates a new Report document with the provided reason, details, and links to the reporter, reported video, and exchange.
+ * - Returns 404 if the user does not exist, 400 if the exchange does not exist or invalid data, 403 if unauthorized or exchange not accepted, or 500 for unexpected errors.
+ */
+router.post("/:id/report", auth, async (req, res) => {
+    try {
+        const user = await User.findById(req.userId);
+        if (!user) {
+            return res.status(404).send({
+                error: "El usuario no existe"
+            });
+        }
+
+        const exchange = await Exchange.findById(req.params.id);
+        if (!exchange) {
+            return res.status(400).send({
+                error: "El intercambio no existe"
+            });
+        }
+
+        if (exchange.status != "accepted") {
+            return res.status(403).send({
+                error: "Este video no se puede reportar porque el intercambio no fue aceptado"
+            });
+        }
+
+        const userId = String(user._id);
+        if (userId != String(exchange.initiator) && userId != String(exchange.responder)) {
+            return res.status(403).send({
+                error: "No puedes realizar esta acción"
+            });
+        }
+
+        const videoId = userId == exchange.initiator.toString() ? exchange.responderVideo : exchange.initiatorVideo;
+
+        const { status, createdAt, reporterId, ...reportData } = req.body;
+
+        reportData.reporterId = user._id;
+        reportData.reportedVideoId = videoId;
+        reportData.exchangeId = exchange._id;
+
+        await Report.create(reportData);
+
+        return res.status(201).send({});
+    } catch (e) {
+        if (e.name == "CastError") {
+            res.status(400).send({
+                error: "Dato inválido."
+            });
+        } else if (e.name == "ValidationError") { // Schema validations
+            let message = "";
+            for (const error in e.errors) {
+                message += e.errors[error].message + "\n";
+            }
+            res.status(400).send({ error: message });
+        } else {
+            console.log(e);
+            res.status(500).send({
+                error: "Ha ocurrido un error inesperado"
+            });
+        }
     }
 });
 

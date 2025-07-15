@@ -42,6 +42,16 @@
  *   - Fails if the exchange does not exist.
  *   - Fails if the user does not exist.
  * 
+ * POST /exchanges/:id/report:
+ *   - Allows initiator or responder to report the exchanged video with a valid reason.
+ *   - Supports all valid reasons: inappropriate_unmarked, irrelevant_or_empty, unauthorized_content, duplicate_video, other (with otherReason).
+ *   - Fails if token is missing.
+ *   - Fails if token is invalid.
+ *   - Fails if user is not part of the exchange.
+ *   - Fails if the exchange is not accepted.
+ *   - Fails if the reason is missing or invalid.
+ *   - Fails if the user does not exist.
+ *
  * After each test, all users and exchanges are removed from the database to ensure a clean environment.
  */
 import request from "supertest";
@@ -572,5 +582,121 @@ describe("DELETE /exchanges/:id", () => {
             .set("Authorization", `Bearer ${fakeToken}`);
         expect(res.statusCode).toBe(404);
         expect(res.body.error).toMatch(/no existe/i);
+    });
+});
+
+describe("POST /exchanges/:id/report", () => {
+    let exchangeId, Video, initiatorToken, responderToken, video, initiatorVideo;
+    beforeEach(async () => {
+        Video = (await import("../models/Video.js")).default;
+        // Create videos for both users
+        video = await Video.create({
+            title: "Video de prueba",
+            description: "Descripción de prueba",
+            category: "entertainment",
+            keywords: ["prueba"],
+            users: [responderId],
+            url: "http://test.com/video.mp4",
+            size: 12345
+        });
+        initiatorVideo = await Video.create({
+            title: "Video del iniciador",
+            description: "Video del usuario iniciador",
+            category: "entertainment",
+            keywords: ["iniciador"],
+            users: [initiatorId],
+            url: "http://test.com/video-iniciador.mp4",
+            size: 54321
+        });
+        await User.findByIdAndUpdate(responderId, { $push: { videos: video._id } });
+        await User.findByIdAndUpdate(initiatorId, { $push: { videos: initiatorVideo._id } });
+        // Create accepted exchange
+        const exchange = await Exchange.create({
+            initiator: initiatorId,
+            responder: responderId,
+            responderVideo: video._id,
+            initiatorVideo: initiatorVideo._id,
+            status: "accepted"
+        });
+        exchangeId = exchange._id;
+        initiatorToken = generateToken({ _id: initiatorId });
+        responderToken = generateToken({ _id: responderId });
+        await User.findByIdAndUpdate(initiatorId, { $push: { exchanges: exchange._id } });
+        await User.findByIdAndUpdate(responderId, { $push: { exchanges: exchange._id } });
+    });
+
+    it("debería permitir al iniciador reportar el video del receptor", async () => {
+        const res = await request(app)
+            .post(`/exchanges/${exchangeId}/report`)
+            .set("Authorization", `Bearer ${initiatorToken}`)
+            .send({ reason: "inappropriate_unmarked", details: "Contenido inapropiado" });
+        expect(res.statusCode).toBe(201);
+    });
+
+    it("debería permitir al receptor reportar el video del iniciador", async () => {
+        const res = await request(app)
+            .post(`/exchanges/${exchangeId}/report`)
+            .set("Authorization", `Bearer ${responderToken}`)
+            .send({ reason: "irrelevant_or_empty", details: "No tiene contenido relevante" });
+        expect(res.statusCode).toBe(201);
+    });
+
+    it("debería permitir reportar con razón 'other' y campo otherReason", async () => {
+        const res = await request(app)
+            .post(`/exchanges/${exchangeId}/report`)
+            .set("Authorization", `Bearer ${initiatorToken}`)
+            .send({ reason: "other", otherReason: "Explicación personalizada", details: "Detalles adicionales" });
+        expect(res.statusCode).toBe(201);
+    });
+
+    it("debería fallar si falta el token", async () => {
+        const res = await request(app)
+            .post(`/exchanges/${exchangeId}/report`)
+            .send({ reason: "unauthorized_content" });
+        expect(res.statusCode).toBe(401);
+        expect(res.body.error).toBeDefined();
+    });
+
+    it("debería fallar si el token es inválido", async () => {
+        const res = await request(app)
+            .post(`/exchanges/${exchangeId}/report`)
+            .set("Authorization", "Bearer tokeninvalido")
+            .send({ reason: "duplicate_video" });
+        expect(res.statusCode).toBe(401);
+        expect(res.body.error).toBeDefined();
+    });
+
+    it("debería fallar si el usuario no es parte del intercambio", async () => {
+        const outsider = await User.create({
+            email: "outsider@example.com",
+            username: "outsider",
+            password: "Password123!"
+        });
+        const outsiderToken = generateToken({ _id: outsider._id });
+        const res = await request(app)
+            .post(`/exchanges/${exchangeId}/report`)
+            .set("Authorization", `Bearer ${outsiderToken}`)
+            .send({ reason: "inappropriate_unmarked" });
+        expect(res.statusCode).toBe(403);
+        expect(res.body.error).toMatch(/no puedes/i);
+    });
+
+    it("debería fallar si el intercambio no está aceptado", async () => {
+        await Exchange.findByIdAndUpdate(exchangeId, { status: "pending" });
+        const res = await request(app)
+            .post(`/exchanges/${exchangeId}/report`)
+            .set("Authorization", `Bearer ${initiatorToken}`)
+            .send({ reason: "irrelevant_or_empty" });
+        expect(res.statusCode).toBe(403);
+        expect(res.body.error).toMatch(/no fue aceptado/i);
+    });
+
+    it("debería fallar si falta la razón del reporte", async () => {
+        const res = await request(app)
+            .post(`/exchanges/${exchangeId}/report`)
+            .set("Authorization", `Bearer ${initiatorToken}`)
+            .send({});
+        expect(res.statusCode).toBe(400);
+        expect(res.body.error).toBeDefined();
     });
 });

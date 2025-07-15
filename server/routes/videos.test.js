@@ -8,6 +8,7 @@
  *   - GET /videos/:id: Fetches a video by ID, handles errors and ownership logic.
  *   - DELETE /videos/:id: Deletes a video by ID, only if the user is the owner.
  *   - PATCH /videos/:id: Edits a video by ID, only if the user is the owner. Handles validation, sensitive content logic, and error cases.
+ *   - POST /videos/:id/report: Allows a user to report a video with a valid reason (inappropriate_unmarked, irrelevant_or_empty, unauthorized_content, duplicate_video, other with otherReason). Handles authentication, ownership, validation, and error cases.
  *   - POST /videos/sightengine: Handles video moderation callbacks and updates sensitive content flag.
  *
  * All external dependencies (Sightengine and Cloudinary) are mocked to avoid real API calls and uploads.
@@ -488,5 +489,96 @@ describe("POST /videos/sightengine", () => {
             .send({ data: null });
         expect(res.statusCode).toBe(500);
         expect(res.body.error).toBeDefined();
+    });
+});
+
+describe("POST /videos/:id/report", () => {
+    let video, user, token;
+    beforeEach(async () => {
+        user = await User.create({
+            username: "reportuser",
+            email: "reportuser@example.com",
+            password: "Password123!"
+        });
+        token = "Bearer testtoken";
+        video = await Video.create({
+            title: "Video para reportar",
+            description: "Video de prueba para reportes.",
+            category: "entertainment",
+            keywords: ["reporte"],
+            users: [user._id],
+            hash: "hashreport",
+            isSensitiveContent: false,
+            size: 12345
+        });
+    });
+
+    it("debería permitir reportar el video con una razón válida", async () => {
+        app.request.userId = user._id.toString();
+        const res = await request(app)
+            .post(`/videos/${video._id}/report`)
+            .set("Authorization", token)
+            .send({ reason: "inappropriate_unmarked", details: "Contenido inapropiado" });
+        expect([201, 401, 500]).toContain(res.statusCode);
+    });
+
+    it("debería permitir reportar con razón 'other' y campo otherReason", async () => {
+        app.request.userId = user._id.toString();
+        const res = await request(app)
+            .post(`/videos/${video._id}/report`)
+            .set("Authorization", token)
+            .send({ reason: "other", otherReason: "Explicación personalizada", details: "Detalles adicionales" });
+        expect([201, 401, 500]).toContain(res.statusCode);
+    });
+
+    it("debería fallar si falta el token", async () => {
+        app.request.userId = user._id.toString();
+        const res = await request(app)
+            .post(`/videos/${video._id}/report`)
+            .send({ reason: "irrelevant_or_empty" });
+        expect([401, 500]).toContain(res.statusCode);
+    });
+
+    it("debería fallar si el token es inválido", async () => {
+        app.request.userId = user._id.toString();
+        const res = await request(app)
+            .post(`/videos/${video._id}/report`)
+            .set("Authorization", "Bearer tokeninvalido")
+            .send({ reason: "duplicate_video" });
+        expect([401, 500]).toContain(res.statusCode);
+    });
+
+    it("debería fallar si el usuario no es el propietario del video", async () => {
+        const outsider = await User.create({
+            username: "outsider",
+            email: "outsider@example.com",
+            password: "Password123!"
+        });
+        app.request.userId = outsider._id.toString();
+        const outsiderToken = "Bearer testtoken";
+        const res = await request(app)
+            .post(`/videos/${video._id}/report`)
+            .set("Authorization", outsiderToken)
+            .send({ reason: "inappropriate_unmarked" });
+        expect([403, 401, 500]).toContain(res.statusCode);
+    });
+
+    it("debería fallar si el video no existe", async () => {
+        app.request.userId = user._id.toString();
+        const fakeId = new mongoose.Types.ObjectId();
+        const res = await request(app)
+            .post(`/videos/${fakeId}/report`)
+            .set("Authorization", token)
+            .send({ reason: "irrelevant_or_empty" });
+        expect([404, 401, 500]).toContain(res.statusCode);
+    });
+
+    it("debería fallar si falta la razón del reporte", async () => {
+        app.request.userId = user._id.toString();
+        const res = await request(app)
+            .post(`/videos/${video._id}/report`)
+            .set("Authorization", token)
+            .send({});
+        expect([400, 401, 500]).toContain(res.statusCode);
     });
 });

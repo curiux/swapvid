@@ -363,7 +363,7 @@ router.post("/:id/report", auth, async (req, res) => {
         const { status, createdAt, reporterId, ...reportData } = req.body;
 
         reportData.reporterId = user._id;
-        reportData.reportedVideoId = req.body.videoId;
+        reportData.reportedVideoId = video._id;
 
         await Report.create(reportData);
 

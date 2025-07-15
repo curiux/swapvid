@@ -39,7 +39,8 @@ const formSchema = z.object({
  * - Submits the report to the backend and provides user feedback.
  * - Used as a modal dialog for reporting a specific video.
  */
-export default function ReportForm({ videoId, openChange }: { videoId: string, openChange: () => void }) {
+export default function ReportForm({ videoId, exchangeId, openChange }:
+    { videoId?: string, exchangeId?: string, openChange: () => void }) {
     const navigate = useNavigate();
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -75,7 +76,8 @@ export default function ReportForm({ videoId, openChange }: { videoId: string, o
         const token = localStorage.getItem("token");
 
         try {
-            const res = await fetch(API_URL + "/videos/" + videoId + "/report", {
+            const url = API_URL + (videoId ? `/videos/${videoId}/report` : `/exchanges/${exchangeId}/report`);
+            const res = await fetch(url, {
                 method: "POST",
                 headers: {
                     "Authorization": `Bearer ${token}`,
@@ -84,8 +86,7 @@ export default function ReportForm({ videoId, openChange }: { videoId: string, o
                 body: JSON.stringify({
                     reason,
                     otherReason,
-                    details,
-                    videoId
+                    details
                 })
             });
 
