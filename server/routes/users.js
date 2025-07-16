@@ -229,7 +229,7 @@ router.post("/me/videos", auth, upload.single("video"), async (req, res) => {
  */
 router.get("/me/videos", auth, async (req, res) => {
     try {
-        const user = await User.findById(req.userId).populate("videos");
+        const user = await User.findById(req.userId).populate("videos").populate("subscription.plan");
         if (!user) {
             return res.status(404).send({
                 error: "El usuario no existe"
@@ -253,9 +253,16 @@ router.get("/me/videos", auth, async (req, res) => {
             return videoData;
         });
 
+        const storageUsed = user.videos.reduce((acc, v) => acc + v.size, 0);
+        const storageLimit = user.subscription.plan.libraryStorage;
+        const libraryMaxSize = user.subscription.plan.librarySize;
+
         return res.status(200).send({
             videos,
-            totalPages
+            totalPages,
+            storageUsed,
+            storageLimit,
+            libraryMaxSize
         });
     } catch (e) {
         console.log(e);
@@ -359,7 +366,7 @@ router.get("/me/exchanges", auth, async (req, res) => {
                 initiator: initiatorUser,
                 responder: responderUser,
                 initiatorVideoUrl: initiatorVideo ? initiatorVideo.createThumbnail() : null,
-                responderVideoUrl: responderVideo.createThumbnail(),
+                responderVideoUrl: responderVideo ? responderVideo.createThumbnail() : null,
                 user: exchange.initiator.equals(user._id) ? "initiator" : "responder",
                 hasRated
             }

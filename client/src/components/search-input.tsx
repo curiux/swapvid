@@ -21,7 +21,12 @@ import { Checkbox } from "./ui/checkbox";
  */
 export default function SearchInput({ filters }: { filters: boolean }) {
     const navigate = useNavigate();
+    const params = new URLSearchParams(location.search);
     const [query, setQuery] = useState("");
+
+    useEffect(() => {
+        setQuery(params.get("q") || "");
+    }, []);
 
     return (
         <div className="max-w-lg w-full flex items-center gap-2">
@@ -32,6 +37,7 @@ export default function SearchInput({ filters }: { filters: boolean }) {
                 <SearchIcon className="h-[16px] w-[16px]" />
                 <input
                     type="search"
+                    placeholder={!filters ? "Explorá historias, ideas y creaciones..." : ""}
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     onKeyDown={(e) => e.key == "Enter" && navigate(`/buscar?q=${query}`)}

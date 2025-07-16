@@ -88,11 +88,14 @@ export default function ExchangeList() {
 
 /**
  * ExchangeItem component
- * Renders a card for a single exchange, showing participants, status, and video previews.
- * Props:
- * - exchange: Exchange object to display.
- * - user: string representing the other participant in the exchange.
- * - status: status object containing label and color for the exchange status.
+ * - Renders a card for a single exchange, showing participants, status, and video previews.
+ * - Displays initiator and responder video thumbnails, or a placeholder if unavailable.
+ * - Shows exchange status with color, and participant info.
+ * - Handles conditional rendering for missing videos and order based on user role.
+ * - Props:
+ *   - exchange: Exchange object to display.
+ *   - user: string representing the other participant in the exchange.
+ *   - status: status object containing label and color for the exchange status.
  */
 function ExchangeItem({ exchange, user, status }: { exchange: Exchange, user: string, status: any }) {
     return (
@@ -118,16 +121,25 @@ function ExchangeItem({ exchange, user, status }: { exchange: Exchange, user: st
                     ) : (
                         <div className="col-span-2 flex flex-col items-center justify-center">
                             <BadgeX className="w-1/3 h-full" />
-                            <p className="text-center text-sm">Todavía no se ha elegido un video</p>
+                            <p className="text-center text-sm">
+                                {exchange.status == "pending" ? "Todavía no se ha elegido un video" : "Video no disponible"}
+                            </p>
                         </div>
                     )}
                     <div className={`flex items-center justify-center ${exchange.user == "initiator" ? "-order-1" : ""}`}>
                         <Repeat className="w-1/2 h-full" />
                     </div>
-                    <img
-                        src={exchange.responderVideoUrl}
-                        alt="Video del receptor"
-                        className={`col-span-2 object-contain h-full w-full ${exchange.user == "initiator" ? "-order-2" : ""}`} />
+                    {exchange.responderVideoUrl ? (
+                        <img
+                            src={exchange.responderVideoUrl}
+                            alt="Video del receptor"
+                            className={`col-span-2 object-contain h-full w-full ${exchange.user == "initiator" ? "-order-2" : ""}`} />
+                    ) : (
+                        <div className={`col-span-2 flex flex-col items-center justify-center ${exchange.user == "initiator" ? "-order-2" : ""}`}>
+                            <BadgeX className="w-1/3 h-full" />
+                            <p className="text-center text-sm">Video no disponible</p>
+                        </div>
+                    )}
                 </div>
             </CardContent>
         </Card>

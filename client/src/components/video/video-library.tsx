@@ -5,11 +5,15 @@ import { Link, useNavigate } from "react-router";
 import Spinner from "../spinner";
 import { toast } from "sonner";
 import Pagination from "../pagination";
+import SemiCircle from "../semi-circle";
+import { Separator } from "../ui/separator";
 
 /**
- * Displays the authenticated user's video library as a responsive grid of video cards.
- * Fetches the user's videos from the API and handles authentication errors.
- * Redirects to the login or error page as needed.
+ * VideoLibrary component
+ * - Displays the authenticated user's video library as a responsive grid of video cards.
+ * - Fetches videos and storage usage from the API, handling authentication and errors.
+ * - Shows a semi-circle progress bar for storage, and the current/max video count.
+ * - Redirects to login or error page as needed.
  */
 export default function VideoLibrary() {
     const navigate = useNavigate();
@@ -18,6 +22,12 @@ export default function VideoLibrary() {
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
+    const [storage, setStorage] = useState({
+        percentageUsed: 0,
+        storageUsed: 0,
+        storageLimit: 0
+    });
+    const [libraryMaxSize, setLibraryMaxSize] = useState(0);
 
     useEffect(() => {
         const token = localStorage.getItem("token");
@@ -50,6 +60,12 @@ export default function VideoLibrary() {
             } else {
                 setVideos(data.videos);
                 setTotalPages(data.totalPages);
+                setStorage({
+                    percentageUsed: (data.storageUsed / data.storageLimit) * 100,
+                    storageUsed: data.storageUsed,
+                    storageLimit: data.storageLimit
+                });
+                setLibraryMaxSize(data.libraryMaxSize);
                 setLoading(false);
             }
         } catch (e) {
@@ -64,7 +80,16 @@ export default function VideoLibrary() {
     );
 
     return (
-        <div className="flex flex-col gap-8">
+        <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-3 items-start">
+                <div className="rounded-md p-3 shadow-md dark:bg-muted">
+                    <SemiCircle storage={storage} />
+                </div>
+                <p className="text-muted-foreground text-xs font-semibold">
+                    Cantidad de videos: {videos.length} / {libraryMaxSize} máx.
+                </p>
+            </div>
+            <Separator />
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 lg:gap-8">
                 {videos.length == 0 ? (
                     <p className="text-sm text-muted-foreground">

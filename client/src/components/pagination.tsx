@@ -6,28 +6,36 @@ import { Pagination as P, PaginationContent, PaginationEllipsis, PaginationItem,
  * Renders page links, previous/next buttons, and ellipsis for large page sets.
  * Hides itself if the list is empty and on the first page.
  */
-export default function Pagination({ list, page, totalPages, query="" }:
+export default function Pagination({ list, page, totalPages, query = "" }:
     { list: any[], page: number, totalPages: number, query?: string }) {
+
+    const createLink = (toPage: number) => {
+        if (query) {
+            return query + "&page=" + toPage;
+        }
+        return "?page=" + toPage;
+    }
+
     return (
         <P className={`${list.length == 0 && page == 0 ? "hidden" : ""}`}>
             <PaginationContent>
                 {totalPages == 1 ? (
                     <PaginationItem>
-                        <PaginationLink href={`${query}&page=0`} isActive>1</PaginationLink>
+                        <PaginationLink href={createLink(0)} isActive>1</PaginationLink>
                     </PaginationItem>
                 ) : (
                     <>
                         {page > 0 && (
                             <PaginationItem>
-                                <PaginationPrevious href={`${query}&page=` + (page - 1)} />
+                                <PaginationPrevious href={createLink(page - 1)} />
                             </PaginationItem>
                         )}
                         <PaginationItem>
-                            <PaginationLink href={`${query}&page=` + 0} isActive={page == 0}>1</PaginationLink>
+                            <PaginationLink href={createLink(0)} isActive={page == 0}>1</PaginationLink>
                         </PaginationItem>
                         {page <= 2 ? (
                             <PaginationItem>
-                                <PaginationLink href={`${query}&page=` + 1} isActive={page == 1}>2</PaginationLink>
+                                <PaginationLink href={createLink(1)} isActive={page == 1}>2</PaginationLink>
                             </PaginationItem>
                         ) : page != totalPages - 1 ? (
                             <PaginationItem>
@@ -36,21 +44,21 @@ export default function Pagination({ list, page, totalPages, query="" }:
                         ) : <></>}
                         {totalPages == 3 && (
                             <PaginationItem>
-                                <PaginationLink href={`${query}&page=` + 2} isActive={page == 2}>3</PaginationLink>
+                                <PaginationLink href={createLink(2)} isActive={page == 2}>3</PaginationLink>
                             </PaginationItem>
                         )}
                         {totalPages > 3 && (
                             <>
                                 {(page != totalPages - 1 && page >= 2) && (
                                     <PaginationItem>
-                                        <PaginationLink href={`${query}&page=` + page} isActive>{page + 1}</PaginationLink>
+                                        <PaginationLink href={createLink(page)} isActive>{page + 1}</PaginationLink>
                                     </PaginationItem>
                                 )}
                                 <PaginationItem>
                                     <PaginationEllipsis />
                                 </PaginationItem>
                                 <PaginationItem>
-                                    <PaginationLink href={`${query}&page=` + (totalPages - 1)} isActive={page == totalPages - 1}>
+                                    <PaginationLink href={createLink(totalPages - 1)} isActive={page == totalPages - 1}>
                                         {totalPages}
                                     </PaginationLink>
                                 </PaginationItem>
@@ -58,7 +66,7 @@ export default function Pagination({ list, page, totalPages, query="" }:
                         )}
                         {page < totalPages - 1 && (
                             <PaginationItem>
-                                <PaginationNext href={`${query}&page=` + (page + 1)} />
+                                <PaginationNext href={createLink(page + 1)} />
                             </PaginationItem>
                         )}
                     </>
