@@ -7,6 +7,7 @@ import { useTheme } from "./theme-provider";
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 import { Separator } from "@/components/ui/separator";
+import Notifications from "./notifications";
 
 interface NavbarData {
     logo: {
@@ -46,7 +47,7 @@ const navbarData: NavbarData = {
 
 /**
  * This component renders the main navigation bar for the application.
- * It displays the logo, navigation menu, authentication buttons, and a theme toggle.
+ * It displays the logo, navigation menu, authentication buttons, notifications, and a theme toggle.
  * The navigation adapts for both desktop and mobile views.
  */
 export default function Navbar() {
@@ -89,6 +90,7 @@ export default function Navbar() {
                         </NavigationMenu>
                     </div>
                     <div className="flex items-center gap-2">
+                        <Notifications />
                         <AuthButtons closeSheet={closeSheet} isMobile={false} />
                         <ChangeThemeIcon />
                     </div>
@@ -144,7 +146,12 @@ export default function Navbar() {
 
                                     <div className="flex flex-col gap-3">
                                         <AuthButtons closeSheet={closeSheet} isMobile={true} />
-                                        <ChangeThemeIcon />
+                                        <div className="grid grid-cols-3 gap-2">
+                                            <Notifications />
+                                            <div className="grid col-span-2">
+                                                <ChangeThemeIcon />
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </SheetContent>
@@ -227,7 +234,7 @@ function AuthButtons({ closeSheet, isMobile }: { closeSheet?: () => void, isMobi
                         <CircleUserIcon className="w-5 h-5" />
                     </NavigationMenuTrigger>
                     <NavigationMenuContent className="min-w-[150px] translate-x-[-50%]">
-                        <ul className="grid gap-2">
+                        <ul className="grid gap-1">
                             <li>
                                 <NavigationMenuLink asChild>
                                     <Link to="/mi-coleccion" onClick={closeSheet} aria-label="Mi colección">
@@ -236,6 +243,8 @@ function AuthButtons({ closeSheet, isMobile }: { closeSheet?: () => void, isMobi
                                         </p>
                                     </Link>
                                 </NavigationMenuLink>
+                            </li>
+                            <li>
                                 <NavigationMenuLink asChild>
                                     <Link to="/perfil" onClick={closeSheet} aria-label="Mi perfil">
                                         <p className="line-clamp-2 text-sm leading-snug">
@@ -243,6 +252,8 @@ function AuthButtons({ closeSheet, isMobile }: { closeSheet?: () => void, isMobi
                                         </p>
                                     </Link>
                                 </NavigationMenuLink>
+                            </li>
+                            <li>
                                 <NavigationMenuLink asChild>
                                     <p onClick={logout} className="cursor-pointer line-clamp-2 text-sm leading-snug">
                                         Cerrar sesión

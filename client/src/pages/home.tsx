@@ -15,7 +15,9 @@ export default function Home() {
             <div className="absolute inset-0 bg-black opacity-90 z-[-1]"></div>
 
             <div className="flex flex-col items-center justify-center gap-8 w-full animate-fadeIn">
-                <h1 className="text-2xl font-semibold font-sora text-center md:text-5xl">Un lugar para compartir y descubrir videos</h1>
+                <h1 className="text-2xl font-semibold font-sora text-center text-secondary md:text-5xl dark:text-primary">
+                    Un lugar para compartir y descubrir videos
+                </h1>
                 <SearchInput filters={false} />
             </div>
         </div>

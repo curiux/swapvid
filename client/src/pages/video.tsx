@@ -91,9 +91,9 @@ export default function Video() {
                     )}
                 </div>
                 <div className="flex flex-col p-4">
-                    <div className="flex items-center justify-between pb-3 gap-5">
+                    <div className="flex flex-col justify-between pb-3 gap-5 lg:flex-row lg:items-center">
                         <div className="flex flex-col gap-2">
-                            <h1 className="text-3xl font-semibold">{videoData.title}</h1>
+                            <h1 className="mt-4 text-3xl font-semibold lg:mt-0">{videoData.title}</h1>
                             <p className="text-xs text-muted-foreground">
                                 Subido {timeAgo(videoData.uploadedDate)} por
                                 <span className="font-semibold text-primary"> {videoData.user}</span>

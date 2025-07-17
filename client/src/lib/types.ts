@@ -32,15 +32,23 @@ export interface Exchange {
 }
 
 export interface Plan {
-    _id: string,
-    name: string,
-    monthlyPrice: number,
-    libraryStorage: number,
-    librarySize: number,
-    videoMaxSize: number,
-    exchangeLimit: number,
-    stats: boolean,
-    exchangePriority: boolean,
-    searchPriority: boolean,
-    supportPriority: boolean
+    _id: string;
+    name: string;
+    monthlyPrice: number;
+    libraryStorage: number;
+    librarySize: number;
+    videoMaxSize: number;
+    exchangeLimit: number;
+    stats: boolean;
+    exchangePriority: boolean;
+    searchPriority: boolean;
+    supportPriority: boolean;
+}
+
+export interface Notification {
+    _id: string;
+    type: string;
+    isRead: boolean;
+    createdAt: Date;
+    message: string;
 }

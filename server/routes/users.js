@@ -3,6 +3,7 @@ import User from "../models/User.js";
 import Video from "../models/Video.js";
 import Rating from "../models/Rating.js";
 import Exchange from "../models/Exchange.js";
+import Notification from "../models/Notification.js";
 import auth from "../middleware/auth.js";
 import { cloudinary } from "../config.js";
 import { formatBytes, getDuration, ITEMS_PER_PAGE, plans, sightEngineValidation, upload, validateSubscription } from "../lib/utils.js";
@@ -378,6 +379,133 @@ router.get("/me/exchanges", auth, async (req, res) => {
             exchanges,
             totalPages
         });
+    } catch (e) {
+        console.log(e);
+        res.status(500).send({
+            error: "Ha ocurrido un error inesperado"
+        });
+    }
+});
+
+/**
+ * Returns a paginated list of notifications for the authenticated user.
+ * - Uses 'auth' middleware to verify JWT and extract user ID.
+ * - Populates the user's notifications and returns them with sender info and message.
+ * - Calculates the unread notification count and total pages.
+ * - Returns 200 with notifications array, unread count, and total pages; 404 if user does not exist; 500 for unexpected errors.
+ */
+router.get("/me/notifications", auth, async (req, res) => {
+    try {
+        const user = await User.findById(req.userId).populate("notifications");
+        if (!user) {
+            return res.status(404).send({
+                error: "El usuario no existe"
+            });
+        }
+
+        const page = parseInt(req.query.page) || 0;
+        const limit = ITEMS_PER_PAGE;
+
+        const start = page * limit;
+        const end = start + limit;
+
+        const totalNotifications = user.notifications.length;
+        const totalPages = Math.ceil(totalNotifications / limit);
+
+        let unreadCount = 0;
+        const notifications = await Promise.all(user.notifications.slice(start, end).map(async (notification) => {
+            const exchange = await Exchange.findById(notification.exchange);
+
+            const isInitiator = String(user._id) == exchange.initiator;
+            const sender = (await User.findById(isInitiator ? exchange.responder : exchange.initiator)).username;
+            let message = "";
+
+            switch (notification.type) {
+                case "exchange_requested":
+                    message = sender + " te ha enviado una solicitud de intercambio.";
+                    break;
+                case "exchange_accepted":
+                    message = "¡" + sender + " ha aceptado tu solicitud de intercambio!";
+                    break;
+                case "exchange_rejected":
+                    message = sender + " ha rechazado tu solicitud de intercambio.";
+                    break;
+                default:
+                    break;
+            }
+
+            if (!notification.isRead) unreadCount++;
+
+            return {
+                _id: notification._id,
+                type: notification.type,
+                isRead: notification.isRead,
+                createdAt: notification.createdAt,
+                message
+            };
+        }));
+
+        return res.status(200).send({
+            notifications,
+            unreadCount,
+            totalPages
+        });
+    } catch (e) {
+        console.log(e);
+        res.status(500).send({
+            error: "Ha ocurrido un error inesperado"
+        });
+    }
+});
+
+/**
+ * Marks a specific notification as read for the authenticated user.
+ * - Uses 'auth' middleware to verify JWT and extract user ID.
+ * - Finds the notification by ID and updates its isRead status to true.
+ * - Returns 200 on success, 404 if notification does not exist, or 500 for unexpected errors.
+ */
+router.patch("/me/notifications/:id", auth, async (req, res) => {
+    try {
+        const notification = await Notification.findById(req.params.id);
+
+        if (!notification) {
+            return res.status(404).send({
+                error: "La notificación no existe"
+            });
+        }
+
+        notification.isRead = true;
+        await notification.save();
+        res.status(200).send({});
+    } catch (e) {
+        console.log(e);
+        res.status(500).send({
+            error: "Ha ocurrido un error inesperado"
+        });
+    }
+});
+
+/**
+ * Marks all notifications as read for the authenticated user.
+ * - Uses 'auth' middleware to verify JWT and extract user ID.
+ * - Updates all notifications for the user, setting isRead to true.
+ * - Returns 200 on success, 404 if user does not exist, or 500 for unexpected errors.
+ */
+router.patch("/me/notifications", auth, async (req, res) => {
+    try {
+        const user = await User.findById(req.userId).populate("notifications");
+        if (!user) {
+            return res.status(404).send({
+                error: "El usuario no existe"
+            });
+        }
+
+        await Notification.updateMany(
+            { user: user._id },
+            { $set: { isRead: true } }
+        );
+
+        res.status(200).send({});
     } catch (e) {
         console.log(e);
         res.status(500).send({

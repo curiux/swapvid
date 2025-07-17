@@ -6,6 +6,7 @@ import Video from "../models/Video.js";
 import Rating from "../models/Rating.js";
 import { plans, validateSubscription } from "../lib/utils.js";
 import Report from "../models/Report.js";
+import Notification from "../models/Notification.js";
 
 const router = Router();
 
@@ -15,7 +16,7 @@ const router = Router();
  * - Checks if the initiator and responder users exist.
  * - Prevents duplicate or counter pending requests between the same users.
  * - Enforces a monthly exchange limit based on the initiator's subscription plan.
- * - On success, creates a new Exchange document and updates both users' exchanges arrays.
+ * - On success, creates a new Exchange document and a notification for the responder, updating both users' exchanges arrays and the responder's notifications array.
  * - Returns 404 if either user does not exist, 409 if a pending request exists, 400 if the exchange limit is reached, or 500 for unexpected errors.
  */
 router.post("/request", auth, async (req, res) => {
@@ -84,11 +85,20 @@ router.post("/request", auth, async (req, res) => {
         }
         const exchange = await Exchange.create(data);
 
+        const notification = await Notification.create({
+            type: "exchange_requested",
+            exchange: exchange._id,
+            user: responder
+        });
+
         await User.findByIdAndUpdate(initiator, {
             $push: { exchanges: exchange._id }
         });
         await User.findByIdAndUpdate(responder, {
-            $push: { exchanges: exchange._id }
+            $push: {
+                exchanges: exchange._id,
+                notifications: notification
+            }
         });
 
         res.status(201).send({});
@@ -177,6 +187,7 @@ router.get("/:id", auth, async (req, res) => {
  * - Checks if the user and exchange exist.
  * - Only the responder can update the exchange status.
  * - Allows the responder to accept (with a video) or reject the exchange.
+ * - On accept or reject, creates a notification for the initiator and updates their notifications array.
  * - Returns 404 if the user does not exist, 400 if the exchange does not exist or invalid status/video, 403 if unauthorized, or 500 for unexpected errors.
  */
 router.patch("/:id", auth, async (req, res) => {
@@ -212,6 +223,17 @@ router.patch("/:id", auth, async (req, res) => {
             await exchange.updateOne({
                 status: "rejected"
             });
+
+            const notification = await Notification.create({
+                type: "exchange_rejected",
+                exchange: exchange._id,
+                user: exchange.initiator
+            });
+
+            await User.findByIdAndUpdate(exchange.initiator, {
+                $push: { notifications: notification }
+            });
+
             return res.status(200).send({});
         }
 
@@ -233,6 +255,17 @@ router.patch("/:id", auth, async (req, res) => {
             initiatorVideo: videoId
         });
         await exchangeVideos(exchange, videoId);
+
+        const notification = await Notification.create({
+            type: "exchange_accepted",
+            exchange: exchange._id,
+            user: exchange.initiator
+        });
+
+        await User.findByIdAndUpdate(exchange.initiator, {
+            $push: { notifications: notification }
+        });
+
         return res.status(200).send({});
     } catch (e) {
         console.log(e);
