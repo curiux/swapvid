@@ -20,6 +20,7 @@ export default function Notifications() {
     const navigate = useNavigate();
     const [open, setOpen] = useState(false);
     const [isAuth, setIsAuth] = useState(false);
+    const [currentToken, setCurrentToken] = useState("");
     const [loading, setLoading] = useState(true);
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
@@ -29,19 +30,20 @@ export default function Notifications() {
         const checkAuth = () => {
             const token = localStorage.getItem("token");
             setIsAuth(token ? true : false);
-            if (token) getNotifications(token);
+            if (token && token != currentToken) setCurrentToken(token);
         }
         checkAuth();
     }, [location]);
 
     useEffect(() => {
+        if (!open) return;
         const token = localStorage.getItem("token");
         if (!token) {
             navigate("/");
         } else {
             getNotifications(token);
         }
-    }, [open]);
+    }, [open, currentToken]);
 
     const getNotifications = async (token: String) => {
         try {
@@ -106,7 +108,7 @@ export default function Notifications() {
         <Dialog open={open} onOpenChange={(open) => setOpen(open)}>
             <DialogTrigger asChild>
                 <div className="relative">
-                    <Button variant="ghost" className="cursor-pointer rounded-full">
+                    <Button variant="ghost" className="cursor-pointer rounded-full" aria-label="Mostrar notificaciones" data-testid="open">
                         <Bell />
                     </Button>
                     {unreadCount > 0 && (

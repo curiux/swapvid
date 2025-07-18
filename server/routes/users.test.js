@@ -1,45 +1,56 @@
 /**
- * Tests for the /me route of the server.
- * 
- * This file contains automated tests that verify the behavior of the user profile endpoint.
- * 
+ * Tests for the /me and /users routes of the server.
+ *
+ * This file contains automated tests that verify the behavior of user profile, video, exchange, and notification endpoints.
+ *
  * The tests cover the following cases:
+ *
  * GET /me:
  *   - Successful retrieval of user data with a valid token.
  *   - Fails if token is missing.
  *   - Fails if token is invalid.
  *   - Fails if user id in token is invalid.
- * 
+ *
  * DELETE /me:
  *   - Successful account deletion with a valid token.
  *   - Fails to delete if token is missing.
  *   - Fails to delete if token is invalid.
  *   - Fails to delete if user id in token is invalid.
- * 
+ *
  * POST /me/videos:
  *   - Fails if token is missing.
  *   - Fails if token is invalid.
  *   - Fails if video file is missing.
  *   - Successful upload with valid data (cloudinary mock).
- * 
+ *
  * GET /me/videos:
  *   - Successful retrieval of user videos with a valid token.
  *   - Fails if token is missing.
  *   - Fails if token is invalid.
- * 
+ *
  * GET /users/:id/videos:
  *   - Successful retrieval of specified user videos with a valid token.
  *   - Fails if user id is invalid.
  *   - Fails if user does not exist.
  *   - Fails if token is missing.
  *   - Fails if token is invalid.
- * 
+ *
  * GET /me/exchanges:
  *   - Successful retrieval of user exchanges with a valid token.
  *   - Fails if token is missing.
  *   - Fails if token is invalid.
  *   - Fails if user id in token is invalid.
- * 
+ *
+ * GET /me/notifications:
+ *   - Successful retrieval of user notifications with a valid token.
+ *   - Fails if token is missing.
+ *   - Fails if token is invalid.
+ *
+ * PATCH /me/notifications:
+ *   - Marks all user notifications as read with a valid token.
+ *   - Fails if token is missing.
+ *   - Fails if token is invalid.
+ *
  * After each test, all users are removed from the database to ensure a clean environment.
  */
 import request from "supertest";
@@ -53,7 +64,7 @@ import * as utilsModule from "../lib/utils.js";
 import Plan from "../models/Plan.js";
 
 // Mock sightEngineValidation to avoid real API calls
-vi.spyOn(utilsModule, "sightEngineValidation").mockImplementation(() => {});
+vi.spyOn(utilsModule, "sightEngineValidation").mockImplementation(() => { });
 
 let mongoServer;
 let userId;
@@ -68,7 +79,7 @@ beforeAll(async () => {
         uploader: {
             upload_stream: vi.fn((opts, cb) => {
                 cb(null, { secure_url: "http://cloudinary.com/video.mp4" });
-                return { end: () => {} };
+                return { end: () => { } };
             })
         }
     };
@@ -398,5 +409,115 @@ describe("GET /me/exchanges", () => {
         const res = await request(app).get("/users/me/exchanges").set("Authorization", `Bearer ${fakeToken}`);
         expect(res.statusCode).toBe(404);
         expect(res.body.error).toMatch(/no existe/i);
+    });
+});
+
+describe("Rutas de notificaciones", () => {
+    let Notification;
+    beforeAll(async () => {
+        Notification = (await import("../models/Notification.js")).default;
+    });
+
+    it("debería devolver las notificaciones del usuario autenticado", async () => {
+        const Video = (await import("../models/Video.js")).default;
+        const Exchange = (await import("../models/Exchange.js")).default;
+        // Crear videos y relacionarlos con el usuario
+        const video1 = await Video.create({
+            title: "Video test 1",
+            description: "Descripción de prueba 1",
+            category: "entertainment",
+            keywords: ["prueba"],
+            users: [userId],
+            hash: "hash1",
+            isSensitiveContent: false,
+            size: 12345,
+            duration: 100
+        });
+        const video2 = await Video.create({
+            title: "Video test 2",
+            description: "Descripción de prueba 2",
+            category: "education",
+            keywords: ["prueba"],
+            users: [userId],
+            hash: "hash2",
+            isSensitiveContent: false,
+            size: 12345,
+            duration: 100
+        });
+        await User.findByIdAndUpdate(userId, { $push: { videos: { $each: [video1._id, video2._id] } } });
+        // Crear intercambio relacionado
+        const exchange = await Exchange.create({
+            initiator: userId,
+            responder: userId,
+            initiatorVideo: video1._id,
+            responderVideo: video2._id,
+            status: "pending"
+        });
+        await User.findByIdAndUpdate(userId, { $push: { exchanges: exchange._id } });
+        // Crear notificación relacionada
+        const notification = await Notification.create({
+            user: userId,
+            type: "exchange_requested",
+            exchange: exchange._id,
+            isRead: false,
+            createdAt: new Date()
+        });
+        await User.findByIdAndUpdate(userId, { $push: { notifications: notification._id } });
+        const res = await request(app)
+            .get("/users/me/notifications")
+            .set("Authorization", `Bearer ${token}`);
+        expect(res.statusCode).toBe(200);
+        expect(Array.isArray(res.body.notifications)).toBe(true);
+        console.log(res.body.notifications)
+        expect(res.body.notifications[0].type).toBe("exchange_requested");
+    });
+
+    it("debería marcar todas las notificaciones como leídas", async () => {
+        const Video = (await import("../models/Video.js")).default;
+        const Exchange = (await import("../models/Exchange.js")).default;
+        const video1 = await Video.create({
+            title: "Video test 1",
+            description: "Descripción de prueba 1",
+            category: "entertainment",
+            keywords: ["prueba"],
+            users: [userId],
+            hash: "hash1",
+            isSensitiveContent: false,
+            size: 12345,
+            duration: 100
+        });
+        const video2 = await Video.create({
+            title: "Video test 2",
+            description: "Descripción de prueba 2",
+            category: "education",
+            keywords: ["prueba"],
+            users: [userId],
+            hash: "hash2",
+            isSensitiveContent: false,
+            size: 12345,
+            duration: 100
+        });
+        await User.findByIdAndUpdate(userId, { $push: { videos: { $each: [video1._id, video2._id] } } });
+        const exchange = await Exchange.create({
+            initiator: userId,
+            responder: userId,
+            initiatorVideo: video1._id,
+            responderVideo: video2._id,
+            status: "pending"
+        });
+        await User.findByIdAndUpdate(userId, { $push: { exchanges: exchange._id } });
+        await Notification.create({
+            user: userId,
+            type: "exchange_requested",
+            exchange: exchange._id,
+            isRead: false,
+            createdAt: new Date()
+        });
+        const res = await request(app)
+            .patch("/users/me/notifications")
+            .set("Authorization", `Bearer ${token}`);
+        expect(res.statusCode).toBe(200);
+        const notis = await Notification.find({ user: userId });
+        expect(notis.every(n => n.isRead)).toBe(true);
     });
 });
