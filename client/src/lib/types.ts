@@ -52,3 +52,8 @@ export interface Notification {
     createdAt: Date;
     message: string;
 }
+
+export interface UserData {
+    email: string;
+    username: string;
+}

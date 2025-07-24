@@ -48,6 +48,62 @@ router.get("/me", auth, async (req, res) => {
 });
 
 /**
+ * Updates the authenticated user's email, username, and optionally password.
+ * - Uses the 'auth' middleware to verify the JWT and extract the user ID.
+ * - Validates and updates the user's email, username, and password if provided.
+ * - Handles schema validation errors and duplicate email/username errors.
+ * - Returns 200 on success, 400 for validation errors, 409 for duplicates, 404 if user not found, and 500 for unexpected errors.
+ */
+router.patch("/me", auth, async (req, res) => {
+    try {
+        const user = await User.findById(req.userId);
+        if (!user) {
+            return res.status(404).send({
+                error: "El usuario no existe"
+            });
+        }
+
+        user.email = req.body.email;
+        user.username = req.body.username;
+
+        if (req.body.password) {
+            user.password = req.body.password;
+        }
+
+        await user.save();
+        res.status(200).send({});
+    } catch (e) {
+        // Schema validations
+        if (e.name == "ValidationError") {
+            let message = "";
+            for (const error in e.errors) {
+                message += e.errors[error].message + "\n";
+            }
+            res.status(400).send({ error: message });
+            // Data duplicated
+        } else if (e.name == "MongoServerError" && e.code == 11000) {
+            const attr = Object.keys(e.errorResponse.keyPattern)[0];
+            if (attr == "email") {
+                res.status(409).send({
+                    error: "Ya existe una cuenta con ese email.",
+                    field: "email"
+                });
+            } else if (attr == "username") {
+                res.status(409).send({
+                    error: "Ya existe una cuenta con ese nombre de usuario.",
+                    field: "username"
+                });
+            }
+        } else {
+            console.log(e);
+            res.status(500).send({
+                error: "Ha ocurrido un error inesperado"
+            });
+        }
+    }
+});
+
+/**
  * This route deletes the authenticated user's account and all related data.
  * - Uses the 'auth' middleware to verify the JWT and extract the user ID.
  * - If the user exists, deletes the user, their videos (from Cloudinary and DB), and their exchanges (removing references from other users).

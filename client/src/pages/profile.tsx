@@ -7,19 +7,23 @@ import { Link, useNavigate } from "react-router";
 import { preloadedPlans } from "./plans";
 import { toast } from "sonner";
 import CancelSubscriptionDialog from "@/components/cancel-subscription-dialog";
+import EditUserDataForm from "@/components/edit-userdata-form";
+import { type UserData } from "@/lib/types";
 
 /**
  * Profile page component
- * - Fetches and displays the current user's subscription plan and next billing date
- * - Handles authentication and error redirects
- * - Shows plan info and allows changing plan or deleting account
+ * - Fetches and displays the current user's profile, subscription plan, and next billing date
+ * - Handles authentication, session expiration, and error redirects
+ * - Shows plan info, allows changing plan, cancelling subscription, and deleting account
  * - Navigates to home and clears storage if user is unauthorized or not found
- * - Displays toast messages from localStorage
+ * - Displays toast messages from localStorage after certain actions
  * - Handles loading and error states
+ * - Uses EditUserDataForm for editing user data and CancelSubscriptionDialog for managing subscription
  */
 export default function Profile() {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
+    const [userData, setUserData] = useState<UserData>();
     const [plan, setPlan] = useState("");
     const [billingDate, setBillingDate] = useState<Date | undefined>();
     const [isCancelled, setIsCancelled] = useState(false);
@@ -60,6 +64,10 @@ export default function Profile() {
                 }
             } else {
                 setLoading(false);
+                setUserData({
+                    email: data.email,
+                    username: data.username
+                });
                 setPlan(data.subscription.plan);
                 setIsCancelled(data.isCancelled);
                 data.nextPaymentDate && setBillingDate(new Date(data.nextPaymentDate));
@@ -76,9 +84,11 @@ export default function Profile() {
     );
 
     return (
-        <div className="flex min-h-svh w-full items-center justify-center p-3 md:p-10">
+        <div className="flex min-h-svh w-full items-center justify-center p-3 pt-16 md:p-10 md:pt-32">
             <div className="flex flex-col gap-5 w-full max-w-lg">
                 <h1 className="text-3xl">Mi perfil</h1>
+                <Separator />
+                <EditUserDataForm userData={userData!} getUserData={getUserData} />
                 <Separator />
                 <div>
                     <div className="flex items-center justify-between mb-1">

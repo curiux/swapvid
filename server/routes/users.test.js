@@ -10,7 +10,16 @@
  *   - Fails if token is missing.
  *   - Fails if token is invalid.
  *   - Fails if user id in token is invalid.
- *
+ * 
+ * PATCH /me:
+ *   - Successful update of user data (email, username, password) with a valid token.
+ *   - Fails if token is missing.
+ *   - Fails if token is invalid.
+ *   - Fails if user id in token is invalid.
+ *   - Fails if email is already in use.
+ *   - Fails if username is already taken.
+ *   - Fails if email, username, or password is invalid.
+ * 
  * DELETE /me:
  *   - Successful account deletion with a valid token.
  *   - Fails to delete if token is missing.
@@ -50,6 +59,7 @@
  *   - Marks all user notifications as read with a valid token.
  *   - Fails if token is missing.
  *   - Fails if token is invalid.
+ *
  *
  * After each test, all users are removed from the database to ensure a clean environment.
  */
@@ -149,6 +159,144 @@ describe("GET /me", () => {
     it("debería fallar si el id del usuario en el token es inválido", async () => {
         const fakeToken = generateToken({ _id: new mongoose.Types.ObjectId() });
         const res = await request(app).get("/users/me").set("Authorization", `Bearer ${fakeToken}`);
+        expect(res.statusCode).toBe(404);
+        expect(res.body.error).toMatch(/no existe/i);
+    });
+});
+
+describe("PATCH /me", () => {
+    it("debería actualizar email y username con datos válidos", async () => {
+        const res = await request(app)
+            .patch("/users/me")
+            .set("Authorization", `Bearer ${token}`)
+            .send({
+                email: "nuevo@example.com",
+                username: "nuevo123"
+            });
+        expect(res.statusCode).toBe(200);
+        const user = await User.findById(userId);
+        expect(user.email).toBe("nuevo@example.com");
+        expect(user.username).toBe("nuevo123");
+    });
+
+    it("debería actualizar la contraseña si se envía", async () => {
+        const res = await request(app)
+            .patch("/users/me")
+            .set("Authorization", `Bearer ${token}`)
+            .send({
+                email: "test@example.com",
+                username: "usuario123",
+                password: "NuevaPassword123!"
+            });
+        expect(res.statusCode).toBe(200);
+        const user = await User.findById(userId);
+        expect(user.password).not.toBe("Password123!");
+    });
+
+    it("debería fallar si el email es inválido", async () => {
+        const res = await request(app)
+            .patch("/users/me")
+            .set("Authorization", `Bearer ${token}`)
+            .send({
+                email: "bademail",
+                username: "usuario123"
+            });
+        expect(res.statusCode).toBe(400);
+        expect(res.body.error).toMatch(/email/i);
+    });
+
+    it("debería fallar si el username es inválido", async () => {
+        const res = await request(app)
+            .patch("/users/me")
+            .set("Authorization", `Bearer ${token}`)
+            .send({
+                email: "test@example.com",
+                username: "a"
+            });
+        expect(res.statusCode).toBe(400);
+        expect(res.body.error).toMatch(/usuario/i);
+    });
+
+    it("debería fallar si la contraseña es inválida", async () => {
+        const res = await request(app)
+            .patch("/users/me")
+            .set("Authorization", `Bearer ${token}`)
+            .send({
+                email: "test@example.com",
+                username: "usuario123",
+                password: "123"
+            });
+        expect(res.statusCode).toBe(400);
+        expect(res.body.error).toMatch(/contraseña/i);
+    });
+
+    it("debería fallar si el email ya existe", async () => {
+        // Crea otro usuario con el mismo email
+        await User.create({
+            email: "duplicado@example.com",
+            username: "otro123",
+            password: "Password123!"
+        });
+        const res = await request(app)
+            .patch("/users/me")
+            .set("Authorization", `Bearer ${token}`)
+            .send({
+                email: "duplicado@example.com",
+                username: "usuario123"
+            });
+        expect(res.statusCode).toBe(409);
+        expect(res.body.error).toMatch(/email/i);
+    });
+
+    it("debería fallar si el username ya existe", async () => {
+        await User.create({
+            email: "otro@example.com",
+            username: "duplicado",
+            password: "Password123!"
+        });
+        const res = await request(app)
+            .patch("/users/me")
+            .set("Authorization", `Bearer ${token}`)
+            .send({
+                email: "test@example.com",
+                username: "duplicado"
+            });
+        expect(res.statusCode).toBe(409);
+        expect(res.body.error).toMatch(/usuario/i);
+    });
+
+    it("debería fallar si falta el token", async () => {
+        const res = await request(app)
+            .patch("/users/me")
+            .send({
+                email: "nuevo@example.com",
+                username: "nuevo123"
+            });
+        expect(res.statusCode).toBe(401);
+        expect(res.body.error).toBeDefined();
+    });
+
+    it("debería fallar si el token es inválido", async () => {
+        const res = await request(app)
+            .patch("/users/me")
+            .set("Authorization", "Bearer tokeninvalido")
+            .send({
+                email: "nuevo@example.com",
+                username: "nuevo123"
+            });
+        expect(res.statusCode).toBe(401);
+        expect(res.body.error).toBeDefined();
+    });
+
+    it("debería fallar si el id del usuario en el token es inválido", async () => {
+        const fakeToken = generateToken({ _id: new mongoose.Types.ObjectId() });
+        const res = await request(app)
+            .patch("/users/me")
+            .set("Authorization", `Bearer ${fakeToken}`)
+            .send({
+                email: "nuevo@example.com",
+                username: "nuevo123"
+            });
         expect(res.statusCode).toBe(404);
         expect(res.body.error).toMatch(/no existe/i);
     });

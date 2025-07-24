@@ -55,14 +55,14 @@ beforeEach(() => {
 
 describe("Notifications", () => {
     it("no se muestra si no está autenticado", () => {
-        render(<Notifications />, { wrapper: MemoryRouter });
+        render(<Notifications isMobile={false} />, { wrapper: MemoryRouter });
         expect(screen.queryByRole("dialog")).toBeNull();
     });
 
     it("muestra el spinner de carga mientras obtiene datos", async () => {
         localStorage.setItem("token", "tok123");
         mockFetch.mockImplementation(() => new Promise(() => {})); // never resolves
-        render(<Notifications />, { wrapper: MemoryRouter });
+        render(<Notifications isMobile={false} />, { wrapper: MemoryRouter });
         fireEvent.click(screen.getAllByTestId("open")[0]);
         await waitFor(() => {
             expect(screen.getByTestId("loading")).toBeTruthy();
@@ -74,7 +74,7 @@ describe("Notifications", () => {
         mockFetch.mockResolvedValue({
             json: async () => ({ notifications: [], unreadCount: 0 }),
         } as any);
-        render(<Notifications />, { wrapper: MemoryRouter });
+        render(<Notifications isMobile={false} />, { wrapper: MemoryRouter });
         fireEvent.click(screen.getAllByTestId("open")[0]);
         await waitFor(() => {
             expect(screen.getByText(/No tienes notificaciones/i)).toBeTruthy();
@@ -97,7 +97,7 @@ describe("Notifications", () => {
                 unreadCount: 1
             }),
         } as any);
-        render(<Notifications />, { wrapper: MemoryRouter });
+        render(<Notifications isMobile={false} />, { wrapper: MemoryRouter });
         fireEvent.click(screen.getAllByTestId("open")[0]);
         await waitFor(() => {
             expect(screen.getByText(/Usuario te ha enviado/i)).toBeTruthy();
@@ -111,7 +111,7 @@ describe("Notifications", () => {
             status: 401,
             json: async () => ({ error: "Unauthorized" }),
         } as any);
-        render(<Notifications />, { wrapper: MemoryRouter });
+        render(<Notifications isMobile={false} />, { wrapper: MemoryRouter });
         fireEvent.click(screen.getAllByTestId("open")[0]);
         await waitFor(() => {
             expect(mockNavigate).toHaveBeenCalledWith("/");
@@ -124,7 +124,7 @@ describe("Notifications", () => {
             status: 400,
             json: async () => ({ error: "Backend error" }),
         } as any);
-        render(<Notifications />, { wrapper: MemoryRouter });
+        render(<Notifications isMobile={false} />, { wrapper: MemoryRouter });
         fireEvent.click(screen.getAllByTestId("open")[0]);
         await waitFor(() => {
             expect(mockNavigate).toHaveBeenCalledWith(expect.stringMatching(/\/error/));

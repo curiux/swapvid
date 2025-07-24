@@ -90,7 +90,7 @@ export default function Navbar() {
                         </NavigationMenu>
                     </div>
                     <div className="flex items-center gap-2">
-                        <Notifications />
+                        <Notifications isMobile={false} />
                         <AuthButtons closeSheet={closeSheet} isMobile={false} />
                         <ChangeThemeIcon />
                     </div>
@@ -146,11 +146,9 @@ export default function Navbar() {
 
                                     <div className="flex flex-col gap-3">
                                         <AuthButtons closeSheet={closeSheet} isMobile={true} />
-                                        <div className="grid grid-cols-3 gap-2">
-                                            <Notifications />
-                                            <div className="grid col-span-2">
-                                                <ChangeThemeIcon />
-                                            </div>
+                                        <Notifications isMobile={true} />
+                                        <div className="grid col-span-3 md:col-span-2">
+                                            <ChangeThemeIcon />
                                         </div>
                                     </div>
                                 </div>

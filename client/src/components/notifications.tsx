@@ -13,10 +13,11 @@ import { Badge } from "./ui/badge";
 /**
  * Notifications component
  * - Displays a dialog with the user's notifications, including unread count and notification details.
- * - Fetches notifications from the API, handles authentication, and error states.
- * - Allows marking all notifications as read and navigating to related pages.
+ * - Fetches notifications from the API, handles authentication, session expiration, and error states.
+ * - Allows marking all notifications as read, marking individual notifications as read, and navigating to related pages.
+ * - Handles mobile/desktop UI and updates notification state on user actions.
  */
-export default function Notifications() {
+export default function Notifications({ isMobile }: { isMobile: boolean }) {
     const navigate = useNavigate();
     const [open, setOpen] = useState(false);
     const [isAuth, setIsAuth] = useState(false);
@@ -107,16 +108,20 @@ export default function Notifications() {
     return (
         <Dialog open={open} onOpenChange={(open) => setOpen(open)}>
             <DialogTrigger asChild>
-                <div className="relative">
-                    <Button variant="ghost" className="cursor-pointer rounded-full" aria-label="Mostrar notificaciones" data-testid="open">
+                <Button
+                    variant={isMobile ? "outline" : "ghost"}
+                    className="cursor-pointer min-w-full lg:rounded-full lg:min-w-0"
+                    aria-label="Mostrar notificaciones"
+                    data-testid="open">
+                    <div className="relative">
                         <Bell />
-                    </Button>
-                    {unreadCount > 0 && (
-                        <Badge className="absolute -top-1 -right-1 rounded-full px-1.5 py-0 text-xs">
-                            {unreadCount}
-                        </Badge>
-                    )}
-                </div>
+                        {unreadCount > 0 && (
+                            <Badge className="absolute -top-3 -right-4 rounded-full px-1.5 py-0 text-xs">
+                                {unreadCount}
+                            </Badge>
+                        )}
+                    </div>
+                </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[525px]">
                 <DialogHeader>
