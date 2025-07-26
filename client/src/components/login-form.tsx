@@ -132,6 +132,9 @@ export default function LoginForm() {
                                         </div>
                                     </FormControl>
                                     <FormMessage />
+                                    <Link to="/recuperar-contrasena" className="text-sm font-semibold">
+                                        ¿Olvidaste tu contraseña?
+                                    </Link>
                                 </FormItem>
                             )}
                         />

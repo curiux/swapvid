@@ -21,6 +21,8 @@ const { Schema, model } = mongoose;
  *     - value: The user's average rating (number).
  *     - count: The number of ratings received (number).
  * - notifications: Array of references to Notification documents for the user.
+ * - resetToken: String used for password reset operations.
+ * - resetTokenExpires: Date indicating when the reset token expires.
  *
  * Middleware:
  * - Pre-save hook hashes the password using bcrypt before saving, only if the password is new or modified.
@@ -75,6 +77,8 @@ const userSchema = new Schema({
         }
     },
     notifications: [{ type: mongoose.Schema.Types.ObjectId, ref: "Notification" }],
+    resetToken: { type: String },
+    resetTokenExpires: { type: Date }
 });
 
 const SALT_ROUNDS = 10;

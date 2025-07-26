@@ -9,7 +9,6 @@ import { toast } from "sonner";
  * Uses the ExchangeList component to render all exchanges.
  */
 export default function MyExchanges() {
-
     useEffect(() => {
         const msg = localStorage.getItem("msg");
         if (msg) {

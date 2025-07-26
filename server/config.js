@@ -22,3 +22,5 @@ cloudinary.config({
 export { cloudinary };
 
 export const MP_ACCESS_TOKEN = process.env.MP_ACCESS_TOKEN;
+
+export const MAILGUN_API_KEY = process.env.MAILGUN_API_KEY;

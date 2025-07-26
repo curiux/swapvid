@@ -11,6 +11,8 @@ import exchanges from "./routes/exchanges.js";
 import ratings from "./routes/ratings.js";
 import plans from "./routes/plans.js";
 import subscriptions from "./routes/subscriptions.js";
+import forgotPassword from "./routes/forgot-password.js";
+import resetPassword from "./routes/reset-password.js";
 
 const app = express();
 
@@ -26,6 +28,8 @@ app.use("/exchanges", exchanges);
 app.use("/ratings", ratings);
 app.use("/plans", plans);
 app.use("/subscriptions", subscriptions);
+app.use("/forgot-password", forgotPassword);
+app.use("/reset-password", resetPassword);
 
 mongoose.connect(MONGODB_URI);
 

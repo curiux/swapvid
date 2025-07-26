@@ -22,6 +22,8 @@ import Exchange from "./pages/collection/exchange.tsx";
 import Rating from "./pages/collection/rating.tsx";
 import Plans from "./pages/plans.tsx";
 import Search from "./pages/search.tsx";
+import PasswordRecover from "./pages/password-recover.tsx";
+import PasswordReset from "./pages/password-reset.tsx";
 
 const router = createBrowserRouter([
   {
@@ -55,6 +57,8 @@ const router = createBrowserRouter([
       },
       { path: "planes", element: <Plans /> },
       { path: "buscar", element: <Search /> },
+      { path: "recuperar-contrasena", element: <PasswordRecover /> },
+      { path: "cambiar-contrasena", element: <PasswordReset /> },
       { path: "*", element: <NotFound /> }
     ]
   }
