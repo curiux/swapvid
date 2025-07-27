@@ -13,6 +13,8 @@ import plans from "./routes/plans.js";
 import subscriptions from "./routes/subscriptions.js";
 import forgotPassword from "./routes/forgot-password.js";
 import resetPassword from "./routes/reset-password.js";
+import sendEmailLink from "./routes/send-email-link.js";
+import verifyEmail from "./routes/verify-email.js";
 
 const app = express();
 
@@ -30,6 +32,8 @@ app.use("/plans", plans);
 app.use("/subscriptions", subscriptions);
 app.use("/forgot-password", forgotPassword);
 app.use("/reset-password", resetPassword);
+app.use("/send-email-link", sendEmailLink);
+app.use("/verify-email", verifyEmail);
 
 mongoose.connect(MONGODB_URI);
 

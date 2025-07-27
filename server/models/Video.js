@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { videoCategoryIds } from "../lib/utils.js";
+import { videoCategoryIds } from "../lib/constants.js";
 import { cloudinary } from "../config.js";
 
 const { Schema, model } = mongoose;

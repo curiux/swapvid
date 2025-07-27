@@ -1,6 +1,7 @@
 import { Router } from "express";
 import User from "../models/User.js";
 import { generateToken } from "../lib/jwt.js";
+import { sendVerificationEmail } from "../lib/utils.js";
 
 const router = Router();
 
@@ -22,8 +23,13 @@ router.post("/", async (req, res) => {
         if (user) {
             const isMatch = await user.comparePassword(req.body.password);
             if (isMatch) {
-                const token = generateToken({ _id: user._id });
-                return res.status(200).send({ token });
+                if (user.isVerified) {
+                    const token = generateToken({ _id: user._id });
+                    return res.status(200).send({ token });
+                } else {
+                    await sendVerificationEmail(user);
+                    return res.status(200).send({ verifyEmail: true, email: user.email });
+                }
             }
         }
         res.status(401).send({ error: "Credenciales incorrectas" });

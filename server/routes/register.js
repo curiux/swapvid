@@ -1,7 +1,7 @@
 import { Router } from "express";
 import User from "../models/User.js";
 import Plan from "../models/Plan.js";
-import { generateToken } from "../lib/jwt.js";
+import { sendVerificationEmail } from "../lib/utils.js";
 
 const router = Router();
 
@@ -26,8 +26,10 @@ router.post("/", async (req, res) => {
                 plan: basicPlan._id
             }
         });
-        const token = generateToken({ _id: user._id });
-        res.status(201).send({ token });
+
+        await sendVerificationEmail(user);
+
+        res.status(201).send({ email: user.email });
     } catch (e) {
         // Schema validations
         if (e.name == "ValidationError") {

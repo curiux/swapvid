@@ -97,8 +97,8 @@ export default function RegisterForm() {
                     form.setError("root", { message: data.error });
                 }
             } else {
-                localStorage.setItem("token", data.token);
-                navigate("/");
+                localStorage.setItem("email", data.email);
+                navigate("/verificar-email");
             }
         } catch (e) {
             form.setError("root", { message: "Ha ocurrido un error inesperado." });

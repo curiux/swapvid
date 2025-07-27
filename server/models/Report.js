@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
-import { reportReasons, validateExists } from "../lib/utils.js";
+import { reportReasons } from "../lib/constants.js";
+import { validateExists } from "../lib/utils.js";
 
 /**
  * Mongoose schema for the Report model.

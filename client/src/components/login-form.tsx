@@ -69,8 +69,13 @@ export default function LoginForm() {
             if (data.error) {
                 form.setError("root", { message: data.error });
             } else {
-                localStorage.setItem("token", data.token);
-                navigate("/");
+                if (data.token) {
+                    localStorage.setItem("token", data.token);
+                    navigate("/");
+                } else {
+                    localStorage.setItem("email", data.email);
+                    navigate("/verificar-email");
+                }
             }
         } catch (e) {
             form.setError("root", { message: "Ha ocurrido un error inesperado." });

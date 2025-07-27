@@ -1,52 +1,14 @@
-export const videoCategoryIds = [
-    "entertainment",
-    "education",
-    "sports",
-    "music",
-    "science_technology",
-    "comedy",
-    "fashion_beauty",
-    "travel_adventure",
-    "gaming",
-    "news_politics",
-    "cooking_gastronomy",
-    "art_design",
-    "animation_shortfilms",
-    "health_fitness",
-    "vlogs_lifestyle",
-    "tutorials",
-    "movies_series",
-    "events_conferences",
-    "pets_animals",
-    "automobiles_mechanics",
-    "other"
-];
-
-export const reportReasons = [
-    "inappropriate_unmarked",
-    "irrelevant_or_empty",
-    "unauthorized_content",
-    "duplicate_video",
-    "other"
-];
-
-export const plans = {
-    basic: "Básico",
-    advanced: "Avanzado",
-    premium: "Premium"
-}
-
-export const ITEMS_PER_PAGE = 5;
-
 import multer from "multer";
 
 const storage = multer.memoryStorage();
 export const upload = multer({ storage });
 
-import { HOST, MP_ACCESS_TOKEN, SIGHTENGINE_API_SECRET } from "../config.js";
+import { HOST, MAILGUN_API_KEY, MP_ACCESS_TOKEN, SIGHTENGINE_API_SECRET } from "../config.js";
 import { Readable } from "stream";
 import axios from "axios";
+import crypto from "crypto";
 import FormData from "form-data";
+import Mailgun from "mailgun.js";
 import mongoose from "mongoose";
 import streamifier from "streamifier";
 import ffmpeg from "fluent-ffmpeg";
@@ -332,3 +294,48 @@ export function getDuration(buffer) {
         });
     });
 };
+
+export async function sendVerificationEmail(user) {
+    if (user.verifyToken && user.verifyTokenExpires >= new Date()) return;
+
+    const token = crypto.randomBytes(32).toString("hex");
+    user.verifyToken = token;
+    user.verifyTokenExpires = Date.now() + 60 * 60 * 1000;
+
+    await user.save();
+
+    const link = HOST + "/verificar-email?token=" + token;
+
+    const mailgun = new Mailgun(FormData);
+    const mg = mailgun.client({
+        username: "api",
+        key: MAILGUN_API_KEY
+    });
+    try {
+        await mg.messages.create("sandbox473b7fbf11a34b63bd471d5f5b8286f5.mailgun.org", {
+            from: "SwapVid <postmaster@sandbox473b7fbf11a34b63bd471d5f5b8286f5.mailgun.org>",
+            to: ["brunocsx32@gmail.com"],
+            subject: "Verificá tu cuenta en SwapVid",
+            html: `
+                <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                    <h2>Confirma tu dirección de correo</h2>
+                    <p>Hola ${user.username},</p>
+                    <p>Gracias por registrarte en <strong>SwapVid</strong>. Para completar tu registro, necesitamos que confirmes tu dirección de correo electrónico.</p>
+                    <p>Haz clic en el siguiente botón o copia y pega el enlace en tu navegador para verificar tu cuenta:</p>
+                    <p>
+                    <a href="${link}" style="display: inline-block; background-color: #0f182b; color: #fff; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+                        Verificar cuenta
+                    </a>
+                    </p>
+                    <p>O usa este enlace:</p>
+                    <p><a href="${link}">${link}</a></p>
+                    <p>Este enlace expirará en 1 hora por motivos de seguridad.</p>
+                    <p>Si no creaste una cuenta en SwapVid, puedes ignorar este correo.</p>
+                    <p>Gracias,<br>El equipo de SwapVid</p>
+                </div>
+            `
+        });
+    } catch (error) {
+        console.log(error);
+    }
+}

@@ -4,7 +4,8 @@ import Exchange from "../models/Exchange.js";
 import User from "../models/User.js";
 import Video from "../models/Video.js";
 import Rating from "../models/Rating.js";
-import { plans, validateSubscription } from "../lib/utils.js";
+import { plans } from "../lib/constants.js";
+import { validateSubscription } from "../lib/utils.js";
 import Report from "../models/Report.js";
 import Notification from "../models/Notification.js";
 

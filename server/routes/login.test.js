@@ -34,6 +34,7 @@ beforeAll(async () => {
 
 beforeEach(async () => {
     await User.create({
+        isVerified: true,
         email: "test@example.com",
         username: "usuario123",
         password: "Password123!"

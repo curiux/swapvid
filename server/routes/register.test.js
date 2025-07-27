@@ -4,7 +4,7 @@
  * This file contains automated tests that verify the behavior of the user registration endpoint.
  * 
  * The tests cover the following cases:
- * - Successful registration of a new user, expecting a token in the response.
+ * - Successful registration of a new user, expecting the user's email for sending a verification email.
  * - Fails if email is missing.
  * - Fails if the email is already registered.
  * - Fails if username is missing.
@@ -69,7 +69,7 @@ describe("POST /register", () => {
         });
 
         expect(res.statusCode).toBe(201);
-        expect(res.body.token).toBeDefined();
+        expect(res.body.email).toBeDefined();
     });
 
     it("debería fallar si falta el email", async () => {

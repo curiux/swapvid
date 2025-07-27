@@ -78,7 +78,10 @@ const userSchema = new Schema({
     },
     notifications: [{ type: mongoose.Schema.Types.ObjectId, ref: "Notification" }],
     resetToken: { type: String },
-    resetTokenExpires: { type: Date }
+    resetTokenExpires: { type: Date },
+    isVerified: { type: Boolean, default: false },
+    verifyToken: { type: String },
+    verifyTokenExpires: { type: Date }
 });
 
 const SALT_ROUNDS = 10;

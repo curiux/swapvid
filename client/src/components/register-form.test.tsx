@@ -4,7 +4,7 @@
  * This file contains automated tests that verify the following behaviors:
  * - The registration form renders all required fields and the submit button.
  * - Validation errors are shown when the form is incomplete or passwords do not match.
- * - Successful form submission triggers a redirect to the main page.
+ * - Successful form submission triggers a redirect to the verify email page.
  * - Backend errors are displayed appropriately to the user.
  * 
  * Mocks are used for navigation, fetch requests, ResizeObserver and window.matchMedia to isolate component logic.
@@ -99,7 +99,7 @@ describe("RegisterForm", () => {
         });
     });
 
-    it("envía los datos correctamente y redirige a la página principal", async () => {
+    it("envía los datos correctamente y redirige a la página para verificar el email", async () => {
         // Mock fetch
         global.fetch = vi.fn(() =>
             Promise.resolve({
@@ -126,7 +126,7 @@ describe("RegisterForm", () => {
         fireEvent.click(screen.getAllByRole("button", { name: /registrarse/i })[0]);
 
         await waitFor(() => {
-            expect(mockNavigate).toHaveBeenCalledWith("/");
+            expect(mockNavigate).toHaveBeenCalledWith("/verificar-email");
         });
     });
 

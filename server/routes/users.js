@@ -6,7 +6,8 @@ import Exchange from "../models/Exchange.js";
 import Notification from "../models/Notification.js";
 import auth from "../middleware/auth.js";
 import { cloudinary } from "../config.js";
-import { formatBytes, getDuration, ITEMS_PER_PAGE, plans, sightEngineValidation, upload, validateSubscription } from "../lib/utils.js";
+import { ITEMS_PER_PAGE, plans } from "../lib/constants.js";
+import { formatBytes, getDuration, sightEngineValidation, upload, validateSubscription } from "../lib/utils.js";
 import streamifier from "streamifier";
 import crypto from "crypto";
 
