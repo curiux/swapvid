@@ -15,6 +15,7 @@ import forgotPassword from "./routes/forgot-password.js";
 import resetPassword from "./routes/reset-password.js";
 import sendEmailLink from "./routes/send-email-link.js";
 import verifyEmail from "./routes/verify-email.js";
+import statistics from "./routes/statistics.js";
 
 const app = express();
 
@@ -34,6 +35,7 @@ app.use("/forgot-password", forgotPassword);
 app.use("/reset-password", resetPassword);
 app.use("/send-email-link", sendEmailLink);
 app.use("/verify-email", verifyEmail);
+app.use("/statistics", statistics);
 
 mongoose.connect(MONGODB_URI);
 

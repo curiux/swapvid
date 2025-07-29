@@ -4,7 +4,7 @@ import Video from "../models/Video.js";
 import auth from "../middleware/auth.js";
 import { cloudinary } from "../config.js";
 import { ITEMS_PER_PAGE } from "../lib/constants.js";
-import { cancelPendingExchanges, sightEngineValidation } from "../lib/utils.js";
+import { addVideoView, cancelPendingExchanges, sightEngineValidation } from "../lib/utils.js";
 import axios from "axios";
 import Exchange from "../models/Exchange.js";
 import { verifyToken } from "../lib/jwt.js";
@@ -125,7 +125,7 @@ router.get("/:id", async (req, res) => {
             }
         }
 
-        const video = await Video.findById(req.params.id).populate("users");
+        const video = await Video.findById(req.params.id);
         if (!video) {
             return res.status(404).send({
                 error: "El video no existe",
@@ -146,6 +146,8 @@ router.get("/:id", async (req, res) => {
                 });
             }
             videoData.url = await video.createPreviewUrl();
+            const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
+            addVideoView(video._id, ip);
         } else {
             videoData.url = video.createSecureUrl();
         }

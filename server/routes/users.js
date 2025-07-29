@@ -315,12 +315,15 @@ router.get("/me/videos", auth, async (req, res) => {
         const storageLimit = user.subscription.plan.libraryStorage;
         const libraryMaxSize = user.subscription.plan.librarySize;
 
+        const hasStats = user.subscription.plan.name != "basic";
+
         return res.status(200).send({
             videos,
             totalPages,
             storageUsed,
             storageLimit,
-            libraryMaxSize
+            libraryMaxSize,
+            hasStats
         });
     } catch (e) {
         console.log(e);

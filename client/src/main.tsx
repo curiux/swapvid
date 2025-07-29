@@ -25,6 +25,7 @@ import Search from "./pages/search.tsx";
 import PasswordRecover from "./pages/password-recover.tsx";
 import PasswordReset from "./pages/password-reset.tsx";
 import VerifyEmail from "./pages/verify-email.tsx";
+import Statistics from "./pages/collection/statistics.tsx";
 
 const router = createBrowserRouter([
   {
@@ -48,7 +49,8 @@ const router = createBrowserRouter([
               { path: "calificar/:id", element: <Rating /> }
             ]
           },
-          { path: "intercambios/:id", element: <Exchange /> }
+          { path: "intercambios/:id", element: <Exchange /> },
+          { path: "estadisticas", element: <Statistics /> }
         ]
       },
       {

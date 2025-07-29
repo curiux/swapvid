@@ -20,6 +20,7 @@ import Video from "../models/Video.js";
 import Rating from "../models/Rating.js";
 import User from "../models/User.js";
 import Exchange from "../models/Exchange.js";
+import VideoView from "../models/VideoView.js";
 
 /**
  * Handles video content moderation using the Sightengine API.
@@ -295,6 +296,14 @@ export function getDuration(buffer) {
     });
 };
 
+/**
+ * Sends a verification email to the user with a unique token link.
+ * Generates a new token if one does not exist or is expired, saves it to the user,
+ * and sends an email with a verification link using Mailgun.
+ *
+ * @param {object} user - The user object to send the verification email to. Must have username and email fields.
+ * @returns {Promise<void>}
+ */
 export async function sendVerificationEmail(user) {
     if (user.verifyToken && user.verifyTokenExpires >= new Date()) return;
 
@@ -337,5 +346,23 @@ export async function sendVerificationEmail(user) {
         });
     } catch (error) {
         console.log(error);
+    }
+}
+
+/**
+ * Adds a view to a video if it hasn't been viewed from the same IP before.
+ * Checks for an existing view by video ID and IP address.
+ * If no view exists, creates a new view and increments the video's view count.
+ *
+ * @param {string} videoId - The ID of the video to add a view to.
+ * @param {string} ip - The IP address of the viewer.
+ * @returns {Promise<void>}
+ */
+export async function addVideoView(videoId, ip) {
+    const existingView = await VideoView.findOne({ videoId, ip });
+
+    if (!existingView) {
+        await VideoView.create({ videoId, ip });
+        await Video.findByIdAndUpdate(videoId, { $inc: { views: 1 } });
     }
 }

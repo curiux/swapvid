@@ -7,6 +7,8 @@ import { toast } from "sonner";
 import Pagination from "../pagination";
 import SemiCircle from "../semi-circle";
 import { Separator } from "../ui/separator";
+import { Button } from "../ui/button";
+import { ChartArea } from "lucide-react";
 
 /**
  * VideoLibrary component
@@ -28,6 +30,7 @@ export default function VideoLibrary() {
         storageLimit: 0
     });
     const [libraryMaxSize, setLibraryMaxSize] = useState(0);
+    const [hasStats, setHasStats] = useState(false);
 
     useEffect(() => {
         const token = localStorage.getItem("token");
@@ -66,6 +69,7 @@ export default function VideoLibrary() {
                     storageLimit: data.storageLimit
                 });
                 setLibraryMaxSize(data.libraryMaxSize);
+                setHasStats(data.hasStats);
                 setLoading(false);
             }
         } catch (e) {
@@ -81,13 +85,24 @@ export default function VideoLibrary() {
 
     return (
         <div className="flex flex-col gap-6">
-            <div className="flex flex-col gap-3 items-start">
-                <div className="rounded-md p-3 shadow-md dark:bg-muted">
-                    <SemiCircle storage={storage} />
+            <div className="flex flex-col gap-4 items-start justify-between md:flex-row">
+                <div className="flex flex-col gap-3 items-start">
+                    <div className="rounded-md p-3 shadow-md dark:bg-muted">
+                        <SemiCircle storage={storage} />
+                    </div>
+                    <p className="text-muted-foreground text-xs font-semibold">
+                        Cantidad de videos: {videos.length} / {libraryMaxSize} máx.
+                    </p>
                 </div>
-                <p className="text-muted-foreground text-xs font-semibold">
-                    Cantidad de videos: {videos.length} / {libraryMaxSize} máx.
-                </p>
+
+                {hasStats && (
+                    <Button asChild variant="outline" aria-label="Estadísticas">
+                    <Link to="/mi-coleccion/estadisticas">
+                        <ChartArea />
+                        Estadísticas
+                    </Link>
+                </Button>
+                )}
             </div>
             <Separator />
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 lg:gap-8">
