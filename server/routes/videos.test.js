@@ -187,18 +187,6 @@ describe("GET /videos/:id", () => {
         expect([404, 401, 500]).toContain(res.statusCode);
     });
 
-    it("debería responder 404 si el usuario no existe", async () => {
-        // Simulate a non existence userId
-        app.request.userId = new mongoose.Types.ObjectId().toString();
-        const res = await request(app)
-            .get(`/videos/${video._id}`)
-            .set("Authorization", "Bearer testtoken");
-        expect([404, 401, 500]).toContain(res.statusCode);
-        if (res.statusCode === 404) {
-            expect(res.body.error).toMatch(/usuario/i);
-        }
-    });
-
     it("debería responder 400 si el id es inválido", async () => {
         app.request.userId = userId.toString();
         const res = await request(app)

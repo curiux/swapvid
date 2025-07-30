@@ -7,6 +7,12 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 
+/**
+ * Statistics page
+ * - Displays an overview of user statistics including total video views and exchanges.
+ * - Uses ExchangesStats and VideoListStats components to render detailed statistics.
+ * - Fetches data from the backend and handles loading and error states.
+ */
 export default function Statistics() {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);

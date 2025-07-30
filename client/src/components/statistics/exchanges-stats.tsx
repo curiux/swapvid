@@ -39,6 +39,12 @@ type PieLabelProps = PieSectorData &
 const RADIAN = Math.PI / 180;
 const COLORS = ["#00c951", "#f0b100", "#fb2c36"];
 
+/**
+ * renderCustomizedLabel function
+ * - Customizes the labels displayed on the pie chart.
+ * - Calculates the position of the label based on the midAngle and radius.
+ * - Displays the percentage value if it is greater than 0.
+ */
 const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: PieLabelProps) => {
     const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
     const x = cx + radius * Math.cos(-(midAngle ?? 0) * RADIAN);
@@ -53,6 +59,12 @@ const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, per
     );
 };
 
+/**
+ * ExchangesStats component
+ * - Displays statistics about exchanges including total exchanges and their statuses.
+ * - Renders a pie chart to visually represent the distribution of accepted, pending, and rejected exchanges.
+ * - Uses recharts for rendering the pie chart and custom labels.
+ */
 export default function ExchangesStats({ totalExchanges, exchangeCounts }: {
     totalExchanges: number, exchangeCounts: {
         pending: number,

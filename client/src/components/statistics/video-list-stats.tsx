@@ -15,6 +15,12 @@ interface Video {
     exchangesCount?: number;
 }
 
+/**
+ * VideoListStats component
+ * - Displays statistics for videos based on a specific stat type.
+ * - Allows users to search for a video or view top videos by the selected stat.
+ * - Handles loading and displaying video-specific statistics dynamically.
+ */
 export default function VideoListStats({ statName, topVideos, videos, statsType }:
     { statName: string, topVideos: Video[], videos: Video[], statsType: string }) {
     const navigate = useNavigate();
@@ -66,6 +72,11 @@ export default function VideoListStats({ statName, topVideos, videos, statsType 
     );
 }
 
+/**
+ * VideoItem component
+ * - Renders a single video item with its associated statistics.
+ * - Displays the video thumbnail, title, and the selected statistic value.
+ */
 function VideoItem({ video, statName, statsType }: { video: Video, statName: string, statsType?: string }) {
     console.log(video)
     return (
@@ -89,6 +100,11 @@ function VideoItem({ video, statName, statsType }: { video: Video, statName: str
     );
 }
 
+/**
+ * VideoSearch component
+ * - Provides a searchable dropdown to select a video.
+ * - Triggers the loading of video statistics when a video is selected.
+ */
 function VideoSearch({ videos, loadVideoStats }: { videos: Video[], loadVideoStats: (id: string) => void }) {
     const [open, setOpen] = useState(false);
     const [value, setValue] = useState("");

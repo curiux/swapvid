@@ -6,6 +6,13 @@ import Exchange from "../models/Exchange.js";
 
 const router = Router();
 
+/**
+ * Retrieves user statistics.
+ * - Requires authentication via the 'auth' middleware.
+ * - Checks if the user exists and has a subscription plan other than 'basic'.
+ * - Returns total video views, total exchanges, exchange counts by status, top videos, and a list of all videos.
+ * - Returns 404 if the user does not exist, 403 if access is denied, or 500 for unexpected errors.
+ */
 router.get("/", auth, async (req, res) => {
     try {
         const user = await User.findById(req.userId).populate("subscription.plan");
@@ -122,6 +129,13 @@ router.get("/", auth, async (req, res) => {
     }
 });
 
+/**
+ * Retrieves statistics for a specific video.
+ * - Requires authentication via the 'auth' middleware.
+ * - Checks if the user exists and has a subscription plan other than 'basic'.
+ * - Returns video details including title, thumbnail, and either views or exchange count based on the query type.
+ * - Returns 404 if the user or video does not exist, 403 if access is denied, or 500 for unexpected errors.
+ */
 router.get("/videos/:id", auth, async (req, res) => {
     try {
         const user = await User.findById(req.userId).populate("subscription.plan");

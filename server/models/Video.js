@@ -23,6 +23,7 @@ const { Schema, model } = mongoose;
  * - rating: Object containing:
  *     - value: The video's average rating (number).
  *     - count: The number of ratings received (number).
+ * - views: Number of times the video has been viewed (default: 0).
  *
  * Instance Methods:
  * - getCurrentUser(): Returns the most recent user associated with the video.
