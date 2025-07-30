@@ -125,7 +125,7 @@ router.get("/:id", async (req, res) => {
             }
         }
 
-        const video = await Video.findById(req.params.id);
+        const video = await Video.findById(req.params.id).populate("users");
         if (!video) {
             return res.status(404).send({
                 error: "El video no existe",
