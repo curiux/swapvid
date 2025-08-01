@@ -616,7 +616,6 @@ describe("Rutas de notificaciones", () => {
             .set("Authorization", `Bearer ${token}`);
         expect(res.statusCode).toBe(200);
         expect(Array.isArray(res.body.notifications)).toBe(true);
-        console.log(res.body.notifications)
         expect(res.body.notifications[0].type).toBe("exchange_requested");
     });
 

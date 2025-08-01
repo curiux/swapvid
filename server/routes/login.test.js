@@ -56,7 +56,6 @@ describe("POST /login", () => {
             email: "test@example.com",
             password: "Password123!"
         });
-        console.log(await User.find({}))
         expect(res.statusCode).toBe(200);
         expect(res.body.token).toBeDefined();
     });

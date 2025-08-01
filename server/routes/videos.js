@@ -13,18 +13,12 @@ import Report from "../models/Report.js";
 const router = Router();
 
 /**
- * GET /
- * Fetches a paginated list of videos matching the search query and filters.
- * - Accepts query parameters:
- *   - 'q': search term (case-insensitive, matches title, description, or keywords)
- *   - 'category': filter by video category
- *   - 'order': sort by upload date ('newFirst' or 'oldFirst')
- *   - 'sensitive': include sensitive content (boolean)
- *   - 'page': pagination (zero-based)
+ * Returns a paginated list of videos matching the search query and filters.
+ * - Accepts query parameters: 'q' (search), 'category', 'order', 'sensitive', 'page'.
  * - Applies filters and sorting based on query parameters.
  * - Returns video data with user info and thumbnail for each video.
- * - Responds with total pages and videos for the current page.
- * - Returns 500 on unexpected errors.
+ * - Responds with: videos (current page), totalPages.
+ * - 500 for unexpected errors.
  */
 router.get("/", async (req, res) => {
     try {
@@ -32,9 +26,7 @@ router.get("/", async (req, res) => {
 
         const page = parseInt(req.query.page) || 0;
         const limit = ITEMS_PER_PAGE;
-
-        const start = page * limit;
-        const end = start + limit;
+        const skip = page * limit;
 
         const regex = new RegExp(q, "i");
 
@@ -55,19 +47,17 @@ router.get("/", async (req, res) => {
         }
         if (!sensitiveContent) filters.isSensitiveContent = false;
 
-        let videosQuery = Video.find(filters);
-        if (req.query.order) {
-            videosQuery = req.query.order == "newFirst"
-                ? videosQuery.sort({ uploadedDate: -1 })
-                : videosQuery.sort({ uploadedDate: 1 })
-        }
+        const sortOrder = req.query.order === "newFirst" ? -1 : 1;
 
-        const allVideos = await videosQuery;
+        const videosCount = await Video.countDocuments(filters);
+        const totalPages = Math.ceil(videosCount / limit);
 
-        const totalVideos = allVideos.length;
-        const totalPages = Math.ceil(totalVideos / limit);
+        const pageVideos = await Video.find(filters)
+            .sort({ "rating.value": -1, "rating.count": -1, uploadedDate: sortOrder })
+            .skip(skip)
+            .limit(limit);
 
-        const videos = await Promise.all(allVideos.slice(start, end).map(async (video) => {
+        const videos = await Promise.all(pageVideos.map(async (video) => {
             const { users, hash, __v, ...videoData } = video.toJSON();
             const user = await User.findById(video.getCurrentUser());
             if (!user) return null;

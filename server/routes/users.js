@@ -155,18 +155,21 @@ router.delete("/me", auth, async (req, res) => {
 });
 
 /**
- * Allows the authenticated user to upload a video.
- * - Uses 'auth' middleware for JWT verification.
- * - Accepts a video file and metadata, validates and saves them.
- * - Checks for duplicate videos by title (per user) and by file hash (global).
- * - Enforces plan limits for video size, library size, and total storage.
- * - Uploads the video to Cloudinary and saves the reference in the database.
- * - Triggers content moderation with Sightengine API if isSensitiveContent is false.
- * - Returns 201 on success, 400 for validation errors or plan limit exceeded, 409 for duplicates, and 500 for unexpected errors or upload failures.
+ * Upload a new video for the authenticated user.
+ * - Requires 'auth' middleware for JWT verification.
+ * - Accepts a video file (multipart/form-data, field: "video") and metadata (title, description, keywords, isSensitiveContent, etc.).
+ * - Validates the video file and metadata, including:
+ *   - Duplicate title check (per user)
+ *   - Duplicate file check (by SHA-256 hash, global)
+ *   - Plan limits: max video size, max number of videos, and total storage used
+ * - Uploads the video to Cloudinary (private, in 'videos' folder) and saves the video document in the database.
+ * - If isSensitiveContent is false, triggers content moderation with Sightengine API.
+ * - On success: returns 201 Created.
+ * - On error: returns 400 (validation/plan limit), 409 (duplicate), or 500 (unexpected/upload failure).
  */
 router.post("/me/videos", auth, upload.single("video"), async (req, res) => {
     try {
-        const user = await User.findById(req.userId).populate("videos").populate("subscription.plan");
+        const user = await User.findById(req.userId).populate("subscription.plan");
         if (!user) {
             return res.status(404).send({
                 error: "El usuario no existe"
@@ -195,11 +198,38 @@ router.post("/me/videos", auth, upload.single("video"), async (req, res) => {
             return res.status(400).send({ error: `El video excede el tamaño máximo permitido de ${formatBytes(plan.videoMaxSize)} para el plan ${plans[plan.name]}.` });
         }
 
-        if (user.videos.length >= plan.librarySize) {
+        const videosCount = await Video.countDocuments({
+            $expr: {
+                $eq: [
+                    { $arrayElemAt: ["$users", -1] },
+                    user._id
+                ]
+            }
+        });
+        if (videosCount >= plan.librarySize) {
             return res.status(400).send({ error: `Has alcanzado el máximo de ${plan.librarySize} videos permitidos para tu plan ${plans[plan.name]}.` });
         }
 
-        const totalUsed = user.videos.length > 0 ? user.videos.reduce((acc, video) => acc + video.size) : 0;
+        const totalUsedAgg = await Video.aggregate([
+            {
+                $match: {
+                    $expr: {
+                        $eq: [
+                            { $arrayElemAt: ["$users", -1] },
+                            user._id
+                        ]
+                    }
+                }
+            },
+            {
+                $group: {
+                    _id: null,
+                    totalSize: { $sum: "$size" }
+                }
+            }
+        ]);
+        const totalUsed = totalUsedAgg[0]?.totalSize || 0;
+
         const nextTotal = totalUsed + size;
         if (nextTotal > plan.libraryStorage) {
             return res.status(400).send({ error: `Este video supera tu límite total de almacenamiento de ${formatBytes(plan.libraryStorage)} para el plan ${plans[plan.name]}.` });
@@ -211,7 +241,21 @@ router.post("/me/videos", auth, upload.single("video"), async (req, res) => {
         const video = new Video(videoData);
         await video.validate();
 
-        const titleFromUserExists = user.videos.some(video => video.title === videoData.title);
+        const titleFromUserExists = await Video.exists({
+            $expr: {
+                $and: [
+                    {
+                        $eq: [
+                            { $arrayElemAt: ["$users", -1] },
+                            user._id
+                        ]
+                    },
+                    {
+                        $eq: ["$title", videoData.title]
+                    }
+                ]
+            }
+        });
         if (titleFromUserExists) {
             return res.status(409).send({
                 error: "Ya tienes un video con el mismo título."
@@ -279,15 +323,16 @@ router.post("/me/videos", auth, upload.single("video"), async (req, res) => {
 });
 
 /**
- * Returns a list of videos uploaded by the authenticated user.
+ * Returns a paginated list of videos uploaded by the authenticated user.
  * - Uses 'auth' middleware to verify JWT and extract user ID.
- * - Populates the user's videos and returns them with additional metadata.
- * - Each video includes a signed Cloudinary thumbnail URL and the username.
- * - Returns 200 with the videos array, 404 if the user does not exist, or 500 for unexpected errors.
+ * - Supports pagination via the 'page' query parameter (default: 0).
+ * - Each video includes all metadata (except users, hash, __v), the username, and a signed Cloudinary thumbnail URL.
+ * - Responds with: videos, totalPages, storageUsed, storageLimit, libraryMaxSize, hasStats.
+ * - 404 if the user does not exist, 500 for unexpected errors.
  */
 router.get("/me/videos", auth, async (req, res) => {
     try {
-        const user = await User.findById(req.userId).populate("videos").populate("subscription.plan");
+        const user = await User.findById(req.userId).populate("subscription.plan");
         if (!user) {
             return res.status(404).send({
                 error: "El usuario no existe"
@@ -296,14 +341,28 @@ router.get("/me/videos", auth, async (req, res) => {
 
         const page = parseInt(req.query.page) || 0;
         const limit = ITEMS_PER_PAGE;
+        const skip = page * limit;
 
-        const start = page * limit;
-        const end = start + limit;
+        const videosCount = await Video.countDocuments({
+            $expr: {
+                $eq: [
+                    { $arrayElemAt: ["$users", -1] },
+                    user._id
+                ]
+            }
+        });
+        const totalPages = Math.ceil(videosCount / limit);
 
-        const totalVideos = user.videos.length;
-        const totalPages = Math.ceil(totalVideos / limit);
+        const pageVideos = await Video.find({
+            $expr: {
+                $eq: [
+                    { $arrayElemAt: ["$users", -1] },
+                    user._id
+                ]
+            }
+        }).skip(skip).limit(limit);
 
-        const videos = user.videos.slice(start, end).map(video => {
+        const videos = pageVideos.map(video => {
             const { users, hash, __v, ...videoData } = video.toJSON();
             videoData.user = user.username;
             videoData.thumbnail = video.createThumbnail();
@@ -311,7 +370,25 @@ router.get("/me/videos", auth, async (req, res) => {
             return videoData;
         });
 
-        const storageUsed = user.videos.reduce((acc, v) => acc + v.size, 0);
+        const totalUsedAgg = await Video.aggregate([
+            {
+                $match: {
+                    $expr: {
+                        $eq: [
+                            { $arrayElemAt: ["$users", -1] },
+                            user._id
+                        ]
+                    }
+                }
+            },
+            {
+                $group: {
+                    _id: null,
+                    totalSize: { $sum: "$size" }
+                }
+            }
+        ]);
+        const storageUsed = totalUsedAgg[0]?.totalSize || 0;
         const storageLimit = user.subscription.plan.libraryStorage;
         const libraryMaxSize = user.subscription.plan.librarySize;
 
@@ -342,14 +419,23 @@ router.get("/me/videos", auth, async (req, res) => {
  */
 router.get("/:id/videos", auth, async (req, res) => {
     try {
-        const user = await User.findById(req.params.id).populate("videos");
+        const user = await User.findById(req.params.id);
         if (!user) {
             return res.status(404).send({
                 error: "El usuario no existe"
             });
         }
 
-        const videos = user.videos.map(video => {
+        const videoList = await Video.find({
+            $expr: {
+                $eq: [
+                    { $arrayElemAt: ["$users", -1] },
+                    user._id
+                ]
+            }
+        });
+
+        const videos = videoList.map(video => {
             const { users, hash, __v, ...videoData } = video.toJSON();
             videoData.user = user.username;
             videoData.thumbnail = video.createThumbnail();
@@ -553,7 +639,7 @@ router.patch("/me/notifications/:id", auth, async (req, res) => {
  */
 router.patch("/me/notifications", auth, async (req, res) => {
     try {
-        const user = await User.findById(req.userId).populate("notifications");
+        const user = await User.findById(req.userId);
         if (!user) {
             return res.status(404).send({
                 error: "El usuario no existe"
