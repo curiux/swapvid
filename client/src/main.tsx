@@ -26,31 +26,32 @@ import PasswordRecover from "./pages/password-recover.tsx";
 import PasswordReset from "./pages/password-reset.tsx";
 import VerifyEmail from "./pages/verify-email.tsx";
 import Statistics from "./pages/collection/statistics.tsx";
+import Page from "./components/page.tsx";
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: <AppLayout />,
     children: [
-      { path: "", element: <Home /> },
-      { path: "error", element: <Error /> },
-      { path: "registro", element: <Register /> },
-      { path: "login", element: <Login /> },
-      { path: "terminos-y-condiciones", element: <TermsAndConditions /> },
-      { path: "politica-de-privacidad", element: <PrivacyPolicy /> },
-      { path: "eliminar-cuenta", element: <DeleteAccount /> },
+      { path: "", element: <Page title="Inicio" element={<Home />} /> },
+      { path: "error", element: <Page title="Error" element={<Error />} /> },
+      { path: "registro", element: <Page title="Registro" element={<Register />} /> },
+      { path: "login", element: <Page title="Inicio de Sesión" element={<Login />} /> },
+      { path: "terminos-y-condiciones", element: <Page title="Términos y Condiciones" element={<TermsAndConditions />} /> },
+      { path: "politica-de-privacidad", element: <Page title="Política de Privacidad" element={<PrivacyPolicy />} /> },
+      { path: "eliminar-cuenta", element: <Page title="Eliminar Cuenta" element={<DeleteAccount />} /> },
       { path: "perfil", element: <Profile /> },
       {
         path: "mi-coleccion", element: <MyCollection />, children: [
-          { path: "", element: <MyVideos /> },
-          { path: "subir", element: <VideoUpload /> },
+          { path: "", element: <Page title="Mis videos" element={<MyVideos />} /> },
+          { path: "subir", element: <Page title="Subir video" element={<VideoUpload />} /> },
           {
-            path: "intercambios", element: <MyExchanges />, children: [
+            path: "intercambios", element: <Page title="Mis intercambios" element={<MyExchanges />} />, children: [
               { path: "calificar/:id", element: <Rating /> }
             ]
           },
           { path: "intercambios/:id", element: <Exchange /> },
-          { path: "estadisticas", element: <Statistics /> }
+          { path: "estadisticas", element: <Page title="Estadísticas" element={<Statistics />} /> }
         ]
       },
       {
@@ -58,12 +59,12 @@ const router = createBrowserRouter([
           { path: "editar", element: <EditVideo /> }
         ]
       },
-      { path: "planes", element: <Plans /> },
-      { path: "buscar", element: <Search /> },
-      { path: "recuperar-contrasena", element: <PasswordRecover /> },
-      { path: "cambiar-contrasena", element: <PasswordReset /> },
-      { path: "verificar-email", element: <VerifyEmail /> },
-      { path: "*", element: <NotFound /> }
+      { path: "planes", element: <Page title="Planes" element={<Plans />} /> },
+      { path: "buscar", element: <Search />},
+      { path: "recuperar-contrasena", element: <Page title="Recuperar contraseña" element={<PasswordRecover />} /> },
+      { path: "cambiar-contrasena", element: <Page title="Cambiar contraseña" element={<PasswordReset />} /> },
+      { path: "verificar-email", element: <Page title="Verifica tu correo electrónico" element={<VerifyEmail />} /> },
+      { path: "*", element: <Page title="Página no encontrada" element={<NotFound />} /> }
     ]
   }
 ]);

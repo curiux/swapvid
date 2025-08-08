@@ -63,6 +63,7 @@ export default function Video() {
                     } else {
                         setVideoData(data.data);
                         update(data.data);
+                        document.title = data.data.title + " – SwapVid";
                     }
                 }
             }

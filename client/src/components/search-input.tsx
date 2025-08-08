@@ -28,6 +28,13 @@ export default function SearchInput({ filters }: { filters: boolean }) {
         setQuery(params.get("q") || "");
     }, []);
 
+    useEffect(() => {
+        if (filters) {
+            const truncatedQuery = query.length > 60 ? query.slice(0, 60) : query;
+            document.title = (truncatedQuery || "Buscar") + " – SwapVid";
+        }
+    }, [params.get("q")]);
+
     return (
         <div className="max-w-lg w-full flex items-center gap-2 px-2">
             {filters && (
