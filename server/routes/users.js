@@ -563,18 +563,19 @@ router.get("/me/notifications", auth, async (req, res) => {
             const exchange = await Exchange.findById(notification.exchange);
 
             const isInitiator = String(user._id) == exchange.initiator;
-            const sender = (await User.findById(isInitiator ? exchange.responder : exchange.initiator)).username;
+            const sender = await User.findById(isInitiator ? exchange.responder : exchange.initiator);
+            const senderUsername = sender ? sender.username : "indefinido";
             let message = "";
 
             switch (notification.type) {
                 case "exchange_requested":
-                    message = sender + " te ha enviado una solicitud de intercambio.";
+                    message = senderUsername + " te ha enviado una solicitud de intercambio.";
                     break;
                 case "exchange_accepted":
-                    message = "¡" + sender + " ha aceptado tu solicitud de intercambio!";
+                    message = "¡" + senderUsername + " ha aceptado tu solicitud de intercambio!";
                     break;
                 case "exchange_rejected":
-                    message = sender + " ha rechazado tu solicitud de intercambio.";
+                    message = senderUsername + " ha rechazado tu solicitud de intercambio.";
                     break;
                 default:
                     break;

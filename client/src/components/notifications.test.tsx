@@ -12,6 +12,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor, fireEvent, cleanup } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import Notifications from "./notifications";
+import { toast } from "sonner";
 
 // Mock useNavigate
 const mockNavigate = vi.fn();
@@ -51,6 +52,7 @@ beforeEach(() => {
     localStorage.clear();
     mockFetch.mockReset();
     mockNavigate.mockReset();
+    (toast as any).mockClear && (toast as any).mockClear();
 });
 
 describe("Notifications", () => {
@@ -72,6 +74,7 @@ describe("Notifications", () => {
     it("muestra 'No tienes notificaciones.' si no hay notificaciones", async () => {
         localStorage.setItem("token", "tok123");
         mockFetch.mockResolvedValue({
+            status: 200,
             json: async () => ({ notifications: [], unreadCount: 0 }),
         } as any);
         render(<Notifications isMobile={false} />, { wrapper: MemoryRouter });
@@ -105,7 +108,7 @@ describe("Notifications", () => {
         });
     });
 
-    it("navega a / si la sesión está expirada (401)", async () => {
+    it("muestra toast y navega a / si la sesión está expirada (401)", async () => {
         localStorage.setItem("token", "tok123");
         mockFetch.mockResolvedValue({
             status: 401,
@@ -114,11 +117,12 @@ describe("Notifications", () => {
         render(<Notifications isMobile={false} />, { wrapper: MemoryRouter });
         fireEvent.click(screen.getAllByTestId("open")[0]);
         await waitFor(() => {
+            expect(toast).toHaveBeenCalledWith("Tu sesión ha expirado.");
             expect(mockNavigate).toHaveBeenCalledWith("/");
         });
     });
 
-    it("navega a la página de error si hay un error del backend", async () => {
+    it("muestra toast y navega a la página de error si hay un error del backend", async () => {
         localStorage.setItem("token", "tok123");
         mockFetch.mockResolvedValue({
             status: 400,
@@ -127,7 +131,7 @@ describe("Notifications", () => {
         render(<Notifications isMobile={false} />, { wrapper: MemoryRouter });
         fireEvent.click(screen.getAllByTestId("open")[0]);
         await waitFor(() => {
-            expect(mockNavigate).toHaveBeenCalledWith(expect.stringMatching(/\/error/));
+            expect(toast).toHaveBeenCalledWith("Backend error");
         });
     });
 });

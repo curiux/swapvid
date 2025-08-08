@@ -29,7 +29,7 @@ export default function SearchInput({ filters }: { filters: boolean }) {
     }, []);
 
     return (
-        <div className="max-w-lg w-full flex items-center gap-2">
+        <div className="max-w-lg w-full flex items-center gap-2 px-2">
             {filters && (
                 <Filters />
             )}
@@ -212,7 +212,7 @@ function Filters() {
                         </div>
 
                         <DialogFooter>
-                            <Button type="button" variant="secondary" className="mr-auto" onClick={handleReset}>
+                            <Button type="button" variant="secondary" className="w-full mt-2 mr-auto md:w-auto md:mt-0" onClick={handleReset}>
                                 Borrar filtros
                             </Button>
                             <DialogClose asChild>

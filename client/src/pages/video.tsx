@@ -80,7 +80,7 @@ export default function Video() {
     }
 
     return (
-        <div className="flex min-h-svh w-full items-stretch justify-center p-3 pt-14 md:items-center md:p-10">
+        <div className="flex min-h-svh w-full items-stretch justify-center p-3 pt-18 md:items-center md:p-10">
             <div className="grid w-full gap-4 md:h-[50vh] md:grid-cols-2">
                 <div>
                     <VideoPlayer />
@@ -92,7 +92,7 @@ export default function Video() {
                 </div>
                 <div className="flex flex-col p-4">
                     <div className="flex flex-col justify-between pb-3 gap-5 lg:flex-row lg:items-center">
-                        <div className="flex flex-col gap-2">
+                        <div className="flex flex-col gap-2 lg:max-w-[30vw]">
                             <h1 className="mt-4 text-3xl font-semibold lg:mt-0">{videoData.title}</h1>
                             <p className="text-xs text-muted-foreground">
                                 Subido {timeAgo(videoData.uploadedDate)} por

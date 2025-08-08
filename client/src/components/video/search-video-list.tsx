@@ -99,13 +99,13 @@ function VideoItem({ video }: { video: Video }) {
                 />
             </div>
             <div className="p-3">
-                <div className="flex items-end justify-between gap-2">
-                    <h3 className="mb-1 text-lg font-semibold md:text-2xl">
+                <div className="flex flex-col justify-between md:flex-row md:items-end md:gap-2">
+                    <h3 className="text-lg font-semibold truncate max-w-[75vw] md:mb-1 md:text-2xl">
                         {video.title}
                     </h3>
                     <div className="flex items-center gap-1">
                         <StarRating rating={video.rating!.value}/>
-                        <p className="text-xs">({video.rating!.count})</p>
+                        <p className="text-xs">({video.rating!.count.toLocaleString()})</p>
                     </div>
                 </div>
                 <div className="flex items-center justify-between gap-2">

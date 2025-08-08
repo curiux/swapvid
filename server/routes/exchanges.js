@@ -347,6 +347,9 @@ router.delete("/:id", auth, async (req, res) => {
             $pull: { exchanges: exchange._id }
         });
         await exchange.deleteOne();
+
+        deleteNotification(exchange._id, exchange.responder);
+
         return res.status(200).send({});
     } catch (e) {
         console.log(e);
@@ -402,6 +405,9 @@ router.delete("/", auth, async (req, res) => {
             $pull: { exchanges: exchange._id }
         });
         await exchange.deleteOne();
+
+        deleteNotification(exchange._id, exchange.responder);
+
         return res.status(200).send({});
     } catch (e) {
         console.log(e);
@@ -410,6 +416,29 @@ router.delete("/", auth, async (req, res) => {
         });
     }
 });
+
+/**
+ * Deletes a notification related to a specific exchange for a user.
+ * - Finds the notification by exchange and user.
+ * - If found, deletes the notification and removes its reference from the user's notifications array.
+ * - Used internally when an exchange is deleted.
+ * @param {string} exchangeId - The ID of the exchange related to the notification.
+ * @param {string} userId - The ID of the user who received the notification.
+ */
+async function deleteNotification(exchangeId, userId) {
+    const notification = await Notification.findOne({
+        exchange: exchangeId,
+        user: userId
+    });
+
+    if (!notification) return;
+
+    await Notification.findByIdAndDelete(notification._id);
+
+    await User.findByIdAndUpdate(userId, {
+        $pull: { notifications: notification._id }
+    });
+}
 
 /**
  * Reports a video involved in an accepted exchange.

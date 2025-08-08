@@ -21,30 +21,19 @@ export default function Notifications({ isMobile }: { isMobile: boolean }) {
     const navigate = useNavigate();
     const [open, setOpen] = useState(false);
     const [isAuth, setIsAuth] = useState(false);
-    const [currentToken, setCurrentToken] = useState("");
     const [loading, setLoading] = useState(true);
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const location = useLocation();
 
     useEffect(() => {
-        const checkAuth = () => {
-            const token = localStorage.getItem("token");
-            setIsAuth(token ? true : false);
-            if (token && token != currentToken) setCurrentToken(token);
-        }
-        checkAuth();
-    }, [location]);
-
-    useEffect(() => {
-        if (!open) return;
         const token = localStorage.getItem("token");
-        if (!token) {
-            navigate("/");
-        } else {
+        setIsAuth(token ? true : false);
+
+        if (token) {
             getNotifications(token);
         }
-    }, [open, currentToken]);
+    }, [location.pathname]);
 
     const getNotifications = async (token: String) => {
         try {
@@ -58,10 +47,11 @@ export default function Notifications({ isMobile }: { isMobile: boolean }) {
             if (data.error) {
                 if (res.status == 401 || res.status == 404) {
                     localStorage.clear();
-                    toast("Tu sesión ha expirado.")
+                    toast("Tu sesión ha expirado.");
+                    setIsAuth(false);
                     navigate("/");
                 } else {
-                    navigate("/error?msg=" + encodeURIComponent(data.error));
+                    toast(data.error);
                 }
             } else {
                 setNotifications(data.notifications);
@@ -69,7 +59,7 @@ export default function Notifications({ isMobile }: { isMobile: boolean }) {
                 setLoading(false);
             }
         } catch (e) {
-            navigate("/error");
+            toast("Ha ocurrido un error inesperado.");
         }
     }
 
