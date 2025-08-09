@@ -18,7 +18,7 @@ export default function TermsAndConditions() {
                     <h1 className="text-3xl font-bold mb-4">TÉRMINOS Y CONDICIONES</h1>
                     <p className="text-sm text-gray-500 mb-6">Última actualización: 22 de mayo de 2025</p>
                     <p className="mb-4">
-                        Estos Términos y Condiciones constituyen un acuerdo legal vinculante entre usted y SwapVid, en relación con su acceso y uso del sitio web <Link to="/" className="underline underline-offset-4">https://swapvid.vercel.app</Link> y otros servicios relacionados (colectivamente, los "Servicios").
+                        Estos Términos y Condiciones constituyen un acuerdo legal vinculante entre usted y SwapVid, en relación con su acceso y uso del sitio web <Link to="/" className="underline underline-offset-4">https://swapvid.online</Link> y otros servicios relacionados (colectivamente, los "Servicios").
                     </p>
                     <p className="mb-4">
                         Al acceder a los Servicios, usted acepta estar sujeto a estos términos. Si no está de acuerdo, no debe usar los Servicios.
@@ -252,7 +252,7 @@ export default function TermsAndConditions() {
                     <h2 className="text-2xl font-semibold mt-8 mb-4">23. CONTÁCTENOS</h2>
                     <p className="mb-4">
                         Para resolver una queja sobre los Servicios o recibir más información, puede contactarnos al correo electrónico:{" "}
-                        <span className="font-medium">soporte@swapvid.com</span>.
+                        <span className="font-medium">soporte@swapvid.online</span>.
                     </p>
                     <Separator />
 

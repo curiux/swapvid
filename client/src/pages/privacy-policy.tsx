@@ -23,7 +23,7 @@ export default function PrivacyPolicy() {
                         almacenar, usar y/o compartir ("procesar") tu información personal cuando utilizas nuestros servicios ("Servicios"), incluyendo cuando:
                     </p>
                     <ul className="list-disc ml-6">
-                        <li>Visitas nuestro sitio web en <Link to="/" className="underline underline-offset-4">https://swapvid.vercel.app</Link></li>
+                        <li>Visitas nuestro sitio web en <Link to="/" className="underline underline-offset-4">https://swapvid.online</Link></li>
                         <li>Interactúas con nosotros en ventas, marketing o eventos relacionados</li>
                     </ul>
                     <p>

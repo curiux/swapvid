@@ -3,7 +3,7 @@ import multer from "multer";
 const storage = multer.memoryStorage();
 export const upload = multer({ storage });
 
-import { HOST, MAILGUN_API_KEY, MP_ACCESS_TOKEN, SIGHTENGINE_API_SECRET } from "../config.js";
+import { HOST, isProduction, MAILGUN_API_KEY, MAILGUN_DOMAIN, MP_ACCESS_TOKEN, SIGHTENGINE_API_SECRET, TEST_EMAIL } from "../config.js";
 import { Readable } from "stream";
 import axios from "axios";
 import crypto from "crypto";
@@ -314,6 +314,8 @@ export async function sendVerificationEmail(user) {
     await user.save();
 
     const link = HOST + "/verificar-email?token=" + token;
+    const mailgunEmail = (isProduction ? "no-reply" : "postmaster") + "@" + MAILGUN_DOMAIN;
+    const userEmail = isProduction ? user.email : TEST_EMAIL;
 
     const mailgun = new Mailgun(FormData);
     const mg = mailgun.client({
@@ -321,10 +323,10 @@ export async function sendVerificationEmail(user) {
         key: MAILGUN_API_KEY
     });
     try {
-        await mg.messages.create("sandbox473b7fbf11a34b63bd471d5f5b8286f5.mailgun.org", {
-            from: "SwapVid <postmaster@sandbox473b7fbf11a34b63bd471d5f5b8286f5.mailgun.org>",
-            to: ["brunocsx32@gmail.com"],
-            subject: "Verificá tu cuenta en SwapVid",
+        await mg.messages.create(MAILGUN_DOMAIN, {
+            from: `SwapVid <${mailgunEmail}>`,
+            to: [userEmail],
+            subject: "Verifica tu cuenta en SwapVid",
             html: `
                 <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
                     <h2>Confirma tu dirección de correo</h2>

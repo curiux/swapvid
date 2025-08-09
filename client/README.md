@@ -1,54 +1,27 @@
-# React + TypeScript + Vite
+# SwapVid
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Plataforma web de intercambio de videos basada en un modelo de trueque digital. Los usuarios acceden a nuevos contenidos ofreciendo uno propio a cambio, promoviendo una interacción activa y participativa sin transacciones monetarias ni publicidad.
 
-Currently, two official plugins are available:
+## 🎯 Propósito
+En un mundo donde el consumo de videos crece exponencialmente, SwapVid introduce un enfoque innovador: transferir videos como bienes digitales únicos. Cada intercambio cede el acceso completo del video al receptor, garantizando exclusividad y fomentando una comunidad de creadores e interesados en compartir material original de forma segura.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🚀 Características principales
+- **Intercambio seguro**: Los videos se transfieren completamente entre usuarios.
+- **Bibliotecas públicas**: Consulta catálogos sin acceso al contenido completo.
+- **Control de acceso**: Los videos no pueden descargarse ni duplicarse.
+- **Moderación automática**: Detección de contenido inapropiado con Sightengine.
+- **Modelo de suscripción**: Límite para cuentas gratuitas y beneficios ampliados para suscriptores.
 
-## Expanding the ESLint configuration
+## 🛠️ Tecnologías
+- **Frontend**: React + Tailwind CSS  
+- **Backend**: Node.js + Express.js  
+- **Base de datos**: MongoDB Atlas  
+- **Almacenamiento de videos**: Cloudinary  
+- **Seguridad**: JWT + SSL  
+- **Moderación**: Sightengine  
+- **Despliegue**: Vercel  
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+## 📦 Instalación
+1. Clonar repositorio:
+   ```bash
+   git clone https://github.com/usuario/swapvid.git

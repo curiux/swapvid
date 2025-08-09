@@ -24,3 +24,9 @@ export { cloudinary };
 export const MP_ACCESS_TOKEN = process.env.MP_ACCESS_TOKEN;
 
 export const MAILGUN_API_KEY = process.env.MAILGUN_API_KEY;
+
+export const MAILGUN_DOMAIN = process.env.MAILGUN_DOMAIN;
+
+export const TEST_EMAIL = process.env.TEST_EMAIL || "";
+
+export const isProduction = process.env.NODE_ENV === "production";
