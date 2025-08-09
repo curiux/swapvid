@@ -22,7 +22,6 @@ const app = express();
 app.use(morgan("dev"));
 app.use(cors({
     origin: isProduction ? "https://swapvid.online" : "*",
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     credentials: true
 }));
 app.use(express.json());
