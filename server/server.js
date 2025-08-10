@@ -20,11 +20,7 @@ import statistics from "./routes/statistics.js";
 const app = express();
 
 app.use(morgan("dev"));
-app.use(cors({
-    origin: isProduction ? "https://swapvid.online" : "*",
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
-    credentials: true
-}));
+app.use(cors({ origin: isProduction ? "https://swapvid.online" : "*" }));
 app.use(express.json());
 
 app.use("/register", register);
