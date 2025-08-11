@@ -355,3 +355,30 @@ export async function addVideoView(videoId, ip) {
         await Video.findByIdAndUpdate(videoId, { $inc: { views: 1 } });
     }
 }
+
+/**
+ * Counts the total number of exchanges the user participated in during the current month.
+ * Includes all exchanges where the user is the initiator,
+ * and only exchanges with status "accepted" where the user is the responder.
+ *
+ * @param {string|ObjectId} userId - The ID of the user to filter exchanges.
+ * @returns {Promise<number>} - The total count of exchanges matching the criteria within the current month.
+ */
+export async function getMonthlyExchangeCount(userId) {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    return await Exchange.countDocuments({
+        $or: [
+            {
+                initiator: userId,
+                requestedDate: { $gte: startOfMonth, $lt: startOfNextMonth }
+            },
+            {
+                responder: userId,
+                status: "accepted",
+                requestedDate: { $gte: startOfMonth, $lt: startOfNextMonth }
+            }
+        ]
+    });
+}

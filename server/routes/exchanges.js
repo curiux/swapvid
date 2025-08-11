@@ -5,7 +5,7 @@ import User from "../models/User.js";
 import Video from "../models/Video.js";
 import Rating from "../models/Rating.js";
 import { plans } from "../lib/constants.js";
-import { validateSubscription } from "../lib/utils.js";
+import { getMonthlyExchangeCount, validateSubscription } from "../lib/utils.js";
 import Report from "../models/Report.js";
 import Notification from "../models/Notification.js";
 
@@ -63,19 +63,10 @@ router.post("/request", auth, async (req, res) => {
             });
         }
 
-        const now = new Date();
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-        const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-        const exchanges = await Exchange.find({
-            initiator,
-            requestedDate: {
-                $gte: startOfMonth,
-                $lt: startOfNextMonth
-            }
-        });
+        const exchangesCount = await getMonthlyExchangeCount(initiator);
         const { plan } = await validateSubscription(initiatorUser);
 
-        if (exchanges.length >= plan.exchangeLimit && plan.exchangeLimit != 0) {
+        if (exchangesCount >= plan.exchangeLimit && plan.exchangeLimit != 0) {
             return res.status(400).send({ error: `Has alcanzado el máximo de ${plan.exchangeLimit} intercambios este mes permitidos para tu plan ${plans[plan.name]}.` });
         }
 
@@ -249,6 +240,13 @@ router.patch("/:id", auth, async (req, res) => {
             return res.status(400).send({
                 error: "No has ingresado el video a intercambiar"
             });
+        }
+
+        const exchangesCount = await getMonthlyExchangeCount(user._id);
+        const { plan } = await validateSubscription(user._id);
+
+        if (exchangesCount >= plan.exchangeLimit && plan.exchangeLimit != 0) {
+            return res.status(400).send({ error: `Has alcanzado el máximo de ${plan.exchangeLimit} intercambios este mes permitidos para tu plan ${plans[plan.name]}.` });
         }
 
         await exchange.updateOne({
