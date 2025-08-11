@@ -10,10 +10,6 @@ import crypto from "crypto";
 import FormData from "form-data";
 import Mailgun from "mailgun.js";
 import mongoose from "mongoose";
-import streamifier from "streamifier";
-import ffmpeg from "fluent-ffmpeg";
-import ffmpegInstaller from "@ffmpeg-installer/ffmpeg";
-import ffprobeInstaller from "@ffprobe-installer/ffprobe"
 import { MercadoPagoConfig, PreApproval } from "mercadopago";
 import Plan from "../models/Plan.js";
 import Video from "../models/Video.js";
@@ -21,6 +17,7 @@ import Rating from "../models/Rating.js";
 import User from "../models/User.js";
 import Exchange from "../models/Exchange.js";
 import VideoView from "../models/VideoView.js";
+import mediaInfoFactory from "mediainfo.js";
 
 /**
  * Handles video content moderation using the Sightengine API.
@@ -275,26 +272,23 @@ export function formatBytes(bytes) {
     return `${Math.round(value)} ${units[i]}`;
 }
 
-ffmpeg.setFfmpegPath(ffmpegInstaller.path);
-ffmpeg.setFfprobePath(ffprobeInstaller.path);
-
 /**
- * Retrieves the duration (in seconds) of a video buffer using ffmpeg and ffprobe.
- * Creates a readable stream from the buffer and probes metadata for duration.
+ * Retrieves the duration of a video from a buffer using mediainfo.js.
+ * Analyzes the buffer metadata to extract the duration in milliseconds.
  *
  * @param {Buffer} buffer - The video file buffer to analyze.
- * @returns {Promise<number>} - The duration of the video in seconds.
+ * @returns {Promise<string>} - The duration of the video in milliseconds as a string.
  */
-export function getDuration(buffer) {
-    return new Promise((resolve, reject) => {
-        const stream = streamifier.createReadStream(buffer);
+export async function getDuration(buffer) {
+    const mediainfo = await mediaInfoFactory();
 
-        ffmpeg(stream).ffprobe((err, metadata) => {
-            if (err) return reject(err);
-            resolve(metadata.format.duration);
-        });
-    });
-};
+    const result = await mediainfo.analyzeData(() => buffer.length, (size, offset) =>
+        Promise.resolve(buffer.subarray(offset, offset + size))
+    );
+
+    const duration = result.media.track.find(t => t["@type"] === "General").Duration;
+    return duration;
+}
 
 /**
  * Sends a verification email to the user with a unique token link.
