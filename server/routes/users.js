@@ -7,7 +7,7 @@ import Notification from "../models/Notification.js";
 import auth from "../middleware/auth.js";
 import { cloudinary } from "../config.js";
 import { ITEMS_PER_PAGE, plans } from "../lib/constants.js";
-import { formatBytes, getDuration, sightEngineValidation, upload, validateSubscription } from "../lib/utils.js";
+import { addDuration, formatBytes, sightEngineValidation, upload, validateSubscription } from "../lib/utils.js";
 import streamifier from "streamifier";
 import crypto from "crypto";
 
@@ -235,9 +235,7 @@ router.post("/me/videos", auth, upload.single("video"), async (req, res) => {
             return res.status(400).send({ error: `Este video supera tu límite total de almacenamiento de ${formatBytes(plan.libraryStorage)} para el plan ${plans[plan.name]}.` });
         }
 
-        const duration = await getDuration(req.file.buffer);
-
-        const videoData = { ...req.body, keywords, users: [user._id], hash, size, duration };
+        const videoData = { ...req.body, keywords, users: [user._id], hash, size };
         const video = new Video(videoData);
         await video.validate();
 
@@ -276,6 +274,7 @@ router.post("/me/videos", auth, upload.single("video"), async (req, res) => {
                 public_id: videoId,
                 resource_type: "video",
                 type: "private",
+                media_metadata: true,
                 eager: [
                     {
                         format: "mp4",
@@ -291,16 +290,25 @@ router.post("/me/videos", auth, upload.single("video"), async (req, res) => {
                     return res.status(500).json({ error: "Falló la subida del video" });
                 }
 
-                video.save().then(() => {
-                    return User.findByIdAndUpdate(user._id, {
-                        $push: { videos: video._id }
+                video
+                    .save()
+                    .then(() => {
+                        return User.findByIdAndUpdate(user._id, {
+                            $push: { videos: video._id }
+                        }).then(() => {
+                            if (!video.isSensitiveContent)
+                                sightEngineValidation(req.file.buffer, videoId);
+
+                            return addDuration(videoId);
+                        });
+                    })
+                    .then(() => {
+                        return res.status(201).send({});
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        return res.status(500).json({ error: "Error al procesar el video" });
                     });
-                });
-
-                if (!video.isSensitiveContent)
-                    sightEngineValidation(req.file.buffer, videoId);
-
-                return res.status(201).send({});
             }
         );
 

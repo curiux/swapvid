@@ -19,7 +19,7 @@ const { Schema, model } = mongoose;
  * - hash: String hash of the video file.
  * - isSensitiveContent: Boolean flag for sensitive content (default: false).
  * - size: Number of bytes of the video file (required).
- * - duration: Number of seconds of the video file (required).
+ * - duration: Number of seconds of the video file.
  * - rating: Object containing:
  *     - value: The video's average rating (number).
  *     - count: The number of ratings received (number).
@@ -30,6 +30,8 @@ const { Schema, model } = mongoose;
  * - createThumbnail(): Generates a secure Cloudinary URL for a video thumbnail (jpg).
  * - createSecureUrl(): Generates a secure Cloudinary URL for streaming the video (m3u8).
  * - createPreviewUrl(): Generates a secure Cloudinary URL for a preview segment of the video (m3u8).
+ * - addDuration(): Fetches video metadata from Cloudinary to get the duration in seconds,
+ *   updates the video document's duration field, and saves the changes.
  */
 
 const videoSchema = new Schema({
@@ -84,10 +86,7 @@ const videoSchema = new Schema({
         type: Number,
         required: true
     },
-    duration: {
-        type: Number,
-        required: true
-    },
+    duration: { type: Number },
     rating: {
         value: {
             type: Number,
@@ -133,7 +132,7 @@ videoSchema.methods.createPreviewUrl = async function () {
     let duration = this.duration * 0.2;
     if (duration < 1) duration = 1;
     if (duration > 30) duration = 30;
-    
+
     const publicId = `videos/${String(this._id)}`;
     return cloudinary.v2.url(publicId, {
         resource_type: "video",
@@ -144,6 +143,23 @@ videoSchema.methods.createPreviewUrl = async function () {
         duration
     });
 }
+
+videoSchema.methods.addDuration = async function () {
+    const publicId = `videos/${String(this._id)}`;
+
+    const result = await cloudinary.v2.api.resource(publicId, {
+        resource_type: "video",
+        type: "private",
+        media_metadata: true
+    });
+
+    if (result.duration) {
+        this.duration = result.duration;
+        await this.save();
+    }
+
+    return this;
+};
 
 const Video = model("Video", videoSchema);
 export default Video;

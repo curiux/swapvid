@@ -17,7 +17,6 @@ import Rating from "../models/Rating.js";
 import User from "../models/User.js";
 import Exchange from "../models/Exchange.js";
 import VideoView from "../models/VideoView.js";
-import mediaInfoFactory from "mediainfo.js";
 
 /**
  * Handles video content moderation using the Sightengine API.
@@ -273,21 +272,15 @@ export function formatBytes(bytes) {
 }
 
 /**
- * Retrieves the duration of a video from a buffer using mediainfo.js.
- * Analyzes the buffer metadata to extract the duration in milliseconds.
+ * Finds the video by ID and triggers the instance method to fetch and update its duration.
+ * The actual update is done inside the Video model's `addDuration` method.
  *
- * @param {Buffer} buffer - The video file buffer to analyze.
- * @returns {Promise<string>} - The duration of the video in milliseconds as a string.
+ * @param {string} videoId - The ID of the video to update duration for.
+ * @returns {Promise<void>}
  */
-export async function getDuration(buffer) {
-    const mediainfo = await mediaInfoFactory();
-
-    const result = await mediainfo.analyzeData(() => buffer.length, (size, offset) =>
-        Promise.resolve(buffer.subarray(offset, offset + size))
-    );
-
-    const duration = result.media.track.find(t => t["@type"] === "General").Duration;
-    return duration;
+export async function addDuration(videoId) {
+    const video = await Video.findById(videoId);
+    if (video) await video.addDuration();
 }
 
 /**
