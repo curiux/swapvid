@@ -7,7 +7,7 @@ import Notification from "../models/Notification.js";
 import auth from "../middleware/auth.js";
 import { cloudinary } from "../config.js";
 import { ITEMS_PER_PAGE, plans } from "../lib/constants.js";
-import { addDuration, formatBytes, sightEngineValidation, upload, validateSubscription } from "../lib/utils.js";
+import { addDuration, formatBytes, getMonthlyExchangeCount, sightEngineValidation, upload, validateSubscription } from "../lib/utils.js";
 import streamifier from "streamifier";
 import crypto from "crypto";
 
@@ -480,7 +480,7 @@ router.get("/me/exchanges", auth, async (req, res) => {
         const user = await User.findById(req.userId).populate({
             path: "exchanges",
             options: { sort: { requestedDate: -1 } }
-        });
+        }).populate("subscription.plan");
         if (!user) {
             return res.status(404).send({
                 error: "El usuario no existe"
@@ -529,8 +529,13 @@ router.get("/me/exchanges", auth, async (req, res) => {
             return exchangeData;
         }));
 
+        const monthlyExchangeCount = await getMonthlyExchangeCount(user._id);
+        const monthlyExchangeLimit = user.subscription.plan.exchangeLimit;
+
         return res.status(200).send({
             exchanges,
+            monthlyExchangeCount,
+            monthlyExchangeLimit,
             totalPages
         });
     } catch (e) {

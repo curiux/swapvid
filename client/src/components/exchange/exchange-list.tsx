@@ -19,6 +19,8 @@ export default function ExchangeList() {
     const navigate = useNavigate();
     const params = new URLSearchParams(location.search);
     const [exchanges, setExchanges] = useState<Exchange[]>([]);
+    const [monthlyExchangeCount, setMonthlyExchangeCount] = useState(0);
+    const [monthlyExchangeLimit, setMonthlyExchangeLimit] = useState(0);
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
@@ -53,6 +55,8 @@ export default function ExchangeList() {
                 }
             } else {
                 setExchanges(data.exchanges);
+                setMonthlyExchangeCount(data.monthlyExchangeCount);
+                setMonthlyExchangeLimit(data.monthlyExchangeLimit);
                 setTotalPages(data.totalPages);
                 setLoading(false);
             }
@@ -68,7 +72,10 @@ export default function ExchangeList() {
     );
 
     return (
-        <div className="flex flex-col gap-8">
+        <div className="flex flex-col gap-6">
+            <p className="text-muted-foreground text-xs text-center font-semibold">
+                Intercambios este mes: {monthlyExchangeCount} / {monthlyExchangeLimit} máx.
+            </p>
             <div className="flex flex-col gap-6">
                 {exchanges.length == 0 ? (
                     <p className="text-sm text-muted-foreground text-center">
