@@ -5,6 +5,8 @@ export const PORT = 5050;
 
 export const HOST = process.env.HOST;
 
+export const API_HOST = process.env.API_HOST;
+
 export const MONGODB_URI = process.env.MONGODB_URI;
 
 export const JWT_SECRET = process.env.JWT_SECRET;

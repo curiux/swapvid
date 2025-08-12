@@ -3,7 +3,7 @@ import multer from "multer";
 const storage = multer.memoryStorage();
 export const upload = multer({ storage });
 
-import { HOST, isProduction, MAILGUN_API_KEY, MAILGUN_DOMAIN, MP_ACCESS_TOKEN, SIGHTENGINE_API_SECRET, TEST_EMAIL } from "../config.js";
+import { API_HOST, HOST, isProduction, MAILGUN_API_KEY, MAILGUN_DOMAIN, MP_ACCESS_TOKEN, SIGHTENGINE_API_SECRET, TEST_EMAIL } from "../config.js";
 import { Readable } from "stream";
 import axios from "axios";
 import crypto from "crypto";
@@ -37,7 +37,7 @@ export function sightEngineValidation(buffer, videoId) {
     });
     // models to apply
     data.append("models", "nudity-2.1,weapon,recreational_drug,medical,gore-2.0,self-harm,violence");
-    data.append("callback_url", HOST + "/videos/sightengine");
+    data.append("callback_url", API_HOST + "/videos/sightengine");
     data.append("api_user", "54483249");
     data.append("api_secret", SIGHTENGINE_API_SECRET);
 
