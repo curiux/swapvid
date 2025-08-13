@@ -47,7 +47,6 @@ export default function Notifications({ isMobile }: { isMobile: boolean }) {
             if (data.error) {
                 if (res.status == 401 || res.status == 404) {
                     localStorage.clear();
-                    toast("Tu sesión ha expirado.");
                     setIsAuth(false);
                     navigate("/");
                 } else {
@@ -58,9 +57,7 @@ export default function Notifications({ isMobile }: { isMobile: boolean }) {
                 setUnreadCount(data.unreadCount);
                 setLoading(false);
             }
-        } catch (e) {
-            toast("Ha ocurrido un error inesperado.");
-        }
+        } catch (e) {}
     }
 
     const handleReadAll = async () => {
