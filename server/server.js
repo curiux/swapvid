@@ -20,15 +20,12 @@ import statistics from "./routes/statistics.js";
 const app = express();
 
 app.use(morgan("dev"));
-const corsOptions = {
+app.use(cors({
   origin: isProduction ? "https://swapvid.online" : "*",
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true
-};
-
-app.use(cors(corsOptions));
-app.options(/.*/, cors(corsOptions));
+}));
 app.use(express.json());
 
 app.use("/register", register);
@@ -48,7 +45,7 @@ app.use("/statistics", statistics);
 mongoose.connect(MONGODB_URI);
 
 app.listen(PORT, () => {
-    console.log(`Server listening on port ${PORT}`);
+  console.log(`Server listening on port ${PORT}`);
 });
 
 export default app;
