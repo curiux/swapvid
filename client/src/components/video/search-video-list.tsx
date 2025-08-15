@@ -38,6 +38,7 @@ export default function SearchVideoList() {
         setQuery(query);
 
         getVideos(query, page);
+        setLoading(true);
     }, [params.get("q"), params.get("category"), params.get("order"), params.get("sensitive")]);
 
     const getVideos = async (query: String, page: number) => {

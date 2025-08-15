@@ -96,7 +96,7 @@ function Filters() {
     useEffect(() => {
         if (params.get("category")) form.setValue("category", params.get("category")!);
         if (params.get("order")) form.setValue("uploadedDateOrder", params.get("order")!);
-        if (params.get("sensitive")) form.setValue("sensitiveContent", Boolean(params.get("sensitive")));
+        if (params.get("sensitive")) form.setValue("sensitiveContent", JSON.parse(params.get("sensitive")!));
     }, [params.get("q"), params.get("category"), params.get("order"), params.get("sensitive")]);
 
     const handleSubmit = (values: z.infer<typeof formSchema>) => {
