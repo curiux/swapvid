@@ -102,7 +102,7 @@ function VideoItem({ video }: { video: Video }) {
                     className="absolute bottom-1 right-1 bg-black/75 text-white
             text-xs font-medium px-1.5 py-0.5 rounded"
                 >
-                    {formatDuration(video.duration)}
+                    {formatDuration(video.duration!)}
                 </span>
             </div>
             <div className="p-3">

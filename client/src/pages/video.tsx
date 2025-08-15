@@ -90,7 +90,7 @@ export default function Video() {
                             <p className="text-xs text-muted-foreground font-semibold">
                                 Vista previa. El video completo estará disponible tras el intercambio
                             </p>
-                            <p className="text-xs font-semibold">{formatDuration(videoData.duration)}</p>
+                            <p className="text-xs font-semibold">{formatDuration(videoData.duration!)}</p>
                         </div>
                     )}
                 </div>
