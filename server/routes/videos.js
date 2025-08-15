@@ -454,13 +454,28 @@ router.post("/sightengine", async (req, res) => {
     }
 });
 
+const ignoredKeys = [
+    "none",
+    "safe",
+    "not_worn",
+    "sea_lake_pool",
+    "indoor_other",
+    "outdoor_other",
+    "other"
+];
+
 const threshold = 0.2;
-// Recursively checks all numeric values in an object, returning true if any exceed the threshold.
+
+// Recursively checks all numeric values in an object, returning true if any exceed the threshold and are not in ignoredKeys.
 const checkValues = obj => {
     if (!obj || typeof obj !== "object") return false;
-    return Object.values(obj).some(value =>
-        typeof value === "number" ? value > threshold : checkValues(value)
-    );
+    return Object.entries(obj).some(([key, value]) => {
+        if (typeof value === "number") {
+            if (ignoredKeys.includes(key)) return false;
+            return value > threshold;
+        }
+        return checkValues(value);
+    });
 };
 
 export default router;
