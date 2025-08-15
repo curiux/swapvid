@@ -11,7 +11,7 @@ import videojs from "video.js";
 import "video.js/dist/video-js.css";
 import { Separator } from "../ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
-import { API_URL, videoCategories, MAX_FILE_SIZE_BY_PLAN, formatBytes } from "@/lib/utils";
+import { API_URL, videoCategories, MAX_FILE_SIZE_BY_PLAN, formatBytes, calculateHash } from "@/lib/utils";
 import { UploadIcon } from "lucide-react";
 import axios from "axios";
 import { Progress } from "../ui/progress";
@@ -63,9 +63,11 @@ export function createFormSchema(plan: keyof typeof MAX_FILE_SIZE_BY_PLAN) {
 }
 
 /**
- * Renders the video upload form with validation, preview, and upload logic.
+ * Renders the video upload form with validation, preview, and two-phase upload logic.
  * Uses react-hook-form and Zod for validation.
  * Collects video file, title, description, category, keywords, and sensitive content flag.
+ * Sends metadata and file hash to backend for validation and Cloudinary credentials.
+ * Uploads video directly to Cloudinary with progress tracking.
  * Shows upload progress, handles errors, and navigates on success.
  */
 export default function VideoUploadForm({ plan }: { plan: keyof typeof MAX_FILE_SIZE_BY_PLAN }) {
@@ -146,51 +148,71 @@ export default function VideoUploadForm({ plan }: { plan: keyof typeof MAX_FILE_
     const handleSubmit = async (values: z.infer<ReturnType<typeof createFormSchema>>) => {
         const keywords = values.keywords.map(keyword => keyword.text);
 
-        const formData = new FormData();
-        formData.append("title", values.title);
-        formData.append("description", values.description);
-        formData.append("category", values.category);
-        formData.append("keywords", JSON.stringify(keywords));
-        formData.append("video", values.video);
-        formData.append("isSensitiveContent", JSON.stringify(values.isSensitiveContent));
+        const hash = await calculateHash(values.video);
+        const size = values.video.size;
+        const videoData = {
+            title: values.title,
+            description: values.description,
+            category: values.category,
+            keywords: JSON.stringify(keywords),
+            isSensitiveContent: JSON.stringify(values.isSensitiveContent),
+            hash,
+            size
+        }
 
-        await upload(formData);
+        await upload(videoData, values.video);
     }
 
-    const upload = async (formData: FormData) => {
+    const upload = async (videoData: any, video: File) => {
         const token = localStorage.getItem("token");
 
-        setStatus("Subiendo...");
+        setStatus("Cargando...");
         try {
-            await axios.post(API_URL + "/users/me/videos", formData, {
+            const res = await fetch(API_URL + "/users/me/videos", {
+                method: "POST",
                 headers: {
-                    "Authorization": `Bearer ${token}`
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json"
                 },
-                onUploadProgress: (event) => {
-                    setStatus("Procesando...");
-                    const percent = Math.round((event.loaded * 100) / event.total!);
-                    setProgress(percent);
-                }
+                body: JSON.stringify(videoData)
             });
 
-            localStorage.setItem("msg", "¡Tu video se subió correctamente!");
-            navigate("/mi-coleccion");
-            navigate(0);
-        } catch (e: any) {
-            if (e.name == "AxiosError") {
-                if (e.response) {
-                    const data = e.response.data;
-                    if (e.status == 401 || e.status == 404) {
-                        localStorage.clear();
-                        toast("Tu sesión ha expirado.")
-                        navigate("/");
-                    } else {
-                        form.setError("root", { message: data.error });
-                    }
+            const data = await res.json();
+            if (data.error) {
+                if (res.status == 401 || res.status == 404) {
+                    localStorage.clear();
+                    toast("Tu sesión ha expirado.")
+                    navigate("/");
                 } else {
-                    form.setError("root", { message: "Ha ocurrido un error inesperado." });
+                    form.setError("root", { message: data.error });
                 }
+                setStatus("");
+            } else if (res.status == 201) {
+                const { signature, timestamp, cloudName, apiKey, publicId } = data;
+
+                const formData = new FormData();
+                formData.append("file", video);
+                formData.append("api_key", apiKey);
+                formData.append("timestamp", timestamp);
+                formData.append("signature", signature);
+                formData.append("public_id", publicId);
+                formData.append("folder", "videos");
+                formData.append("type", "private");
+
+                setStatus("Subiendo...");
+                await axios.post(`https://api.cloudinary.com/v1_1/${cloudName}/video/upload`, formData, {
+                    onUploadProgress: (event) => {
+                        const percent = Math.round((event.loaded * 100) / event.total!);
+                        setProgress(percent);
+                    }
+                });
+
+                localStorage.setItem("msg", "¡Tu video se subió correctamente!");
+                navigate("/mi-coleccion");
+                navigate(0);
             }
+        } catch (e: any) {
+            form.setError("root", { message: "Ha ocurrido un error inesperado." });
             setStatus("");
         }
     }

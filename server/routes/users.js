@@ -5,11 +5,9 @@ import Rating from "../models/Rating.js";
 import Exchange from "../models/Exchange.js";
 import Notification from "../models/Notification.js";
 import auth from "../middleware/auth.js";
-import { cloudinary } from "../config.js";
+import { cloudinary, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET, CLOUDINARY_CLOUD_NAME } from "../config.js";
 import { ITEMS_PER_PAGE, plans } from "../lib/constants.js";
-import { addDuration, formatBytes, getMonthlyExchangeCount, sightEngineValidation, upload, validateSubscription } from "../lib/utils.js";
-import streamifier from "streamifier";
-import crypto from "crypto";
+import { formatBytes, getMonthlyExchangeCount, upload, validateSubscription } from "../lib/utils.js";
 
 const router = Router();
 
@@ -155,17 +153,17 @@ router.delete("/me", auth, async (req, res) => {
 });
 
 /**
- * Upload a new video for the authenticated user.
- * - Requires 'auth' middleware for JWT verification.
- * - Accepts a video file (multipart/form-data, field: "video") and metadata (title, description, keywords, isSensitiveContent, etc.).
- * - Validates the video file and metadata, including:
- *   - Duplicate title check (per user)
- *   - Duplicate file check (by SHA-256 hash, global)
- *   - Plan limits: max video size, max number of videos, and total storage used
- * - Uploads the video to Cloudinary (private, in 'videos' folder) and saves the video document in the database.
- * - If isSensitiveContent is false, triggers content moderation with Sightengine API.
- * - On success: returns 201 Created.
- * - On error: returns 400 (validation/plan limit), 409 (duplicate), or 500 (unexpected/upload failure).
+ * Uploads a new video for the authenticated user.
+ * - Uses 'auth' middleware to verify JWT and extract the user ID.
+ * - Handles video file upload via 'multer' middleware.
+ * - Validates video metadata, keywords, hash, and size against the user's subscription plan:
+ *   - Checks maximum file size, total library size, and total storage limit.
+ *   - Ensures the user does not already have a video with the same title.
+ *   - Ensures the video is unique across the platform by hash.
+ * - Saves the video in the database and associates it with the user.
+ * - Generates a signed Cloudinary signature for secure video upload.
+ * - Returns 201 with the Cloudinary signature, timestamp, cloud name, API key, and public ID on success.
+ * - Returns 400 for validation errors, 409 for duplicate videos, 404 if the user does not exist, and 500 for unexpected errors.
  */
 router.post("/me/videos", auth, upload.single("video"), async (req, res) => {
     try {
@@ -176,12 +174,6 @@ router.post("/me/videos", auth, upload.single("video"), async (req, res) => {
             });
         }
 
-        if (!req.file) {
-            return res.status(400).send({
-                error: "Debe haber un archivo de video para subir"
-            });
-        }
-
         let keywords;
         try {
             keywords = JSON.parse(req.body.keywords);
@@ -189,9 +181,8 @@ router.post("/me/videos", auth, upload.single("video"), async (req, res) => {
             keywords = undefined;
         }
 
-        const hash = crypto.createHash("sha256").update(req.file.buffer).digest("hex");
-
-        const size = req.file.size;
+        const hash = req.body.hash;
+        const size = req.body.size;
         const { plan } = await validateSubscription(user);
 
         if (size > plan.videoMaxSize) {
@@ -268,51 +259,29 @@ router.post("/me/videos", auth, upload.single("video"), async (req, res) => {
         }
 
         const videoId = String(video._id);
-        const result = cloudinary.v2.uploader.upload_stream(
-            {
-                folder: "videos",
-                public_id: videoId,
-                resource_type: "video",
-                type: "private",
-                media_metadata: true,
-                eager: [
-                    {
-                        format: "mp4",
-                        transformation: [
-                            { quality: "auto", fetch_format: "auto" }
-                        ]
-                    }
-                ]
-            },
-            (error) => {
-                if (error) {
-                    console.log(error);
-                    return res.status(500).json({ error: "Falló la subida del video" });
-                }
 
-                video
-                    .save()
-                    .then(() => {
-                        return User.findByIdAndUpdate(user._id, {
-                            $push: { videos: video._id }
-                        }).then(() => {
-                            if (!video.isSensitiveContent)
-                                sightEngineValidation(req.file.buffer, videoId);
+        await video.save();
+        await User.findByIdAndUpdate(user._id, {
+            $push: { videos: video._id }
+        });
 
-                            return addDuration(videoId);
-                        });
-                    })
-                    .then(() => {
-                        return res.status(201).send({});
-                    })
-                    .catch(err => {
-                        console.error(err);
-                        return res.status(500).json({ error: "Error al procesar el video" });
-                    });
-            }
-        );
+        const timestamp = Math.floor(Date.now() / 1000);
 
-        streamifier.createReadStream(req.file.buffer).pipe(result);
+        // Generate signature
+        const signature = cloudinary.v2.utils.api_sign_request({
+            public_id: videoId,
+            timestamp,
+            folder: "videos",
+            type: "private"
+        }, CLOUDINARY_API_SECRET);
+
+        return res.status(201).json({
+            signature,
+            timestamp,
+            cloudName: CLOUDINARY_CLOUD_NAME,
+            apiKey: CLOUDINARY_API_KEY,
+            publicId: videoId
+        });
     } catch (e) {
         // Schema validations
         if (e.name == "ValidationError") {

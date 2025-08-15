@@ -15,10 +15,14 @@ export const SIGHTENGINE_API_SECRET = process.env.SIGHTENGINE_API_SECRET;
 
 import cloudinary from "cloudinary";
 
+export const CLOUDINARY_CLOUD_NAME = "dbxhjyaiv";
+export const CLOUDINARY_API_KEY = "167147264937737";
+export const CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET;
+
 cloudinary.config({
-  cloud_name: "dbxhjyaiv",
-  api_key: "167147264937737",
-  api_secret: process.env.CLOUDINARY_API_SECRET
+  cloud_name: CLOUDINARY_CLOUD_NAME,
+  api_key: CLOUDINARY_API_KEY,
+  api_secret: CLOUDINARY_API_SECRET
 });
 
 export { cloudinary };

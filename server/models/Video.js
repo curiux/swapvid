@@ -30,8 +30,6 @@ const { Schema, model } = mongoose;
  * - createThumbnail(): Generates a secure Cloudinary URL for a video thumbnail (jpg).
  * - createSecureUrl(): Generates a secure Cloudinary URL for streaming the video (m3u8).
  * - createPreviewUrl(): Generates a secure Cloudinary URL for a preview segment of the video (m3u8).
- * - addDuration(): Fetches video metadata from Cloudinary to get the duration in seconds,
- *   updates the video document's duration field, and saves the changes.
  */
 
 const videoSchema = new Schema({
@@ -143,23 +141,6 @@ videoSchema.methods.createPreviewUrl = async function () {
         duration
     });
 }
-
-videoSchema.methods.addDuration = async function () {
-    const publicId = `videos/${String(this._id)}`;
-
-    const result = await cloudinary.v2.api.resource(publicId, {
-        resource_type: "video",
-        type: "private",
-        media_metadata: true
-    });
-
-    if (result.duration) {
-        this.duration = result.duration;
-        await this.save();
-    }
-
-    return this;
-};
 
 const Video = model("Video", videoSchema);
 export default Video;

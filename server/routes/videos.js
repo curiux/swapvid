@@ -383,6 +383,36 @@ router.post("/:id/report", auth, async (req, res) => {
 });
 
 /**
+ * POST /upload
+ * Finalizes the video upload process and performs content validation.
+ * - Receives video metadata from the client after a successful upload to Cloudinary (public_id, duration, URL).
+ * - Extracts the video ID from the Cloudinary public_id and updates the corresponding Video document with the duration.
+ * - If the video is not already marked as sensitive, sends the video URL to Sightengine for content moderation.
+ * - Responds with 204 No Content on success.
+ * - Returns 500 for unexpected errors and logs them.
+ */
+router.post("/upload", async (req, res) => {
+    try {
+        const videoId = req.body.public_id.split("videos/")[1];
+        const duration = req.body.duration;
+        const video = await Video.findById(videoId);
+        if (!video) return;
+
+        video.duration = duration;
+        await video.save();
+
+        if (!video.isSensitiveContent) await sightEngineValidation(req.body.url);
+
+        res.status(204).send();
+    } catch (e) {
+        console.log(e);
+        res.status(500).send({
+            error: "Ha ocurrido un error inesperado"
+        });
+    }
+});
+
+/**
  * Handles callbacks from the Sightengine API for video content moderation.
  *
  * - Receives POST requests from Sightengine when video analysis is finished.

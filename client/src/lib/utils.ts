@@ -100,3 +100,37 @@ export function formatBytes(bytes: number): string {
 
     return `${Math.round(value)} ${units[i]}`;
 }
+
+/**
+ * Calculates the SHA-256 hash of a given file.
+ * - Reads the file as an ArrayBuffer.
+ * - Uses the SubtleCrypto API to generate a hash.
+ * - Returns the hash as a hexadecimal string.
+ */
+export async function calculateHash(file: File) {
+    const arrayBuffer = await file.arrayBuffer();
+    const hashBuffer = await crypto.subtle.digest("SHA-256", arrayBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+    return hashHex;
+}
+
+/**
+ * Formats a duration in seconds into a human-readable string.
+ * - Returns H:MM:SS format if the duration is 1 hour or more.
+ * - Returns M:SS format if the duration is less than 1 hour.
+ * - Pads minutes and seconds with leading zeros when needed.
+ */
+export function formatDuration(seconds: number): string {
+    const hrs = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    const secs = Math.floor(seconds % 60);
+
+    if (hrs > 0) {
+        // H:MM:SS format
+        return `${hrs}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+    } else {
+        // M:SS format
+        return `${mins}:${secs.toString().padStart(2, "0")}`;
+    }
+}

@@ -1,7 +1,7 @@
 import VideoActions from "@/components/video/video-actions";
 import VideoPlayer from "@/components/video/video-player";
 import { useVideoStore } from "@/lib/store";
-import { API_URL, timeAgo, videoCategories } from "@/lib/utils";
+import { API_URL, formatDuration, timeAgo, videoCategories } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router";
 import type { Video as VideoType } from "@/lib/types";
@@ -86,9 +86,12 @@ export default function Video() {
                 <div>
                     <VideoPlayer />
                     {!videoData.isOwner && (
-                        <p className="mt-2 text-xs text-muted-foreground text-center font-semibold">
-                            Vista previa. El video completo estará disponible tras el intercambio
-                        </p>
+                        <div className="flex items-start justify-between gap-4 mt-2">
+                            <p className="text-xs text-muted-foreground font-semibold">
+                                Vista previa. El video completo estará disponible tras el intercambio
+                            </p>
+                            <p className="text-xs font-semibold">{formatDuration(videoData.duration)}</p>
+                        </div>
                     )}
                 </div>
                 <div className="flex flex-col p-4">

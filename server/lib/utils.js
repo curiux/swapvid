@@ -4,8 +4,6 @@ const storage = multer.memoryStorage();
 export const upload = multer({ storage });
 
 import { API_HOST, HOST, isProduction, MAILGUN_API_KEY, MAILGUN_DOMAIN, MP_ACCESS_TOKEN, SIGHTENGINE_API_SECRET, TEST_EMAIL } from "../config.js";
-import { Readable } from "stream";
-import axios from "axios";
 import crypto from "crypto";
 import FormData from "form-data";
 import Mailgun from "mailgun.js";
@@ -17,41 +15,31 @@ import Rating from "../models/Rating.js";
 import User from "../models/User.js";
 import Exchange from "../models/Exchange.js";
 import VideoView from "../models/VideoView.js";
+import SightEngine from "sightengine";
+
+const sightengine = SightEngine("54483249", SIGHTENGINE_API_SECRET);
+const models = [
+    "nudity-2.1",
+    "weapon",
+    "recreational_drug",
+    "medical",
+    "gore-2.0",
+    "self-harm",
+    "violence"
+];
 
 /**
- * Handles video content moderation using the Sightengine API.
- * Sends the uploaded video buffer for analysis (nudity, weapons, drugs, medical, gore, self-harm, violence).
- * Sets up callback for asynchronous moderation results.
- * Logs any errors from the API.
+ * Validates a video URL for inappropriate content using SightEngine API.
+ * - Checks for nudity, weapons, drugs, medical content, gore, self-harm, and violence.
+ * - Sends a callback to the server endpoint for further processing.
  *
- * @param {Buffer} buffer - The video file buffer to analyze.
- * @param {string} videoId - The unique video ID for naming and callback reference.
+ * @param {string} videoUrl - The URL of the video to be validated.
+ * @returns {Promise<void>}
  */
-export function sightEngineValidation(buffer, videoId) {
-    const stream = Readable.from(buffer);
-
-    const data = new FormData();
-    data.append("media", stream, {
-        filename: `${videoId}.mp4`,
-        contentType: "video/mp4"
-    });
-    // models to apply
-    data.append("models", "nudity-2.1,weapon,recreational_drug,medical,gore-2.0,self-harm,violence");
-    data.append("callback_url", API_HOST + "/videos/sightengine");
-    data.append("api_user", "54483249");
-    data.append("api_secret", SIGHTENGINE_API_SECRET);
-
-    axios({
-        method: "post",
-        url: "https://api.sightengine.com/1.0/video/check.json",
-        data: data,
-        headers: data.getHeaders()
-    })
-        .catch(function (error) {
-            // handle error
-            if (error.response) console.log(error.response.data);
-            else console.log(error.message);
-        });
+export async function sightEngineValidation(videoUrl) {
+    await sightengine
+        .check(models)
+        .video(videoUrl, API_HOST + "/videos/sightengine");
 }
 
 /**
@@ -269,18 +257,6 @@ export function formatBytes(bytes) {
     }
 
     return `${Math.round(value)} ${units[i]}`;
-}
-
-/**
- * Finds the video by ID and triggers the instance method to fetch and update its duration.
- * The actual update is done inside the Video model's `addDuration` method.
- *
- * @param {string} videoId - The ID of the video to update duration for.
- * @returns {Promise<void>}
- */
-export async function addDuration(videoId) {
-    const video = await Video.findById(videoId);
-    if (video) await video.addDuration();
 }
 
 /**

@@ -1,6 +1,6 @@
 import type { Video } from "@/lib/types";
 import Pagination from "../pagination";
-import { API_URL, timeAgo } from "@/lib/utils";
+import { API_URL, formatDuration, timeAgo } from "@/lib/utils";
 import { Link, useNavigate } from "react-router";
 import { useEffect, useState } from "react";
 import Spinner from "../spinner";
@@ -8,11 +8,12 @@ import { EmptyStar, FullStar, HalfStar } from "../exchange/exchange-rating-form"
 
 /**
  * SearchVideoList component
- * - Fetches and displays a paginated list of videos based on search filters and query parameters from the URL.
- * - Constructs the query string from category, order, sensitive content, and page parameters.
- * - Handles loading state, error navigation, and updates pagination.
- * - Uses the VideoItem component to render each video card.
- * - Displays a spinner while loading and a message if no videos are found.
+ * - Fetches and displays a list of videos matching search keywords and filters from the URL.
+ * - Parses query parameters for search term, category, order, sensitive content, and page.
+ * - Builds the query string and requests results from the backend API.
+ * - Handles loading state, API errors, and pagination updates on parameter changes.
+ * - Uses the VideoItem component to render video cards and Pagination for navigation.
+ * - Shows a spinner while loading and a message when no videos are found.
  */
 export default function SearchVideoList() {
     const navigate = useNavigate();
@@ -91,12 +92,18 @@ function VideoItem({ video }: { video: Video }) {
             className="flex flex-col overflow-clip rounded-xl border border-border
             transition-transform duration-200 hover:scale-[1.02] hover:shadow-sm"
         >
-            <div>
+            <div className="relative">
                 <img
                     src={video.thumbnail}
                     alt={video.title}
                     className="aspect-16/9 h-full w-full object-cover object-center"
                 />
+                <span
+                    className="absolute bottom-1 right-1 bg-black/75 text-white
+            text-xs font-medium px-1.5 py-0.5 rounded"
+                >
+                    {formatDuration(video.duration)}
+                </span>
             </div>
             <div className="p-3">
                 <div className="flex flex-col justify-between md:flex-row md:items-end md:gap-2">
@@ -104,7 +111,7 @@ function VideoItem({ video }: { video: Video }) {
                         {video.title}
                     </h3>
                     <div className="flex items-center gap-1">
-                        <StarRating rating={video.rating!.value}/>
+                        <StarRating rating={video.rating!.value} />
                         <p className="text-xs">({video.rating!.count.toLocaleString()})</p>
                     </div>
                 </div>
@@ -120,17 +127,17 @@ function VideoItem({ video }: { video: Video }) {
 }
 
 function StarRating({ rating }: { rating: number }) {
-  return (
-    <div className="flex items-center gap-1 w-18">
-      {[1, 2, 3, 4, 5].map((i) =>
-        rating >= i ? (
-          <FullStar key={i} />
-        ) : rating >= i - 0.5 ? (
-          <HalfStar key={i} />
-        ) : (
-          <EmptyStar key={i} />
-        )
-      )}
-    </div>
-  );
+    return (
+        <div className="flex items-center gap-1 w-18">
+            {[1, 2, 3, 4, 5].map((i) =>
+                rating >= i ? (
+                    <FullStar key={i} />
+                ) : rating >= i - 0.5 ? (
+                    <HalfStar key={i} />
+                ) : (
+                    <EmptyStar key={i} />
+                )
+            )}
+        </div>
+    );
 }
