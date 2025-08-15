@@ -286,11 +286,7 @@ router.patch("/:id", auth, async (req, res) => {
                         format: "mp4",
                         sign_url: true
                     });
-                    const response = await axios.get(url, {
-                        responseType: "arraybuffer",
-                    });
-                    const buffer = Buffer.from(response.data);
-                    sightEngineValidation(buffer, String(video._id));
+                    await sightEngineValidation(url);
                 }
             }
 
