@@ -14,6 +14,7 @@ const { Schema, model } = mongoose;
  * - description: Required, trimmed, 10-500 characters.
  * - category: Required, trimmed, lowercase, must be one of the allowed categories.
  * - keywords: Array of keywords, each 2-20 characters, at least one required.
+ *             Only letters, numbers, spaces, accents, and ñ are allowed.
  * - users: Array of references to User documents.
  * - uploadedDate: Date the video was uploaded (default: now).
  * - hash: String hash of the video file.
@@ -61,7 +62,8 @@ const videoSchema = new Schema({
         type: [{
             type: String,
             minlength: [2, "Cada palabra clave debe tener al menos 2 caracteres."],
-            maxlength: [20, "Cada palabra clave no debe superar los 20 caracteres."]
+            maxlength: [20, "Cada palabra clave no debe superar los 20 caracteres."],
+            match: [/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ ]+$/, "Cada palabra clave solo puede contener letras, números y espacios."]
         }],
         validate: {
             validator: function (arr) {
