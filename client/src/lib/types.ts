@@ -8,7 +8,7 @@ export interface Video {
     uploadedDate: Date;
     thumbnail: string;
     user: string;
-    duration: number;
+    duration?: number;
     isOwner?: boolean;
     url?: string;
     hasRequested?: boolean;
