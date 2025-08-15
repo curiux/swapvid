@@ -29,8 +29,8 @@
  * POST /me/videos:
  *   - Fails if token is missing.
  *   - Fails if token is invalid.
- *   - Fails if video file is missing.
- *   - Successful upload with valid data (cloudinary mock).
+ *   - Fails if video information is missing.
+ *   - Successful upload with valid data.
  *
  * GET /me/videos:
  *   - Successful retrieval of user videos with a valid token.
@@ -86,11 +86,8 @@ beforeAll(async () => {
     cloudinary = (await import("../config.js")).cloudinary;
     cloudinary.v2 = {
         url: vi.fn(() => "mocked-thumbnail-url"),
-        uploader: {
-            upload_stream: vi.fn((opts, cb) => {
-                cb(null, { secure_url: "http://cloudinary.com/video.mp4" });
-                return { end: () => { } };
-            })
+        utils: {
+            api_sign_request: vi.fn(() => "mocksignature")
         }
     };
     mongoServer = await MongoMemoryServer.create();
@@ -334,12 +331,15 @@ describe("POST /me/videos", () => {
     it("debería fallar si falta el token", async () => {
         const res = await request(app)
             .post("/users/me/videos")
-            .attach("video", Buffer.from("dummy"), "video.mp4")
-            .field("title", "Mi video")
-            .field("description", "Descripción de prueba")
-            .field("category", "entertainment")
-            .field("keywords", JSON.stringify(["prueba"]))
-            .field("sensitiveContent", false);
+            .send({
+                title: "Mi video",
+                description: "Descripción de prueba",
+                category: "entertainment",
+                keywords: JSON.stringify(["prueba"]),
+                isSensitiveContent: JSON.stringify(false),
+                hash: "hashdummy",
+                size: 12345
+            });
         expect(res.statusCode).toBe(401);
         expect(res.body.error).toBeDefined();
     });
@@ -347,42 +347,51 @@ describe("POST /me/videos", () => {
     it("debería fallar si el token es inválido", async () => {
         const res = await request(app)
             .post("/users/me/videos")
-            .set("Authorization", "Bearer tokeninvalido")
-            .attach("video", Buffer.from("dummy"), "video.mp4")
-            .field("title", "Mi video")
-            .field("description", "Descripción de prueba")
-            .field("category", "entertainment")
-            .field("keywords", JSON.stringify(["prueba"]))
-            .field("sensitiveContent", false);
+            .set("Authorization", `Bearer 123`)
+            .send({
+                title: "Mi video",
+                description: "Descripción de prueba",
+                category: "entertainment",
+                keywords: JSON.stringify(["prueba"]),
+                isSensitiveContent: JSON.stringify(false),
+                hash: "hashdummy",
+                size: 12345
+            });
         expect(res.statusCode).toBe(401);
         expect(res.body.error).toBeDefined();
     });
 
-    it("debería fallar si falta el archivo de video", async () => {
+    it("debería fallar si falta información del video", async () => {
         const res = await request(app)
             .post("/users/me/videos")
             .set("Authorization", `Bearer ${token}`)
-            .field("title", "Mi video")
-            .field("description", "Descripción de prueba")
-            .field("category", "entertainment")
-            .field("keywords", JSON.stringify(["prueba"]))
-            .field("sensitiveContent", false);
+            .send({
+                description: "Descripción de prueba",
+                category: "entertainment",
+                keywords: JSON.stringify(["prueba"]),
+                isSensitiveContent: JSON.stringify(false),
+                hash: "hashdummy",
+                size: 12345
+            });
         expect(res.statusCode).toBe(400);
-        expect(res.body.error).toMatch(/video/i);
+        expect(res.body.error).toMatch(/título/i);
     });
 
-    // You may want to mock cloudinary and sightengine for this test in a real scenario
     it("debería subir el video correctamente con datos válidos", async () => {
         const res = await request(app)
             .post("/users/me/videos")
             .set("Authorization", `Bearer ${token}`)
-            .attach("video", Buffer.from("dummy"), "video.mp4")
-            .field("title", "Mi video")
-            .field("description", "Descripción de prueba")
-            .field("category", "entertainment")
-            .field("keywords", JSON.stringify(["prueba"]))
-            .field("sensitiveContent", false);
-        expect([201, 500]).toContain(res.statusCode); // Accept 500 if sightengine or cloudinary is not fully mocked
+            .send({
+                title: "Mi video",
+                description: "Descripción de prueba",
+                category: "entertainment",
+                keywords: JSON.stringify(["prueba"]),
+                isSensitiveContent: JSON.stringify(false),
+                hash: "hashdummy",
+                size: 12345
+            });
+        expect(res.statusCode).toBe(201);
+        expect(res.body).toHaveProperty("signature");
     });
 });
 

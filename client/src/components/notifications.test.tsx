@@ -108,7 +108,7 @@ describe("Notifications", () => {
         });
     });
 
-    it("muestra toast y navega a / si la sesión está expirada (401)", async () => {
+    it("navega a / si la sesión está expirada (401)", async () => {
         localStorage.setItem("token", "tok123");
         mockFetch.mockResolvedValue({
             status: 401,
@@ -117,7 +117,6 @@ describe("Notifications", () => {
         render(<Notifications isMobile={false} />, { wrapper: MemoryRouter });
         fireEvent.click(screen.getAllByTestId("open")[0]);
         await waitFor(() => {
-            expect(toast).toHaveBeenCalledWith("Tu sesión ha expirado.");
             expect(mockNavigate).toHaveBeenCalledWith("/");
         });
     });

@@ -20,6 +20,15 @@ vi.mock("video.js", () => ({
     default: vi.fn(() => ({ src: vi.fn(), dispose: vi.fn() }))
 }));
 
+// Mock calculateHash
+vi.mock("@/lib/utils", async () => {
+    const mod = await vi.importActual("@/lib/utils");
+    return {
+        ...mod,
+        calculateHash: vi.fn(() => Promise.resolve("fake-hash"))
+    };
+});
+
 // Mock useNavigate
 const mockNavigate = vi.fn();
 vi.mock("react-router", async () => {
@@ -63,24 +72,24 @@ beforeEach(() => {
 
 // Mock Select to a native select for reliable testing
 vi.mock("../ui/select", () => {
-  return {
-    Select: ({ onValueChange, children, ...props }: any) => (
-      <select
-        data-testid="category-select"
-        id="category"
-        onChange={e => onValueChange && onValueChange(e.target.value)}
-        {...props}
-      >
-        <option value="">Selecciona una categoría</option>
-        <option value="entertainment">Entretenimiento</option>
-        <option value="education">Educación</option>
-      </select>
-    ),
-    SelectContent: ({ children }: any) => <>{children}</>,
-    SelectItem: ({ value, children }: any) => <option value={value}>{children}</option>,
-    SelectTrigger: ({ children }: any) => <>{children}</>,
-    SelectValue: ({ placeholder }: any) => <option value="">{placeholder}</option>,
-  };
+    return {
+        Select: ({ onValueChange, children, ...props }: any) => (
+            <select
+                data-testid="category-select"
+                id="category"
+                onChange={e => onValueChange && onValueChange(e.target.value)}
+                {...props}
+            >
+                <option value="">Selecciona una categoría</option>
+                <option value="entertainment">Entretenimiento</option>
+                <option value="education">Educación</option>
+            </select>
+        ),
+        SelectContent: ({ children }: any) => <>{children}</>,
+        SelectItem: ({ value, children }: any) => <option value={value}>{children}</option>,
+        SelectTrigger: ({ children }: any) => <>{children}</>,
+        SelectValue: ({ placeholder }: any) => <option value="">{placeholder}</option>,
+    };
 });
 
 describe("VideoUploadForm", () => {
@@ -115,6 +124,19 @@ describe("VideoUploadForm", () => {
     });
 
     it("envía los datos correctamente y redirige a la página de cuenta", async () => {
+        global.fetch = vi.fn(() =>
+            Promise.resolve({
+                status: 201,
+                json: () => Promise.resolve({
+                    signature: "fake-signature",
+                    timestamp: "1234567890",
+                    cloudName: "fake-cloud",
+                    apiKey: "fake-api-key",
+                    publicId: "fake-public-id"
+                }),
+            } as any)
+        );
+
         // Mock axios
         const axios = await import("axios");
         (axios.default.post as any) = vi.fn().mockResolvedValue({});
@@ -142,11 +164,13 @@ describe("VideoUploadForm", () => {
     });
 
     it("muestra errores del backend", async () => {
-        const axios = await import("axios");
-        (axios.default.post as any) = vi.fn().mockRejectedValue({
-            name: "AxiosError",
-            response: { data: { error: "Error del backend" } }
-        });
+        global.fetch = vi.fn(() =>
+            Promise.resolve({
+                status: 400,
+                json: () => Promise.resolve({ error: "Error del backend" }),
+            } as any)
+        );
+
         localStorage.setItem("token", "fake-token");
         render(<VideoUploadForm plan="basic" />, { wrapper: MemoryRouter });
         fireEvent.change(screen.getByLabelText(/archivo de video/i), {

@@ -243,7 +243,7 @@ router.patch("/:id", auth, async (req, res) => {
         }
 
         const exchangesCount = await getMonthlyExchangeCount(user._id);
-        const { plan } = await validateSubscription(user._id);
+        const { plan } = await validateSubscription(user);
 
         if (exchangesCount >= plan.exchangeLimit && plan.exchangeLimit != 0) {
             return res.status(400).send({ error: `Has alcanzado el máximo de ${plan.exchangeLimit} intercambios este mes permitidos para tu plan ${plans[plan.name]}.` });

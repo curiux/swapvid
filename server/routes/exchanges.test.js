@@ -412,6 +412,7 @@ describe("PATCH /exchanges/:id", () => {
             duration: 100
         });
         await User.findByIdAndUpdate(initiatorId, { $push: { videos: initiatorVideo._id } });
+        responderToken = generateToken({ _id: responderId });
         const res = await request(app)
             .patch(`/exchanges/${exchangeId}`)
             .set("Authorization", `Bearer ${responderToken}`)
