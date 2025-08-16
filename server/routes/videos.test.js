@@ -418,7 +418,7 @@ describe("POST /videos/sightengine", () => {
                     status: "finished",
                     frames: [
                         {
-                            nudity: { sexual_activity: 0.1, sexual_display: 0, erotica: 0 },
+                            nudity: { sexual_activity: 0.3, sexual_display: 0, erotica: 0 },
                             weapon: { classes: { weapon: 0 } },
                             recreational_drug: { prob: 0 },
                             medical: { prob: 0 },
@@ -428,7 +428,7 @@ describe("POST /videos/sightengine", () => {
                         }
                     ]
                 },
-                media: { uri: video._id + ".mp4" }
+                media: { uri: "https://res.cloudinary.com/videos/" + video._id + ".mp4" }
             });
         expect(res.statusCode).toBe(204);
         const updated = await Video.findById(video._id);
