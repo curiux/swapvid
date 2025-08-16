@@ -5,7 +5,6 @@ import auth from "../middleware/auth.js";
 import { cloudinary } from "../config.js";
 import { ITEMS_PER_PAGE } from "../lib/constants.js";
 import { addVideoView, cancelPendingExchanges, sightEngineValidation } from "../lib/utils.js";
-import axios from "axios";
 import Exchange from "../models/Exchange.js";
 import { verifyToken } from "../lib/jwt.js";
 import Report from "../models/Report.js";
@@ -47,13 +46,15 @@ router.get("/", async (req, res) => {
         }
         if (!sensitiveContent) filters.isSensitiveContent = false;
 
-        const sortOrder = req.query.order === "newFirst" ? -1 : 1;
+        const sortOrder = req.query.order
+            ? (req.query.order === "newFirst" ? { uploadedDate: -1 } : { uploadedDate: 1 })
+            : { "rating.value": -1, "rating.count": -1 };
 
         const videosCount = await Video.countDocuments(filters);
         const totalPages = Math.ceil(videosCount / limit);
 
         const pageVideos = await Video.find(filters)
-            .sort({ "rating.value": -1, "rating.count": -1, uploadedDate: sortOrder })
+            .sort(sortOrder)
             .skip(skip)
             .limit(limit);
 
