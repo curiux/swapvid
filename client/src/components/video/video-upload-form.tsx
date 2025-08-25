@@ -56,7 +56,7 @@ export function createFormSchema(plan: keyof typeof MAX_FILE_SIZE_BY_PLAN) {
             .refine(file => file.size <= maxSize, {
                 message: `El archivo debe pesar menos de ${formatBytes(maxSize)}.`
             })
-            .refine(file => ["video/mp4", "video/webm", "video/ogg", "video/quicktime"].includes(file.type), {
+            .refine(file => ["video/mp4", "video/webm"].includes(file.type), {
                 message: "Formato no soportado."
             })
     });
@@ -100,6 +100,7 @@ export default function VideoUploadForm({ plan }: { plan: keyof typeof MAX_FILE_
         const ext = file.name.split(".").pop()?.toLowerCase();
 
         let type = "";
+        console.log(ext)
         switch (ext) {
             case "mp4":
                 type = "video/mp4";
@@ -107,14 +108,8 @@ export default function VideoUploadForm({ plan }: { plan: keyof typeof MAX_FILE_
             case "webm":
                 type = "video/webm";
                 break;
-            case "ogg":
-                type = "video/ogg";
-                break;
-            case "mov":
-                type = "video/quicktime";
-                break;
             default:
-                type = "video/mp4"; // fallback
+                return;
         }
 
         setSrc({ src: fileURL, type });
@@ -262,7 +257,7 @@ export default function VideoUploadForm({ plan }: { plan: keyof typeof MAX_FILE_
                                         </div>
                                     </FormControl>
                                     <FormDescription className="text-xs">
-                                        Por favor, sube un archivo de video con alguna de estas extensiones: .mp4, .webm, .ogg, .mov.
+                                        Por favor, sube un archivo de video con extensión .mp4 o .webm.
                                     </FormDescription>
                                     <FormDescription className="text-xs">
                                         El tamaño máximo permitido es de {formatBytes(MAX_FILE_SIZE_BY_PLAN[plan])}.
